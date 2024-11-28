@@ -1,6 +1,7 @@
 package com.candra.chillivision.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -9,13 +10,14 @@ import com.candra.chillivision.ui.pages.login.LoginScreen
 import com.candra.chillivision.ui.pages.profile.ProfileScreen
 import com.candra.chillivision.ui.pages.register.RegisterScreen
 import com.candra.chillivision.ui.pages.scan.ScanScreen
+import com.candra.chillivision.ui.pages.welcome.WelcomeScreen
 
 // Mengatur Semua Navigasi
 @Composable
-fun Navigation() {
+fun Navigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    NavHost(navController = navController, startDestination = Screen.Welcome.route) {
         composable(route = Screen.Login.route) {
             LoginScreen()
         }
@@ -30,6 +32,9 @@ fun Navigation() {
         }
         composable(route = Screen.Profile.route) {
             ProfileScreen()
+        }
+        composable(route = Screen.Welcome.route) {
+            WelcomeScreen(modifier)
         }
     }
 }

@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.candra.chillivision"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.candra.chillivision"

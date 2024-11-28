@@ -14,4 +14,7 @@ sealed class Screen(val route : String)
 
     // Register
     data object Register : Screen("register")
+
+    // Welcome
+    data object Welcome : Screen("welcome")
 }

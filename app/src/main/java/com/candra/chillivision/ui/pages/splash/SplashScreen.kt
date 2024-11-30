@@ -75,7 +75,7 @@ class SplashScreen : ComponentActivity() {
                 painter = painterResource(id = R.drawable.logo_255),
                 contentDescription = "Logo ${R.string.app_name}",
                 modifier = modifier
-                    .size(200.dp)
+                    .size(150.dp)
                     .align(Alignment.Center)
             )
 
@@ -88,7 +88,7 @@ class SplashScreen : ComponentActivity() {
             {
                 Text(
                     text = "Chilli Vision", style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp,
+                        fontSize = 12.sp,
                         fontFamily = FontFamily(Font(R.font.quicksand_semibold)),
                         color = White, textAlign = TextAlign.Center
                     ), modifier = modifier.fillMaxWidth()
@@ -96,7 +96,7 @@ class SplashScreen : ComponentActivity() {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Candra - Informatics", style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp,
+                        fontSize = 12.sp,
                         fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                         fontWeight = FontWeight.Bold,
                         color = White,

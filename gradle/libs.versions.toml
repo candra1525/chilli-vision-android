@@ -20,6 +20,7 @@ glideVersion = "4.16.0"
 sweetalertVersion = "1.6.2"
 lottieVersion = "6.2.0"
 kotlin-parcelize-version = "2.1.0"
+navigationAnimation = "0.36.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -77,6 +78,9 @@ lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottieV
 # Sweet Alert
 sweet-alert = { group = "com.github.f0ris.sweetalert", name = "library", version.ref = "sweetalertVersion"}
 
+# Navigation Animation
+nav-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "navigationAnimation" }
+
 
 
 [plugins]
@@ -85,5 +89,4 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 
 # Parcelize
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin-parcelize-version" }
-
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

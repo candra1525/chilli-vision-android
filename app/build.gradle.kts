@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.swipe.to.refresh)
     implementation(libs.lottie)
     implementation(libs.sweet.alert)
+    implementation(libs.nav.animation)
 
 //    implementation(libs.viewmodel.compose)
 //    implementation(libs.lifecycle.extensions)

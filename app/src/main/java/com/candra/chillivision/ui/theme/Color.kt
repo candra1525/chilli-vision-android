@@ -12,3 +12,8 @@ val Pink40 = Color(0xFF7D5260)
 
 val PrimaryGreen = Color(0xFF28B446)
 val White = Color(0xFFFFFFFF)
+
+val GreenSoft = Color(0xFFF1FDEF)
+
+val BlackMode = Color(0xFF101114)
+val WhiteSoft = Color(0xD0FFFFFF)

@@ -5,6 +5,7 @@ package com.candra.chillivision.ui.navigation
 sealed class Screen(val route : String)
 {
     data object Home : Screen("home")
+    data object Langganan : Screen("langganan")
     data object Scan : Screen("scan")
     data object Profile : Screen("profile")
     data object History : Screen("history")

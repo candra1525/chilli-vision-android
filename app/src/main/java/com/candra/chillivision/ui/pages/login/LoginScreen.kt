@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.HeaderComponentLoginRegister
+import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -208,13 +209,7 @@ fun FormLogin(
 
         Button(
             onClick = {
-                login(
-                    viewModel = viewModel,
-                    no_handphone = textNoHandphone,
-                    lifecycleOwner = context as LifecycleOwner,
-                    password = textPassword,
-                    navController = navController
-                )
+                validationLogin(textNoHandphone, textPassword, context, viewModel, navController)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -258,6 +253,28 @@ private fun Catatan(modifier: Modifier = Modifier) {
     }
 }
 
+private fun validationLogin(
+    no_handphone: String,
+    password: String,
+    context: Context,
+    viewModel: LoginScreenViewModel,
+    navController: NavController
+) {
+    if (no_handphone.isEmpty()) {
+        SweetAlertComponent(context, "Peringatan", "No Handphone tidak boleh kosong", "warning")
+    } else if (password.isEmpty()) {
+        SweetAlertComponent(context, "Peringatan", "Password tidak boleh kosong", "warning")
+    } else {
+        login(
+            viewModel = viewModel,
+            no_handphone = no_handphone,
+            lifecycleOwner = context as LifecycleOwner,
+            password = password,
+            navController = navController
+        )
+    }
+}
+
 
 private fun login(
     viewModel: LoginScreenViewModel,
@@ -275,15 +292,18 @@ private fun login(
 
                 is Result.Success -> {
                     Log.d("LoginScreen", "login: ${result.data}")
+                    SweetAlertComponent(lifecycleOwner as Context, "Berhasil", "Hai, ${result.data.data?.fullname},  Anda berhasil Masuk", "success")
                     navController.navigate("home")
                 }
 
                 is Result.Error -> {
                     Log.e("LoginScreen", "login: ${result}")
+                    SweetAlertComponent(lifecycleOwner as Context, "Gagal", "Mohon maaf anda gagal masuk, silahkan pastikan no handphone dan password benar", "error")
                 }
 
                 else -> {
                     Log.e("LoginScreen", "error: ${result}")
+                    SweetAlertComponent(lifecycleOwner as Context, "Kesalahan", "Mohon maaf sepertinya ada kesalahan sistem. Mohon ulangi beberapa saat lagi...", "error")
 
                 }
             }

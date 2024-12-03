@@ -1,5 +1,6 @@
 package com.candra.chillivision.ui.pages.register
 
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,15 +41,29 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.HeaderComponentLoginRegister
+import com.candra.chillivision.component.SweetAlertComponent
+import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
 
 @Composable
-fun RegisterScreen(modifier: Modifier = Modifier, navController: NavController) {
+fun RegisterScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    viewModel: RegisterScreenViewModel = viewModel(
+        factory = ViewModelFactory.getInstance(
+            LocalContext.current
+        )
+    )
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+
 
     Box(
         modifier = Modifier
@@ -62,7 +77,7 @@ fun RegisterScreen(modifier: Modifier = Modifier, navController: NavController) 
             // Title
             TitleRegister(modifier)
             // Form
-            FormRegister(modifier)
+            FormRegister(modifier, viewModel, context, navController)
 
         }
     }
@@ -72,8 +87,7 @@ fun RegisterScreen(modifier: Modifier = Modifier, navController: NavController) 
 @Composable
 private fun TitleRegister(modifier: Modifier = Modifier) {
     Spacer(modifier = Modifier.height(16.dp))
-    Column(modifier = Modifier.padding(horizontal = 32.dp))
-    {
+    Column(modifier = Modifier.padding(horizontal = 32.dp)) {
         Text(
             text = "Daftar", modifier = Modifier, style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 25.sp,
@@ -96,7 +110,12 @@ private fun TitleRegister(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun FormRegister(modifier: Modifier = Modifier) {
+private fun FormRegister(
+    modifier: Modifier = Modifier,
+    viewModel: RegisterScreenViewModel,
+    context: Context,
+    navController: NavController
+) {
     var textFullname by remember {
         mutableStateOf("")
     }
@@ -115,6 +134,14 @@ private fun FormRegister(modifier: Modifier = Modifier) {
 
     var textKonfirmasiPassword by remember {
         mutableStateOf("")
+    }
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
+    var isChecked by remember {
+        mutableStateOf(false)
     }
 
     Column(modifier = modifier.padding(horizontal = 32.dp)) {
@@ -144,6 +171,7 @@ private fun FormRegister(modifier: Modifier = Modifier) {
                     )
                 )
             },
+            isError = textFullname.isBlank(),
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
@@ -187,6 +215,7 @@ private fun FormRegister(modifier: Modifier = Modifier) {
                     )
                 )
             },
+            isError = textNoHandphone.isBlank(),
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
@@ -205,7 +234,9 @@ private fun FormRegister(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Alamat Email", modifier = Modifier, style = MaterialTheme.typography.bodyMedium.copy(
+            text = "Alamat Email",
+            modifier = Modifier,
+            style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 12.sp,
                 color = PrimaryGreen,
                 fontWeight = FontWeight.Bold,
@@ -228,6 +259,7 @@ private fun FormRegister(modifier: Modifier = Modifier) {
                     )
                 )
             },
+            isError = textEmail.isBlank(),
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email, imeAction = ImeAction.Done
@@ -271,6 +303,7 @@ private fun FormRegister(modifier: Modifier = Modifier) {
                     )
                 )
             },
+            isError = textPassword.isBlank(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
@@ -314,6 +347,7 @@ private fun FormRegister(modifier: Modifier = Modifier) {
                     )
                 )
             },
+            isError = textKonfirmasiPassword.isBlank(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
@@ -331,33 +365,52 @@ private fun FormRegister(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        SyaratKetentuan()
+        SyaratKetentuan(isChecked = isChecked, onCheckedChange = { isChecked = it })
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
             onClick = {
-                /*TODO: Handle Register*/
+                validationRegister(
+                    viewModel = viewModel,
+                    fullname = textFullname.trim(),
+                    email = textEmail.trim(),
+                    no_handphone = textNoHandphone.trim(),
+                    password = textPassword.trim(),
+                    confirmPassword = textKonfirmasiPassword.trim(),
+                    isChecked = isChecked,
+                    context = context,
+                    navController = navController,
+                ) { loading ->
+                    isLoading = loading
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp),
             shape = RoundedCornerShape(8.dp),
+            enabled = !isLoading,
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
         ) {
             Text(
-                text = "Lanjut", style = MaterialTheme.typography.bodyMedium.copy(
+                text = if (isLoading) "Memuat..." else "Lanjut",
+                style = MaterialTheme.typography.bodyMedium.copy(
                     fontSize = 12.sp,
                     fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                     textAlign = TextAlign.Center,
-                ), modifier = Modifier.fillMaxWidth()
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
 @Composable
-private fun SyaratKetentuan(modifier: Modifier = Modifier) {
+private fun SyaratKetentuan(
+    modifier: Modifier = Modifier,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
     Column(modifier = Modifier) {
         Text(
             text = "Catatan :", style = MaterialTheme.typography.bodyMedium.copy(
@@ -369,26 +422,23 @@ private fun SyaratKetentuan(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        CheckBox()
+        CheckBox(isChecked = isChecked, onCheckedChange = onCheckedChange)
     }
 }
 
 @Composable
-fun CheckBox() {
-    var isChecked by remember { mutableStateOf(false) }
-
+fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        verticalAlignment = Alignment.CenterVertically, modifier = Modifier
     ) {
         Checkbox(
             checked = isChecked,
-            onCheckedChange = { isChecked = it },
+            onCheckedChange = { onCheckedChange(it) },
             colors = CheckboxDefaults.colors(
                 checkedColor = PrimaryGreen,
                 uncheckedColor = Color.Gray,
                 checkmarkColor = Color.White
-            )
+            ),
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
@@ -402,3 +452,113 @@ fun CheckBox() {
     }
 }
 
+private fun validationRegister(
+    viewModel: RegisterScreenViewModel,
+    fullname: String,
+    email: String,
+    no_handphone: String,
+    password: String,
+    confirmPassword: String,
+    isChecked: Boolean,
+    navController: NavController,
+    context: Context,
+    onLoadingStateChanged: (Boolean) -> Unit
+) {
+    if (!isChecked) {
+        SweetAlertComponent(
+            context,
+            "Peringatan",
+            "Anda harus menyetujui Ketentuan Layanan dan Kebijakan Privasi untuk melanjutkan 😉",
+            "warning"
+        )
+        return
+    }
+
+    if (fullname.isEmpty() || no_handphone.isEmpty() || password.isEmpty()) {
+        SweetAlertComponent(
+            context,
+            "Peringatan",
+            "Nama Lengkap, No Handphone, dan Kata Sandi tidak boleh kosong",
+            "warning"
+        )
+    } else {
+        if (password.length < 6) {
+            SweetAlertComponent(
+                context, "Peringatan", "Kata Sandi minimal 6 karakter", "warning"
+            )
+        } else {
+            if (password != confirmPassword) {
+                SweetAlertComponent(
+                    context,
+                    "Peringatan",
+                    "Konfirmasi Kata Sandi tidak sama dengan Kata Sandi",
+                    "warning"
+                )
+            } else {
+                register(
+                    viewModel,
+                    fullname,
+                    email,
+                    no_handphone,
+                    password,
+                    context as LifecycleOwner,
+                    navController,
+                    onLoadingStateChanged
+                )
+            }
+        }
+    }
+
+}
+
+
+private fun register(
+    viewModel: RegisterScreenViewModel,
+    fullname: String,
+    email: String,
+    no_handphone: String,
+    password: String,
+    lifecycleOwner: LifecycleOwner,
+    navController: NavController,
+    onLoadingStateChanged: (Boolean) -> Unit
+) {
+    viewModel.setRegister(fullname, email, no_handphone, password)
+        .observe(lifecycleOwner) { result ->
+            if (result != null) {
+                when (result) {
+                    is Result.Loading -> {
+                        onLoadingStateChanged(true)
+                    }
+
+                    is Result.Success -> {
+                        onLoadingStateChanged(false)
+                        val fullname = result.data.data?.fullname
+
+                        if (fullname != null) {
+                            SweetAlertComponent(
+                                lifecycleOwner as Context,
+                                "Berhasil",
+                                "Akun ${fullname} berhasil didaftarkan. Silahkan masuk terlebih dahulu 😉",
+                                "success"
+                            )
+                            navController.navigate("login") {
+                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            }
+                        }
+                    }
+
+                    is Result.Error -> {
+                        onLoadingStateChanged(false)
+                        // Show Error Message
+                        SweetAlertComponent(
+                            lifecycleOwner as Context,
+                            "Gagal",
+                            result.errorMessage,
+                            "error"
+                        )
+                    }
+                }
+            }
+        }
+
+}

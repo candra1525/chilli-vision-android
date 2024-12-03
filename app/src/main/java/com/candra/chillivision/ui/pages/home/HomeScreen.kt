@@ -64,12 +64,17 @@ fun HomeScreen(
     var isAvailableToken by remember {
         mutableStateOf(true)
     }
-    val tokenLiveData = viewModel.getToken().asLiveData().observe(lifecycleOwner) {
+    var fullname by remember {
+        mutableStateOf("")
+    }
+
+    val tokenLiveData = viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
         Log.d("HomeScreen", "Token: $it")
         if (it.token.isEmpty()) {
             isAvailableToken = false
         } else {
             isAvailableToken = true
+            fullname = it.fullname
         }
     }
 
@@ -87,7 +92,7 @@ fun HomeScreen(
                 .verticalScroll(scrollState)
                 .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
         ) {
-            HeaderHomeScreen(isDarkTheme)
+            HeaderHomeScreen(isDarkTheme, fullname)
             QuickAccess(isDarkTheme)
             TanyaAI(isDarkTheme, navController)
             VideoTutorial(isDarkTheme)
@@ -98,7 +103,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HeaderHomeScreen(isDarkTheme: Boolean) {
+private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String) {
     Row(
         modifier = Modifier
             .padding(vertical = 16.dp)
@@ -108,7 +113,7 @@ private fun HeaderHomeScreen(isDarkTheme: Boolean) {
     ) {
         Column {
             Text(
-                text = "Hai, Candra",
+                text = "Hai, $fullname",
                 modifier = Modifier,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = PrimaryGreen,

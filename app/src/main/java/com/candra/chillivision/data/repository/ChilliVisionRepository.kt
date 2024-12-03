@@ -17,7 +17,7 @@ class ChilliVisionRepository constructor(
     suspend fun savePreferences(token: String, id: String, fullname: String, no_handphone: String, email: String) = preferences.savePreferences(token, id, fullname, no_handphone, email)
     suspend fun clearToken() = preferences.clearPreferences()
 
-    fun getToken() = preferences.getPreferences()
+    fun getPreferences() = preferences.getPreferences()
 
     // Login User
     fun setLogin(no_handphone: String, password: String): LiveData<Result<LoginResponse>> =
@@ -34,7 +34,7 @@ class ChilliVisionRepository constructor(
     // Register User
     fun setRegister(
         fullname: String,
-        email: String,
+        email: String = null.toString(),
         no_handphone: String,
         password: String
     ): LiveData<Result<RegisterResponse>> = liveData {

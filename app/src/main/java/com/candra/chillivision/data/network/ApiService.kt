@@ -21,7 +21,7 @@ interface ApiService {
     @POST("auth/register")
     suspend fun registerUser(
         @Field("fullname") fullname: String,
-        @Field("email") email: String,
+        @Field("email") email: String = null.toString(),
         @Field("no_handphone") no_handphone: String,
         @Field("password") password: String
     ): RegisterResponse

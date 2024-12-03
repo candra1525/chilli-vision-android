@@ -62,7 +62,7 @@ fun WelcomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Image(
-                    painter = painterResource(id = R.drawable.logo_255),
+                    painter = painterResource(id = R.drawable.chilli_vision_logo),
                     contentDescription = "Logo ${R.string.app_name}",
                     modifier = Modifier.size(150.dp)
                 )

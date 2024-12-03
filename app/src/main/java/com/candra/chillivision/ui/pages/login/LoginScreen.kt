@@ -152,6 +152,7 @@ fun FormLogin(
                     )
                 )
             },
+            isError = textNoHandphone.isEmpty(),
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
@@ -195,6 +196,7 @@ fun FormLogin(
                     )
                 )
             },
+            isError = textPassword.isEmpty(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password, imeAction = ImeAction.Done
@@ -215,8 +217,8 @@ fun FormLogin(
         Button(
             onClick = {
                 validationLogin(
-                    textNoHandphone,
-                    textPassword,
+                    textNoHandphone.trim(),
+                    textPassword.trim(),
                     context,
                     viewModel,
                     navController

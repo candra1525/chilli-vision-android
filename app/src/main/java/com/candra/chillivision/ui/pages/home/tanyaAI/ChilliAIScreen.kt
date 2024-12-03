@@ -1,18 +1,20 @@
-package com.candra.chillivision.component
+package com.candra.chillivision.ui.pages.home.tanyaAI
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -24,22 +26,39 @@ import com.candra.chillivision.R
 import com.candra.chillivision.ui.theme.PrimaryGreen
 
 @Composable
-fun HeaderComponentLoginRegister(context : Context, modifier: Modifier = Modifier, navController: NavController) {
+fun ChilliAIScreen(modifier: Modifier = Modifier, navController: NavController) {
+    val isDarkTheme = isSystemInDarkTheme()
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
+    ) {
+        HeaderChilliAI(modifier = modifier, navController = navController)
+
+    }
+}
+
+
+@Composable
+private fun HeaderChilliAI(modifier: Modifier = Modifier, navController: NavController) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp)
     ) {
         Image(
             painter = painterResource(id = R.drawable.back_arrow),
             contentDescription = "back header ${R.string.app_name}",
             modifier = Modifier
                 .size(24.dp)
-                .clickable { navigationAction(context, "back",navController) },
+                .clickable {
+                    navController.popBackStack()
+                },
         )
 
         Text(
-            text = "Chilli Vision", style = MaterialTheme.typography.bodyMedium.copy(
+            text = "Chilli AI", style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 20.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                 color = PrimaryGreen,
@@ -56,17 +75,7 @@ fun HeaderComponentLoginRegister(context : Context, modifier: Modifier = Modifie
                 .size(24.dp)
                 .fillMaxWidth()
                 .align(Alignment.CenterEnd)
-                .clickable { navigationAction(context,"action", navController) },
+                .clickable { },
         )
-    }
-}
-
-private fun navigationAction(context : Context, action : String, navController: NavController){
-    if(action == "back"){
-        navController.navigate("welcome") {
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-        }
-    } else if (action == "action"){
-        SweetAlertComponent(context = context, title = "Information", contentText = "This is information", type = "info")
     }
 }

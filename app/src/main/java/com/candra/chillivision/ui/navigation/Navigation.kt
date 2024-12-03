@@ -13,14 +13,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.candra.chillivision.ui.pages.history.HistoryScreen
 import com.candra.chillivision.ui.pages.home.HomeScreen
+import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
 import com.candra.chillivision.ui.pages.login.LoginScreen
 import com.candra.chillivision.ui.pages.profile.LanggananScreen
 import com.candra.chillivision.ui.pages.profile.ProfileScreen
+import com.candra.chillivision.ui.pages.profile.lainnya.TentangAplikasi
+import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandi
+import com.candra.chillivision.ui.pages.profile.ubah.UbahProfile
 import com.candra.chillivision.ui.pages.register.RegisterScreen
 import com.candra.chillivision.ui.pages.scan.ScanScreen
 import com.candra.chillivision.ui.pages.welcome.WelcomeScreen
@@ -40,18 +43,25 @@ fun Navigation(modifier: Modifier = Modifier) {
     val currentRoute = navBackStackEntry?.destination?.route
     val context = LocalContext.current
 
-    Scaffold(
-        modifier = Modifier,
-         bottomBar = {
-             if (currentRoute != Screen.Login.route) {
-                 BottomNavigation(navController = navController)
-             }
-         }
-    ) { innerPadding ->
+    // Daftar rute yang tidak membutuhkan BottomNavigation
+    val hideBottomNavRoutes = listOf(
+        Screen.Login.route,
+        Screen.AboutApps.route,
+        Screen.ChangePassword.route,
+        Screen.ChangeProfile.route,
+        Screen.Welcome.route,
+        Screen.Register.route,
+        Screen.TanyaAI.route
+    )
+
+    Scaffold(modifier = Modifier, bottomBar = {
+        if (currentRoute !in hideBottomNavRoutes) {
+            BottomNavigation(navController = navController)
+        }
+    }) { innerPadding ->
         Box(modifier = modifier.padding(innerPadding))
         Box(
-            modifier = Modifier
-                .fillMaxSize() // Pastikan elemen konten menyesuaikan dengan ukuran
+            modifier = Modifier.fillMaxSize() // Pastikan elemen konten menyesuaikan dengan ukuran
         ) {
             BackHandler {
                 if (currentRoute == Screen.Home.route) {
@@ -68,8 +78,7 @@ fun Navigation(modifier: Modifier = Modifier) {
 
         }
 
-        AnimatedNavHost(
-            navController = navController,
+        AnimatedNavHost(navController = navController,
             startDestination = Screen.Home.route,
             enterTransition = {
                 EnterTransition.None
@@ -83,7 +92,7 @@ fun Navigation(modifier: Modifier = Modifier) {
             popExitTransition = {
                 ExitTransition.None
             }
-            
+
         ) {
             composable(route = Screen.Login.route) {
                 LoginScreen(modifier, navController)
@@ -98,7 +107,7 @@ fun Navigation(modifier: Modifier = Modifier) {
                 HistoryScreen(modifier)
             }
             composable(route = Screen.Profile.route) {
-                ProfileScreen(modifier)
+                ProfileScreen(modifier, navController)
             }
             composable(route = Screen.Welcome.route) {
                 WelcomeScreen(modifier, navController)
@@ -108,6 +117,18 @@ fun Navigation(modifier: Modifier = Modifier) {
             }
             composable(route = Screen.Langganan.route) {
                 LanggananScreen(modifier)
+            }
+            composable(route = Screen.ChangePassword.route) {
+                UbahKataSandi(modifier, navController)
+            }
+            composable(route = Screen.AboutApps.route) {
+                TentangAplikasi(modifier, navController)
+            }
+            composable(route = Screen.ChangeProfile.route) {
+                UbahProfile(modifier, navController)
+            }
+            composable(route = Screen.TanyaAI.route) {
+                ChilliAIScreen(modifier, navController)
             }
         }
     }

@@ -1,8 +1,10 @@
 package com.candra.chillivision.ui.pages.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,10 +21,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -30,9 +37,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GreenSoft
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -40,21 +51,50 @@ import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = modifier
-            .verticalScroll(scrollState)
-            .padding(start = 32.dp, end = 32.dp, bottom = 60.dp),
-    ) {
-        HeaderHomeScreen(isDarkTheme)
-        QuickAccess(isDarkTheme)
-        TanyaAI(isDarkTheme)
-        VideoTutorial(isDarkTheme)
-
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    viewModel: HomeScreenViewModel = viewModel(
+        factory = ViewModelFactory.getInstance(
+            LocalContext.current
+        )
+    )
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var isAvailableToken by remember {
+        mutableStateOf(true)
     }
+    val tokenLiveData = viewModel.getToken().asLiveData().observe(lifecycleOwner) {
+        Log.d("HomeScreen", "Token: $it")
+        if (it.token.isEmpty()) {
+            isAvailableToken = false
+        } else {
+            isAvailableToken = true
+        }
+    }
+
+    Log.d("HomeScreen", "Token: $tokenLiveData")
+    if (!isAvailableToken) {
+        navController.navigate("welcome") {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+        }
+    } else {
+        val isDarkTheme = isSystemInDarkTheme()
+        val scrollState = rememberScrollState()
+
+        Column(
+            modifier = modifier
+                .verticalScroll(scrollState)
+                .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
+        ) {
+            HeaderHomeScreen(isDarkTheme)
+            QuickAccess(isDarkTheme)
+            TanyaAI(isDarkTheme, navController)
+            VideoTutorial(isDarkTheme)
+        }
+    }
+
+
 }
 
 @Composable
@@ -166,7 +206,7 @@ private fun MenuQuickAccess(title: String, icon: Int) {
 
 
 @Composable
-private fun TanyaAI(isDarkTheme: Boolean) {
+private fun TanyaAI(isDarkTheme: Boolean, navController: NavController) {
     Column(
         modifier = Modifier
             .padding(vertical = 16.dp)
@@ -183,12 +223,12 @@ private fun TanyaAI(isDarkTheme: Boolean) {
             textAlign = TextAlign.Start, colors = if (isSystemInDarkTheme()) White else BlackMode
         )
         Spacer(modifier = Modifier.height(16.dp))
-        MenuTanyaAI(isDarkTheme)
+        MenuTanyaAI(isDarkTheme, navController)
     }
 }
 
 @Composable
-private fun MenuTanyaAI(isDarkTheme: Boolean) {
+private fun MenuTanyaAI(isDarkTheme: Boolean, navController: NavController) {
     Row(
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
@@ -198,6 +238,9 @@ private fun MenuTanyaAI(isDarkTheme: Boolean) {
             .border(
                 width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
             )
+            .clickable {
+                navController.navigate("chilliAI")
+            }
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
@@ -216,7 +259,12 @@ private fun MenuTanyaAI(isDarkTheme: Boolean) {
                 .padding(8.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            TextBold(text = "Chat Chilli AI", sized = 12, textAlign = TextAlign.Start, colors = if (isDarkTheme) White else BlackMode)
+            TextBold(
+                text = "Chat Chilli AI",
+                sized = 12,
+                textAlign = TextAlign.Start,
+                colors = if (isDarkTheme) White else BlackMode
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Anda bisa menanyakan hal yang anda ingin tanyakan terkait penyakit cabai",
@@ -229,6 +277,14 @@ private fun MenuTanyaAI(isDarkTheme: Boolean) {
                 textAlign = TextAlign.Justify
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Image(
+            painter = painterResource(id = R.drawable.tanya_ai),
+            contentDescription = "Tanya AI",
+            modifier = Modifier
+                .padding(16.dp)
+                .size(35.dp)
+        )
     }
 }
 
@@ -294,7 +350,12 @@ private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDark
                 .padding(8.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            TextBold(text = title, sized = 12, textAlign = TextAlign.Start, colors = if (isDarkTheme) White else BlackMode)
+            TextBold(
+                text = title,
+                sized = 12,
+                textAlign = TextAlign.Start,
+                colors = if (isDarkTheme) White else BlackMode
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = textDesc, style = MaterialTheme.typography.bodyMedium.copy(

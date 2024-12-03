@@ -42,7 +42,7 @@ fun LanggananScreen(modifier: Modifier = Modifier) {
     val scrollState = rememberScrollState()
 
     Column(modifier = modifier
-        .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 60.dp)
+        .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp)
         .verticalScroll(scrollState)) {
         LanggananTitle(modifier)
         Spacer(modifier = Modifier.height(16.dp))

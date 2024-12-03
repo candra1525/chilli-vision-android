@@ -2,6 +2,7 @@ package com.candra.chillivision.ui.pages.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.candra.chillivision.R
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.White
+import com.candra.chillivision.ui.theme.WhiteSoft
 
 @Composable
 fun WelcomeScreen(modifier: Modifier = Modifier, navController: NavController) {
@@ -138,7 +141,7 @@ fun BottomWelcome(navController: NavController) {
                 ),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = White,
+                containerColor = if(isSystemInDarkTheme()) BlackMode else WhiteSoft,
                 contentColor = PrimaryGreen
             )
         )

@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,8 +35,10 @@ import com.candra.chillivision.MainActivity
 import com.candra.chillivision.R
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.navigation.NavigationViewModel
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.White
+import com.candra.chillivision.ui.theme.WhiteSoft
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,11 +71,11 @@ class SplashScreen : ComponentActivity() {
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(PrimaryGreen)
+                .background(if (isSystemInDarkTheme()) BlackMode else WhiteSoft)
         ) {
             // Image
             Image(
-                painter = painterResource(id = R.drawable.logo_255),
+                painter = painterResource(id = R.drawable.chilli_vision_logo),
                 contentDescription = "Logo ${R.string.app_name}",
                 modifier = modifier
                     .size(150.dp)
@@ -90,7 +93,7 @@ class SplashScreen : ComponentActivity() {
                     text = "Chilli Vision", style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 12.sp,
                         fontFamily = FontFamily(Font(R.font.quicksand_semibold)),
-                        color = White, textAlign = TextAlign.Center
+                        color = if(isSystemInDarkTheme()) WhiteSoft else BlackMode, textAlign = TextAlign.Center
                     ), modifier = modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -99,7 +102,7 @@ class SplashScreen : ComponentActivity() {
                         fontSize = 12.sp,
                         fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                         fontWeight = FontWeight.Bold,
-                        color = White,
+                        color =  PrimaryGreen,
                         textAlign = TextAlign.Center
                     ), modifier = modifier.fillMaxWidth()
                 )

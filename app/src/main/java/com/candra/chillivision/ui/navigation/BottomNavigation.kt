@@ -34,7 +34,7 @@ fun BottomNavigation(
     navController: NavController
 ) {
     NavigationBar(
-        modifier = modifier
+        modifier = Modifier
             .height(80.dp)
     ) {
         val navStackBackEntry by navController.currentBackStackEntryAsState()
@@ -47,7 +47,7 @@ fun BottomNavigation(
                 screen = Screen.Home,
                 contentDescription = "home",
 
-            ),
+                ),
             NavigationItem(
                 title = "Langganan",
                 icon = painterResource(id = R.drawable.subscription),
@@ -76,109 +76,96 @@ fun BottomNavigation(
         )
 
         navItem.map { item ->
-//            if (item.title == "Pindai") {
-//                FloatingActionButton(
-//                    onClick = {
-//                        /*TODO*/
-//                    },
-//                    containerColor = PrimaryGreen,
-//                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-//                    modifier = modifier
-//                        .offset(y = 5.dp)
-//                        .size(50.dp)
-//                        .clip(CircleShape)
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.scan),
-//                        modifier = modifier.size(18.dp),
-//                        contentDescription = "potret langsung",
-//                    )
-//                }
-//            }
-//            else{
-                NavigationBarItem(
-                    selected = currentRoute == item.screen.route,
-                    modifier = Modifier.padding(top = 24.dp),
-                    onClick = {
-                        navController.navigate(item.screen.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
+            NavigationBarItem(
+                selected = currentRoute == item.screen.route,
+                modifier = Modifier.padding(top = 16.dp),
+                onClick = {
+                    navController.navigate(item.screen.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
                         }
-                    },
-                    icon = {
-                        if (currentRoute == item.screen.route) {
-                            when ((item.screen.route)) {
-                                Screen.Home.route -> {
-                                    Icon(
-                                        painter = painterResource(R.drawable.home), contentDescription = item.title,
-                                        modifier = modifier.size(18.dp),
-                                        tint = PrimaryGreen
-                                    )
-                                }
-
-                                Screen.Langganan.route -> {
-                                    Icon(
-                                        painter = painterResource(R.drawable.subscription), contentDescription = item.title,
-                                        modifier = modifier.size(18.dp),
-                                        tint = PrimaryGreen
-                                    )
-                                }
-                                Screen.Scan.route -> {
-                                    Icon(
-                                        painter = painterResource(R.drawable.scan), contentDescription = item.title,
-                                        modifier = modifier.size(18.dp),
-                                        tint = PrimaryGreen
-                                    )
-                                }
-
-                                Screen.History.route -> {
-                                    Icon(
-                                        painter = painterResource(R.drawable.history), contentDescription = item.title,
-                                        modifier = modifier.size(18.dp),
-                                        tint = PrimaryGreen
-                                    )
-                                }
-
-                                Screen.Profile.route -> {
-                                    Icon(
-                                        painter = painterResource(R.drawable.profile), contentDescription = item.title,
-                                        modifier = modifier.size(18.dp),
-                                        tint = PrimaryGreen
-                                    )
-                                }
-
-                                else -> {
-                                    Icon(
-                                        painter = item.icon, contentDescription = item.title,
-                                        modifier = modifier.size(18.dp),
-                                    )
-                                }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                icon = {
+                    if (currentRoute == item.screen.route) {
+                        when ((item.screen.route)) {
+                            Screen.Home.route -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.home),
+                                    contentDescription = item.title,
+                                    modifier = modifier.size(18.dp),
+                                    tint = PrimaryGreen
+                                )
                             }
-                        } else {
-                            Icon(
-                                painter = item.icon, contentDescription = item.title,
-                                modifier = modifier.size(18.dp),
-                            )
+
+                            Screen.Langganan.route -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.subscription),
+                                    contentDescription = item.title,
+                                    modifier = modifier.size(18.dp),
+                                    tint = PrimaryGreen
+                                )
+                            }
+
+                            Screen.Scan.route -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.scan),
+                                    contentDescription = item.title,
+                                    modifier = modifier.size(18.dp),
+                                    tint = PrimaryGreen
+                                )
+                            }
+
+                            Screen.History.route -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.history),
+                                    contentDescription = item.title,
+                                    modifier = modifier.size(18.dp),
+                                    tint = PrimaryGreen
+                                )
+                            }
+
+                            Screen.Profile.route -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.profile),
+                                    contentDescription = item.title,
+                                    modifier = modifier.size(18.dp),
+                                    tint = PrimaryGreen
+                                )
+                            }
+
+                            else -> {
+                                Icon(
+                                    painter = item.icon, contentDescription = item.title,
+                                    modifier = modifier.size(18.dp),
+                                )
+                            }
                         }
-                    },
-                    label = {
-                        if (currentRoute == item.screen.route) {
-                            Text(
-                                text = item.title, style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontSize = 9.sp, color = PrimaryGreen, fontWeight = FontWeight.Bold, fontFamily = FontFamily(
-                                        Font(R.font.quicksand_bold)
-                                    )
+                    } else {
+                        Icon(
+                            painter = item.icon, contentDescription = item.title,
+                            modifier = modifier.size(18.dp),
+                        )
+                    }
+                },
+                label = {
+                    if (currentRoute == item.screen.route) {
+                        Text(
+                            text = item.title, style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 9.sp,
+                                color = PrimaryGreen,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily(
+                                    Font(R.font.quicksand_bold)
                                 )
                             )
-                        }
-                    },
-                    alwaysShowLabel = false,
-                )
-//            }
-
+                        )
+                    }
+                },
+                alwaysShowLabel = false,
+            )
         }
     }
 }

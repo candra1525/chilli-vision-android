@@ -45,6 +45,7 @@ import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun LoginScreen(
@@ -118,6 +119,10 @@ fun FormLogin(
 
     var textPassword by remember {
         mutableStateOf("")
+    }
+
+    var isLoading by remember {
+        mutableStateOf(false)
     }
 
     Column(modifier = modifier.padding(horizontal = 32.dp)) {
@@ -209,20 +214,31 @@ fun FormLogin(
 
         Button(
             onClick = {
-                validationLogin(textNoHandphone, textPassword, context, viewModel, navController)
+                validationLogin(
+                    textNoHandphone,
+                    textPassword,
+                    context,
+                    viewModel,
+                    navController
+                ) { loading ->
+                    isLoading = loading
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+            enabled = !isLoading
         ) {
             Text(
-                text = "Lanjut", style = MaterialTheme.typography.bodyMedium.copy(
+                text = if (isLoading) "Memuat..." else "Lanjut",
+                style = MaterialTheme.typography.bodyMedium.copy(
                     fontSize = 12.sp,
                     fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                     textAlign = TextAlign.Center,
-                ), modifier = Modifier.fillMaxWidth()
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -258,7 +274,8 @@ private fun validationLogin(
     password: String,
     context: Context,
     viewModel: LoginScreenViewModel,
-    navController: NavController
+    navController: NavController,
+    onLoadingStateChanged: (Boolean) -> Unit
 ) {
     if (no_handphone.isEmpty()) {
         SweetAlertComponent(context, "Peringatan", "No Handphone tidak boleh kosong", "warning")
@@ -270,7 +287,8 @@ private fun validationLogin(
             no_handphone = no_handphone,
             lifecycleOwner = context as LifecycleOwner,
             password = password,
-            navController = navController
+            navController = navController,
+            onLoadingStateChanged = onLoadingStateChanged
         )
     }
 }
@@ -281,29 +299,61 @@ private fun login(
     no_handphone: String,
     lifecycleOwner: LifecycleOwner,
     password: String,
-    navController: NavController
+    navController: NavController,
+    onLoadingStateChanged: (Boolean) -> Unit
 ) {
     viewModel.setLogin(no_handphone, password).observe(lifecycleOwner) { result ->
         if (result != null) {
             when (result) {
                 is Result.Loading -> {
-
+                    onLoadingStateChanged(true)
                 }
 
                 is Result.Success -> {
-                    Log.d("LoginScreen", "login: ${result.data}")
-                    SweetAlertComponent(lifecycleOwner as Context, "Berhasil", "Hai, ${result.data.data?.fullname},  Anda berhasil Masuk", "success")
-                    navController.navigate("home")
+                    onLoadingStateChanged(false)
+
+                    val dataLogin = result.data.data
+                    val token = dataLogin?.token
+                    val id = dataLogin?.id.toString()
+                    val fullname = dataLogin?.fullname.toString()
+                    val noHandphone = dataLogin?.noHandphone.toString()
+                    val email = dataLogin?.email.toString()
+
+                    if (token != null) {
+                        runBlocking {
+                            viewModel.savePreferences(token, id, fullname, noHandphone, email)
+                            Log.d("Token Berhasil Disimpan OK", "login: $token")
+                        }
+                        SweetAlertComponent(
+                            lifecycleOwner as Context,
+                            "Berhasil",
+                            "Hai, ${fullname},  Anda berhasil Masuk",
+                            "success"
+                        )
+                        navController.navigate("home")
+                        Log.d("Token Berhasil Disimpan", "login: $token")
+                    }
                 }
 
                 is Result.Error -> {
+                    onLoadingStateChanged(false)
                     Log.e("LoginScreen", "login: ${result}")
-                    SweetAlertComponent(lifecycleOwner as Context, "Gagal", "Mohon maaf anda gagal masuk, silahkan pastikan no handphone dan password benar", "error")
+                    SweetAlertComponent(
+                        lifecycleOwner as Context,
+                        "Gagal",
+                        "Mohon maaf anda gagal masuk, silahkan pastikan no handphone dan password benar",
+                        "error"
+                    )
                 }
 
                 else -> {
                     Log.e("LoginScreen", "error: ${result}")
-                    SweetAlertComponent(lifecycleOwner as Context, "Kesalahan", "Mohon maaf sepertinya ada kesalahan sistem. Mohon ulangi beberapa saat lagi...", "error")
+                    SweetAlertComponent(
+                        lifecycleOwner as Context,
+                        "Kesalahan",
+                        "Mohon maaf sepertinya ada kesalahan sistem. Mohon ulangi beberapa saat lagi...",
+                        "error"
+                    )
 
                 }
             }

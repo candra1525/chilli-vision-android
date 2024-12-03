@@ -18,4 +18,16 @@ sealed class Screen(val route : String)
 
     // Welcome
     data object Welcome : Screen("welcome")
+
+    // Ubah Profile
+    data object ChangeProfile : Screen("changeProfile")
+
+    // Ubah Password
+    data object ChangePassword : Screen("changePassword")
+
+    // About Apps
+    data object AboutApps : Screen("aboutApps")
+
+    // Tanya AI
+    data object TanyaAI : Screen("chilliAI")
 }

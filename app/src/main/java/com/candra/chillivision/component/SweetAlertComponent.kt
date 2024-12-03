@@ -1,7 +1,6 @@
 package com.candra.chillivision.component
 
 import android.content.Context
-import androidx.compose.runtime.Composable
 import cn.pedant.SweetAlert.SweetAlertDialog
 
 fun SweetAlertComponent(
@@ -9,7 +8,8 @@ fun SweetAlertComponent(
     title: String,
     contentText: String,
     type: String,
-    isCancel: Boolean = false
+    isCancel: Boolean = false,
+    confirmYes: () -> Unit = {},
 ) {
     when (type) {
         "error" -> {
@@ -54,6 +54,22 @@ fun SweetAlertComponent(
                     .setTitleText(title)
                     .setContentText(contentText)
                     .setConfirmButton("OK") {
+                        it.dismissWithAnimation()
+                    }
+            sweetAlertDialog.setCancelable(isCancel)
+            sweetAlertDialog.show()
+        }
+
+        "logout" -> {
+            val sweetAlertDialog =
+                SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
+                    .setTitleText(title)
+                    .setContentText(contentText)
+                    .setConfirmButton("Ya") {
+                        confirmYes()
+                        it.dismissWithAnimation()
+                    }
+                    .setCancelButton("Tidak") {
                         it.dismissWithAnimation()
                     }
             sweetAlertDialog.setCancelable(isCancel)

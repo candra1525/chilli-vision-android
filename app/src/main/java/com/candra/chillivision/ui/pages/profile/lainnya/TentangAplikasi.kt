@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -77,10 +76,10 @@ private fun HeaderTentangAplikasi(modifier: Modifier = Modifier, navController: 
 }
 
 @Composable
-private fun ImageAboutApps(modifier : Modifier = Modifier){
+private fun ImageAboutApps(modifier: Modifier = Modifier) {
     Spacer(modifier = Modifier.height(16.dp))
 
-    Column (modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Image(
             painter = painterResource(id = R.drawable.dummy_profile),
             contentDescription = "icon ${R.string.app_name}",
@@ -88,25 +87,52 @@ private fun ImageAboutApps(modifier : Modifier = Modifier){
                 .size(100.dp)
         )
 
-        TextBold(text = "Chilli Vision", colors = if(isSystemInDarkTheme()) WhiteSoft else BlackMode, sized = 20)
+        TextBold(
+            text = "Chilli Vision",
+            colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+            sized = 20
+        )
     }
 }
 
 @Composable
-private fun DescriptionAboutApps(modifier : Modifier = Modifier){
+private fun DescriptionAboutApps(modifier: Modifier = Modifier) {
     Spacer(modifier = Modifier.height(32.dp))
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        TextBold(text = "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quas suscipit consectetur fuga delectus! Harum nulla expedita fugiat vero eveniet deleniti fugit, non error laborum eligendi! Suscipit dignissimos adipisci eveniet nostrum error officiis cupiditate quam rerum ducimus illo ipsum distinctio, eum doloribus impedit molestias. Quibusdam, impedit saepe dolore labore odio necessitatibus voluptate quasi voluptatibus aperiam fugiat nam in incidunt dolorum ab quisquam et nihil eligendi expedita delectus culpa totam eveniet ut officiis. Esse repellat explicabo nihil, doloremque dicta provident illum necessitatibus dolores eaque harum eius. Aliquam cum excepturi, nam, ea eaque, dolor deserunt atque porro soluta sapiente velit sed sit quaerat?\n\nLorem ipsum dolor sit amet consectetur, adipisicing elit. Quas suscipit consectetur fuga delectus! Harum nulla expedita fugiat vero eveniet deleniti fugit, non error laborum eligendi! Suscipit dignissimos adipisci eveniet nostrum error officiis cupiditate quam rerum ducimus illo ipsum distinctio, eum doloribus impedit molestias. Quibusdam, impedit saepe dolore labore odio necessitatibus voluptate quasi voluptatibus aperiam fugiat nam in incidunt dolorum ab quisquam et nihil eligendi expedita delectus culpa totam eveniet ut officiis. Esse repellat explicabo nihil, doloremque dicta provident illum necessitatibus dolores eaque harum eius. Aliquam cum excepturi, nam, ea eaque, dolor deserunt atque porro soluta sapiente velit sed sit quaerat?", colors = if(isSystemInDarkTheme()) WhiteSoft else BlackMode, sized = 14, textAlign = TextAlign.Justify)
+        Text(
+            text = "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quas suscipit consectetur fuga delectus! Harum nulla expedita fugiat vero eveniet deleniti fugit, non error laborum eligendi! Suscipit dignissimos adipisci eveniet nostrum error officiis cupiditate quam rerum ducimus illo ipsum distinctio, eum doloribus impedit molestias. Quibusdam, impedit saepe dolore labore odio necessitatibus voluptate quasi voluptatibus aperiam fugiat nam in incidunt dolorum ab quisquam et nihil eligendi expedita delectus culpa totam eveniet ut officiis. Esse repellat explicabo nihil, doloremque dicta provident illum necessitatibus dolores eaque harum eius. Aliquam cum excepturi, nam, ea eaque, dolor deserunt atque porro soluta sapiente velit sed sit quaerat?\n" +
+                    "\n" +
+                    "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quas suscipit consectetur fuga delectus! Harum nulla expedita fugiat vero eveniet deleniti fugit, non error laborum eligendi! Suscipit dignissimos adipisci eveniet nostrum error officiis cupiditate quam rerum ducimus illo ipsum distinctio, eum doloribus impedit molestias. Quibusdam, impedit saepe dolore labore odio necessitatibus voluptate quasi voluptatibus aperiam fugiat nam in incidunt dolorum ab quisquam et nihil eligendi expedita delectus culpa totam eveniet ut officiis. Esse repellat explicabo nihil, doloremque dicta provident illum necessitatibus dolores eaque harum eius. Aliquam cum excepturi, nam, ea eaque, dolor deserunt atque porro soluta sapiente velit sed sit quaerat?",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                textAlign = TextAlign.Justify
+
+            )
+        )
+
     }
 }
 
 @Composable
-private fun FooterAboutApps(modifier : Modifier = Modifier){
+private fun FooterAboutApps(modifier: Modifier = Modifier) {
     Spacer(modifier = Modifier.height(32.dp))
 
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        TextBold(text = "Chilli Vision", colors = if(isSystemInDarkTheme()) WhiteSoft else BlackMode, sized = 14, textAlign = TextAlign.Center)
-        TextBold(text = "Version 1.0.0", colors = if(isSystemInDarkTheme()) WhiteSoft else BlackMode, sized = 14, textAlign = TextAlign.Center)
+        TextBold(
+            text = "Chilli Vision",
+            colors = PrimaryGreen,
+            sized = 14,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        TextBold(
+            text = "Version 1.0.0",
+            colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+            sized = 12,
+            textAlign = TextAlign.Center
+        )
     }
 }

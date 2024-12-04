@@ -30,4 +30,7 @@ sealed class Screen(val route : String)
 
     // Tanya AI
     data object TanyaAI : Screen("chilliAI")
+
+    // Gallery
+    data object Gallery : Screen("gallery")
 }

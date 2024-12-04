@@ -9,6 +9,7 @@ import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
 import com.candra.chillivision.ui.pages.login.LoginScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ProfileScreenViewModel
 import com.candra.chillivision.ui.pages.register.RegisterScreenViewModel
+import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreenViewModel
 
 class ViewModelFactory(private val repository: ChilliVisionRepository) :
     ViewModelProvider.NewInstanceFactory() {
@@ -27,6 +28,10 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
             ) as T
 
             modelClass.isAssignableFrom(ProfileScreenViewModel::class.java) -> ProfileScreenViewModel(
+                repository
+            ) as T
+
+            modelClass.isAssignableFrom(GalleryScreenViewModel::class.java) -> GalleryScreenViewModel(
                 repository
             ) as T
 

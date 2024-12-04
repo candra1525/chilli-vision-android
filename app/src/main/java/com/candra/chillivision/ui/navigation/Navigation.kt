@@ -26,6 +26,7 @@ import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandi
 import com.candra.chillivision.ui.pages.profile.ubah.UbahProfile
 import com.candra.chillivision.ui.pages.register.RegisterScreen
 import com.candra.chillivision.ui.pages.scan.ScanScreen
+import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreen
 import com.candra.chillivision.ui.pages.welcome.WelcomeScreen
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -51,7 +52,8 @@ fun Navigation(modifier: Modifier = Modifier) {
         Screen.ChangeProfile.route,
         Screen.Welcome.route,
         Screen.Register.route,
-        Screen.TanyaAI.route
+        Screen.TanyaAI.route,
+        Screen.Gallery.route
     )
 
     Scaffold(modifier = Modifier, bottomBar = {
@@ -101,7 +103,7 @@ fun Navigation(modifier: Modifier = Modifier) {
                 RegisterScreen(modifier, navController)
             }
             composable(route = Screen.Scan.route) {
-                ScanScreen(modifier)
+                ScanScreen(modifier, navController)
             }
             composable(route = Screen.History.route) {
                 HistoryScreen(modifier)
@@ -129,6 +131,10 @@ fun Navigation(modifier: Modifier = Modifier) {
             }
             composable(route = Screen.TanyaAI.route) {
                 ChilliAIScreen(modifier, navController)
+            }
+
+            composable(route = Screen.Gallery.route) {
+                GalleryScreen(modifier, navController)
             }
         }
     }

@@ -3,6 +3,7 @@ package com.candra.chillivision.ui.pages.scan
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.ui.theme.BlackMode
@@ -35,14 +37,28 @@ import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 
 @Composable
-fun ScanScreen(modifier: Modifier = Modifier) {
+fun ScanScreen(modifier: Modifier = Modifier, navController: NavController) {
     val isDarkTheme = isSystemInDarkTheme()
     Column(modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 32.dp)) {
         TitleScan(modifier)
         Spacer(modifier = Modifier.height(32.dp))
-        MenuScanIcon(isDarkTheme, R.drawable.potret_langsung, "Potret Langsung", "Dengan melakukan potret secara langsung, anda dapat mengetahui penyakit daun cabai secara langsung.", modifier)
+        MenuScanIcon(
+            isDarkTheme,
+            R.drawable.potret_langsung,
+            "Potret Langsung",
+            "Dengan melakukan potret secara langsung, anda dapat mengetahui penyakit daun cabai secara langsung.",
+            modifier
+        )
         Spacer(modifier = Modifier.height(24.dp))
-        MenuScanIcon(isDarkTheme, R.drawable.upload_cloud, "Unggah Gambar", "Dengan menggunggah gambar daun cabai, anda dapat mengetahui penyakit daun cabai.", modifier)
+        MenuScanIcon(
+            isDarkTheme,
+            R.drawable.upload_cloud,
+            "Unggah Gambar",
+            "Dengan menggunggah gambar daun cabai, anda dapat mengetahui penyakit daun cabai.",
+            modifier, onClick = {
+                navController.navigate("gallery")
+            }
+        )
     }
 
 }
@@ -53,7 +69,14 @@ private fun TitleScan(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MenuScanIcon(isDarkTheme: Boolean, icon : Int, title : String, desc : String, modifier: Modifier = Modifier) {
+private fun MenuScanIcon(
+    isDarkTheme: Boolean,
+    icon: Int,
+    title: String,
+    desc: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -62,6 +85,9 @@ private fun MenuScanIcon(isDarkTheme: Boolean, icon : Int, title : String, desc 
             .border(
                 width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
             )
+            .clickable {
+                onClick()
+            }
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
@@ -80,7 +106,12 @@ private fun MenuScanIcon(isDarkTheme: Boolean, icon : Int, title : String, desc 
                 .padding(8.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            TextBold(text = title, sized = 12, textAlign = TextAlign.Start, colors = if (isSystemInDarkTheme()) White else BlackMode)
+            TextBold(
+                text = title,
+                sized = 12,
+                textAlign = TextAlign.Start,
+                colors = if (isSystemInDarkTheme()) White else BlackMode
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = desc,

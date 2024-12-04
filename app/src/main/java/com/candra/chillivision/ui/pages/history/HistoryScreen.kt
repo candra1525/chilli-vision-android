@@ -11,6 +11,6 @@ import com.candra.chillivision.ui.theme.PrimaryGreen
 @Composable
 fun HistoryScreen(modifier : Modifier = Modifier) {
     Column(modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 32.dp )) {
-        TextBold(text = "History Screen", colors = PrimaryGreen, sized = 18)
+        TextBold(text = "Riwayat", colors = PrimaryGreen, sized = 18)
     }
 }

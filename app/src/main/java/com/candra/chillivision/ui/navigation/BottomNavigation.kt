@@ -68,7 +68,7 @@ fun BottomNavigation(
                 contentDescription = "riwayat"
             ),
             NavigationItem(
-                title = "Profil",
+                title = "Pengaturan",
                 icon = painterResource(id = R.drawable.profile),
                 screen = Screen.Profile,
                 contentDescription = "profil"

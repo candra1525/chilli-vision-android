@@ -93,7 +93,7 @@ fun HomeScreen(
                 .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
         ) {
             HeaderHomeScreen(isDarkTheme, fullname)
-            QuickAccess(isDarkTheme)
+            QuickAccess(isDarkTheme, navController)
             TanyaAI(isDarkTheme, navController)
             VideoTutorial(isDarkTheme)
         }
@@ -139,7 +139,7 @@ private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String) {
 }
 
 @Composable
-private fun QuickAccess(isDarkTheme: Boolean) {
+private fun QuickAccess(isDarkTheme: Boolean, navController: NavController) {
 
     Column(
         modifier = Modifier
@@ -166,13 +166,15 @@ private fun QuickAccess(isDarkTheme: Boolean) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             MenuQuickAccess(title = "Potret\nLangsung", icon = R.drawable.potret_langsung)
-            MenuQuickAccess(title = "Unggah\nGambar", icon = R.drawable.upload_cloud)
+            MenuQuickAccess(title = "Unggah\nGambar", icon = R.drawable.upload_cloud, onClick = {
+                navController.navigate("gallery")
+            })
         }
     }
 }
 
 @Composable
-private fun MenuQuickAccess(title: String, icon: Int) {
+private fun MenuQuickAccess(title: String, icon: Int, onClick : () -> Unit = {}) {
     Column(
         modifier = Modifier
             .width(100.dp)
@@ -188,7 +190,10 @@ private fun MenuQuickAccess(title: String, icon: Int) {
                 .background(color = if (isSystemInDarkTheme()) BlackMode else WhiteSoft)
                 .border(
                     width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
-                ),
+                )
+                .clickable {
+                    onClick()
+                },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

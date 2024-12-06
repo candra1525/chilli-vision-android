@@ -81,7 +81,7 @@ fun Navigation(modifier: Modifier = Modifier) {
         }
 
         AnimatedNavHost(navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Profile.route,
             enterTransition = {
                 EnterTransition.None
             },

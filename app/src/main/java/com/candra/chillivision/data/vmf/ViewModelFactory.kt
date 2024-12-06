@@ -8,6 +8,8 @@ import com.candra.chillivision.data.repository.ChilliVisionRepository
 import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
 import com.candra.chillivision.ui.pages.login.LoginScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ProfileScreenViewModel
+import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandiViewModel
+import com.candra.chillivision.ui.pages.profile.ubah.UbahProfileViewModel
 import com.candra.chillivision.ui.pages.register.RegisterScreenViewModel
 import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreenViewModel
 
@@ -32,6 +34,14 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
             ) as T
 
             modelClass.isAssignableFrom(GalleryScreenViewModel::class.java) -> GalleryScreenViewModel(
+                repository
+            ) as T
+
+            modelClass.isAssignableFrom(UbahProfileViewModel::class.java) -> UbahProfileViewModel(
+                repository
+            ) as T
+
+            modelClass.isAssignableFrom(UbahKataSandiViewModel::class.java) -> UbahKataSandiViewModel(
                 repository
             ) as T
 

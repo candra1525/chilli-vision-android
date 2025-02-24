@@ -17,3 +17,4 @@ val GreenSoft = Color(0xFFF1FDEF)
 
 val BlackMode = Color(0xFF101114)
 val WhiteSoft = Color(0xD0FFFFFF)
+val Red = Color(0xFFD32F2F)

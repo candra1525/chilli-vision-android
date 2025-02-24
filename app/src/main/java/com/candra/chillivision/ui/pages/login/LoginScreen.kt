@@ -319,11 +319,11 @@ private fun login(
                     val id = dataLogin?.id.toString()
                     val fullname = dataLogin?.fullname.toString()
                     val noHandphone = dataLogin?.noHandphone.toString()
-                    val email = dataLogin?.email.toString()
+                    val image = dataLogin?.image.toString() ?: ""
 
                     if (token != null) {
                         runBlocking {
-                            viewModel.savePreferences(token, id, fullname, noHandphone, email)
+                            viewModel.savePreferences(token, id, fullname, noHandphone, image)
                             Log.d("Token Berhasil Disimpan OK", "login: $token")
                         }
                         SweetAlertComponent(
@@ -332,7 +332,9 @@ private fun login(
                             "Hai, ${fullname},  Anda berhasil Masuk",
                             "success"
                         )
-                        navController.navigate("home")
+                        navController.navigate("home"){
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        }
                         Log.d("Token Berhasil Disimpan", "login: $token")
                     }
                 }

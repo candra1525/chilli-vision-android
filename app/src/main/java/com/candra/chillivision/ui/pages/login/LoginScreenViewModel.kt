@@ -8,5 +8,5 @@ class LoginScreenViewModel (private val repository : ChilliVisionRepository) : V
 {
     fun setLogin(no_handphone : String, password : String) = repository.setLogin(no_handphone, password)
 
-    suspend fun savePreferences(token: String, id : String, fullname : String, no_handphone: String, email : String) = repository.savePreferences(token, id, fullname, no_handphone, email)
+    suspend fun savePreferences(token: String, id : String, fullname : String, no_handphone: String, image : String) = repository.savePreferences(token, id, fullname, no_handphone, image)
 }

@@ -11,22 +11,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.candra.chillivision.component.ConnectivityStatus
+import com.candra.chillivision.ui.pages.analysis.AnalysisScreen
+import com.candra.chillivision.ui.pages.error.ErrorScreen
 import com.candra.chillivision.ui.pages.history.HistoryScreen
 import com.candra.chillivision.ui.pages.home.HomeScreen
 import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
 import com.candra.chillivision.ui.pages.login.LoginScreen
-import com.candra.chillivision.ui.pages.profile.LanggananScreen
+import com.candra.chillivision.ui.pages.langganan.LanggananScreen
 import com.candra.chillivision.ui.pages.profile.ProfileScreen
 import com.candra.chillivision.ui.pages.profile.lainnya.TentangAplikasi
 import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandi
 import com.candra.chillivision.ui.pages.profile.ubah.UbahProfile
 import com.candra.chillivision.ui.pages.register.RegisterScreen
 import com.candra.chillivision.ui.pages.scan.ScanScreen
-import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreen
+import com.candra.chillivision.ui.pages.scan.confirm_scan.ConfirmScanScreen
+//import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreen
+import com.candra.chillivision.ui.pages.terms_privacy.privacy.PrivacyScreen
+import com.candra.chillivision.ui.pages.terms_privacy.terms.TermsScreen
 import com.candra.chillivision.ui.pages.welcome.WelcomeScreen
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -44,6 +52,9 @@ fun Navigation(modifier: Modifier = Modifier) {
     val currentRoute = navBackStackEntry?.destination?.route
     val context = LocalContext.current
 
+    val connectivityStatus = remember { ConnectivityStatus(context) }
+    val isConnected by connectivityStatus.isConnected.observeAsState(initial = true)
+
     // Daftar rute yang tidak membutuhkan BottomNavigation
     val hideBottomNavRoutes = listOf(
         Screen.Login.route,
@@ -53,11 +64,26 @@ fun Navigation(modifier: Modifier = Modifier) {
         Screen.Welcome.route,
         Screen.Register.route,
         Screen.TanyaAI.route,
-        Screen.Gallery.route
+//        Screen.Gallery.route,
+        Screen.Error.route,
+        Screen.Privacy.route,
+        Screen.Terms.route,
+        Screen.ConfirmScan.route,
+        Screen.Analysis.route
     )
 
-    Scaffold(modifier = Modifier, bottomBar = {
+    // Jika tidak ada koneksi, alihkan ke ErrorScreen
+    if (!isConnected && currentRoute != Screen.Error.route) {
         if (currentRoute !in hideBottomNavRoutes) {
+            BottomNavigation(navController = navController)
+        }
+        navController.navigate(Screen.Error.route) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+        }
+    }
+
+    Scaffold(modifier = Modifier, bottomBar = {
+        if (hideBottomNavRoutes.any { currentRoute?.startsWith(it) == true }.not()) {
             BottomNavigation(navController = navController)
         }
     }) { innerPadding ->
@@ -81,7 +107,7 @@ fun Navigation(modifier: Modifier = Modifier) {
         }
 
         AnimatedNavHost(navController = navController,
-            startDestination = Screen.Profile.route,
+            startDestination = Screen.Home.route,
             enterTransition = {
                 EnterTransition.None
             },
@@ -118,7 +144,7 @@ fun Navigation(modifier: Modifier = Modifier) {
                 HomeScreen(modifier, navController)
             }
             composable(route = Screen.Langganan.route) {
-                LanggananScreen(modifier)
+                LanggananScreen(modifier, navController)
             }
             composable(route = Screen.ChangePassword.route) {
                 UbahKataSandi(modifier, navController)
@@ -133,8 +159,28 @@ fun Navigation(modifier: Modifier = Modifier) {
                 ChilliAIScreen(modifier, navController)
             }
 
-            composable(route = Screen.Gallery.route) {
-                GalleryScreen(modifier, navController)
+//            composable(route = Screen.Gallery.route) {
+//                GalleryScreen(modifier, navController)
+//            }
+
+            composable(route = Screen.Error.route){
+                ErrorScreen(modifier, navController)
+            }
+
+            composable(route = Screen.Terms.route){
+                TermsScreen(modifier, navController)
+            }
+
+            composable(route = Screen.Privacy.route){
+                PrivacyScreen(modifier, navController)
+            }
+
+            composable("confirmScan?imageUri={imageUri}") { backStackEntry ->
+                ConfirmScanScreen(modifier, navController)
+            }
+
+            composable(route = Screen.Analysis.route) {
+                AnalysisScreen(modifier, navController)
             }
         }
     }

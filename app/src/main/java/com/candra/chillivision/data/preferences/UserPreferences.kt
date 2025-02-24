@@ -18,14 +18,14 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         id: String,
         fullname: String,
         noHandphone: String,
-        email: String
+        image: String
     ) {
         dataStore.edit { pref ->
             pref[TOKEN_KEY] = token
             pref[ID_KEY] = id
             pref[FULLNAME_KEY] = fullname
             pref[NOHANDPHONE_KEY] = noHandphone
-            pref[EMAIL_KEY] = email
+            pref[IMAGE_KEY] = image
         }
     }
 
@@ -36,7 +36,7 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
                 pref[ID_KEY] ?: "",
                 pref[FULLNAME_KEY] ?: "",
                 pref[NOHANDPHONE_KEY] ?: "",
-                pref[EMAIL_KEY] ?: ""
+                pref[IMAGE_KEY] ?: ""
             )
         }
     }
@@ -47,7 +47,7 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
             pref.remove(ID_KEY)
             pref.remove(FULLNAME_KEY)
             pref.remove(NOHANDPHONE_KEY)
-            pref.remove(EMAIL_KEY)
+            pref.remove(IMAGE_KEY)
         }
     }
 
@@ -58,7 +58,7 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         private val ID_KEY = stringPreferencesKey("id")
         private val FULLNAME_KEY = stringPreferencesKey("fullname")
         private val NOHANDPHONE_KEY = stringPreferencesKey("noHandphone")
-        private val EMAIL_KEY = stringPreferencesKey("email")
+        private val IMAGE_KEY = stringPreferencesKey("image")
 
         fun getInstance(dataStore: DataStore<Preferences>): UserPreferences {
             return INSTANCE ?: synchronized(this) {

@@ -32,5 +32,20 @@ sealed class Screen(val route : String)
     data object TanyaAI : Screen("chilliAI")
 
     // Gallery
-    data object Gallery : Screen("gallery")
+//    data object Gallery : Screen("gallery")
+
+    // Terms
+    data object Terms : Screen("terms")
+
+    // Privacy
+    data object Privacy : Screen("privacy")
+
+    // Confirm Screen
+    data object ConfirmScan : Screen("confirmScan")
+
+    // Analysis
+    data object Analysis : Screen("analysis")
+
+    // Error
+    data object Error : Screen("error")
 }

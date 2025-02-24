@@ -1,15 +1,23 @@
 package com.candra.chillivision.ui.pages.home
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +52,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.createImageUri
+import com.candra.chillivision.component.handleCameraPermission
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GreenSoft
@@ -60,6 +71,9 @@ fun HomeScreen(
         )
     )
 ) {
+
+    val context = LocalContext.current
+
     val lifecycleOwner = LocalLifecycleOwner.current
     var isAvailableToken by remember {
         mutableStateOf(true)
@@ -93,11 +107,13 @@ fun HomeScreen(
                 .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
         ) {
             HeaderHomeScreen(isDarkTheme, fullname)
-            QuickAccess(isDarkTheme, navController)
+            QuickAccess(isDarkTheme, navController, context)
             TanyaAI(isDarkTheme, navController)
-            VideoTutorial(isDarkTheme)
+            VideoTutorial(isDarkTheme, context)
         }
     }
+//    Connected(context = context, modifier = modifier, navController = navController, viewModel = viewModel)
+
 
 
 }
@@ -139,7 +155,41 @@ private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String) {
 }
 
 @Composable
-private fun QuickAccess(isDarkTheme: Boolean, navController: NavController) {
+private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, context : Context) {
+
+    // Simpan URI agar tidak hilang saat izin diminta
+    var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                Toast.makeText(context, "Gambar Berhasil Diambil!", Toast.LENGTH_SHORT).show()
+                capturedImageUri?.let { uri ->
+                    navController.navigate("confirmScan?imageUri=${Uri.encode(uri.toString())}")
+                }
+            }
+        }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            navController.navigate("confirmScan?imageUri=${Uri.encode(it.toString())}")
+        }
+    }
+
+
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
+            capturedImageUri?.let { cameraLauncher.launch(it) }
+        } else {
+            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -165,9 +215,14 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController) {
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            MenuQuickAccess(title = "Potret\nLangsung", icon = R.drawable.potret_langsung)
+            MenuQuickAccess(title = "Potret\nLangsung", icon = R.drawable.potret_langsung, onClick = {
+                val newUri = createImageUri(context)
+                capturedImageUri = newUri
+                handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
+            })
             MenuQuickAccess(title = "Unggah\nGambar", icon = R.drawable.upload_cloud, onClick = {
-                navController.navigate("gallery")
+//                navController.navigate("gallery")
+                launcher.launch("image/*")
             })
         }
     }
@@ -299,7 +354,7 @@ private fun MenuTanyaAI(isDarkTheme: Boolean, navController: NavController) {
 }
 
 @Composable
-private fun VideoTutorial(isDarkTheme: Boolean) {
+private fun VideoTutorial(isDarkTheme: Boolean, context: Context) {
     Column(
         modifier = Modifier
             .padding(vertical = 16.dp)
@@ -320,19 +375,23 @@ private fun VideoTutorial(isDarkTheme: Boolean) {
             title = "Penggunaan Chilli Vision",
             textDesc = "Silahkan memutar video berikut terlebih dahulu untuk memahami penggunaan Chilli Vision",
             icon = R.drawable.video_tutorial,
-            isDarkTheme = isDarkTheme
+            isDarkTheme = isDarkTheme,
+            context = context,
+            link = "https://www.youtube.com/watch?v=95MGH9eWzsw"
         )
         MenuVideoTutorial(
             title = "Penggunaan Chilli AI",
             "Silahkan memutar video berikut apabila ingin mengetahui penggunaan Chilli AI",
             icon = R.drawable.video_tutorial,
-            isDarkTheme = isDarkTheme
+            isDarkTheme = isDarkTheme,
+            context = context,
+            link = "https://www.youtube.com/watch?v=95MGH9eWzsw"
         )
     }
 }
 
 @Composable
-private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDarkTheme: Boolean) {
+private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDarkTheme: Boolean, context: Context, link: String) {
     Row(
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
@@ -342,7 +401,13 @@ private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDark
             .border(
                 width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
             )
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Pastikan intent berjalan di task baru
+                context.startActivity(intent)
+            }
+        ,
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -378,3 +443,15 @@ private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDark
         }
     }
 }
+
+
+//@Composable
+//private fun Connected(context : Context, modifier: Modifier, navController: NavController, viewModel: HomeScreenViewModel) {
+//    if(isInternetAvailable(context)){
+//
+//    } else{
+//        navController.navigate("error") {
+//            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+//        }
+//    }
+//}

@@ -3,6 +3,7 @@ package com.candra.chillivision.data.network
 import com.candra.chillivision.data.response.CountHistoryUserResponse
 import com.candra.chillivision.data.response.CreateHistoryUserResponse
 import com.candra.chillivision.data.response.CreateSubscriptionUserResponse
+import com.candra.chillivision.data.response.DeletePhotoProfileResponse
 import com.candra.chillivision.data.response.DetailHistoryUserResponse
 import com.candra.chillivision.data.response.HistoryDeleteUserResponse
 import com.candra.chillivision.data.response.HistoryUserResponse
@@ -12,7 +13,10 @@ import com.candra.chillivision.data.response.RegisterResponse
 import com.candra.chillivision.data.response.SubscriptionUserResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
+import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
+import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -37,20 +41,31 @@ interface ApiService {
     @POST("auth/register")
     suspend fun registerUser(
         @Field("fullname") fullname: String,
-        @Field("email") email: String = null.toString(),
         @Field("no_handphone") no_handphone: String,
         @Field("password") password: String
     ): RegisterResponse
 
-    // Upadate Account User
+    // Update Account User
     @FormUrlEncoded
-    @PUT("user/update-account/{id}")
+    @POST("user/update-account/{id}")
     suspend fun updateAccountUser(
+        @Path("id") id: String,
         @Field("fullname") fullname: String,
-        @Field("email") email: String,
         @Field("no_handphone") no_handphone: String,
-        @Path("id") id: String
     ): UpdateAccountUserResponse
+
+    // Update Photo Account User
+    @Multipart
+    @POST("user/update-photo-account/{id}")
+    suspend fun updatePhotoAccountUser(
+        @Path("id") id: String,
+        @Part image: MultipartBody.Part? = null
+    ): UpdatePhotoAccountUserResponse
+
+    @DELETE("user/delete-photo-account/{id}")
+    suspend fun deletePhotoProfile(
+        @Path("id") id: String
+    ): DeletePhotoProfileResponse
 
     // Update Password User
     @FormUrlEncoded
@@ -65,6 +80,12 @@ interface ApiService {
     @FormUrlEncoded
     @POST("auth/logout")
     suspend fun logoutUser(): LogoutResponse
+
+
+    // Subscriptions
+    // Get All Subscriptions
+    @GET("subscriptions/all")
+    suspend fun getAllSubscriptions(): SubscriptionsGetAllResponse
 
     // Get History User
     @GET("history/history-by-user/{idUser}")

@@ -2,14 +2,24 @@ package com.candra.chillivision.ui.pages.profile.ubah
 
 import androidx.lifecycle.ViewModel
 import com.candra.chillivision.data.repository.ChilliVisionRepository
+import okhttp3.MultipartBody
 
 class UbahProfileViewModel(private val repository: ChilliVisionRepository) : ViewModel() {
-    fun updateAccountUser(fullname: String, email: String, no_handphone: String, id: String) =
-        repository.setUbahProfile(fullname, email, no_handphone, id)
+    fun updateAccountUser(fullname: String, no_handphone: String, id: String) =
+        repository.setUpdateAccountUser(fullname = fullname, no_handphone = no_handphone, id = id)
 
-    // get pref
+    fun updatePhotoAccountUser(image: MultipartBody.Part, id: String) =
+        repository.setUpdatePhotoAccountUser(image = image, id = id)
+
+    fun deletePhotoProfile(id: String) = repository.setDeletePhotoProfile(id)
+
     fun getPreferences() = repository.getPreferences()
 
-    // Set Pref
-    suspend fun savePreferences(token: String, id : String, fullname : String, no_handphone: String, email : String) = repository.savePreferences(token, id, fullname, no_handphone, email)
+    suspend fun savePreferences(
+        token: String,
+        id: String,
+        fullname: String,
+        no_handphone: String,
+        image: String
+    ) = repository.savePreferences(token, id, fullname, no_handphone, image)
 }

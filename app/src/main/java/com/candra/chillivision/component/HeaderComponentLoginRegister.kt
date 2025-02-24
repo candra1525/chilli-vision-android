@@ -70,3 +70,76 @@ private fun navigationAction(context : Context, action : String, navController: 
         SweetAlertComponent(context = context, title = "Information", contentText = "This is information", type = "info")
     }
 }
+
+
+@Composable
+fun HeaderComponent(text : String,modifier: Modifier = Modifier, navController: NavController) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.back_arrow),
+            contentDescription = "back header ${R.string.app_name}",
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { navController.popBackStack() },
+        )
+
+        Text(
+            text = text, style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 20.sp,
+                fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                color = PrimaryGreen,
+                textAlign = TextAlign.Center
+            ), modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+
+
+@Composable
+fun HeaderComponentAnalysis(context : Context, text : String,modifier: Modifier = Modifier, navController: NavController) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.back_arrow),
+            contentDescription = "back header ${R.string.app_name}",
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { navController.popBackStack() },
+        )
+
+        Text(
+            text = text, style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 20.sp,
+                fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                color = PrimaryGreen,
+                textAlign = TextAlign.Center
+            ), modifier = Modifier
+                .fillMaxWidth()
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.ask_question),
+            contentDescription = "information ${R.string.app_name}",
+            modifier = Modifier
+                .size(24.dp)
+                .fillMaxWidth()
+                .align(Alignment.CenterEnd)
+                .clickable {
+                    navigationAction(context,"action", navController) },
+        )
+    }
+}
+
+
+
+
+
+

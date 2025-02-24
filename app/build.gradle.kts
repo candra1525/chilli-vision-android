@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.coil)
     implementation(libs.glide)
+    implementation(libs.androidx.runtime.livedata)
     annotationProcessor(libs.lifecycle.compiler)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.livedata.ktx)
@@ -84,12 +85,17 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.datastore)
     implementation(libs.swipe.to.refresh)
-    implementation(libs.lottie)
+//    implementation(libs.lottie)
     implementation(libs.sweet.alert)
     implementation(libs.nav.animation)
 
+    implementation(libs.lottie.compose)
+
+//    implementation(libs.lottie.v662)
+
 //    implementation(libs.viewmodel.compose)
 //    implementation(libs.lifecycle.extensions)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,21 +1,9 @@
 package com.candra.chillivision.ui.navigation
 
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -26,6 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.candra.chillivision.R
+import com.candra.chillivision.ui.theme.GreenSoft
 import com.candra.chillivision.ui.theme.PrimaryGreen
 
 @Composable
@@ -34,20 +23,18 @@ fun BottomNavigation(
     navController: NavController
 ) {
     NavigationBar(
-        modifier = Modifier
-            .height(80.dp)
+        modifier = modifier
     ) {
         val navStackBackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navStackBackEntry?.destination?.route
 
-        val navItem = listOf(
+        val navItems = listOf(
             NavigationItem(
                 title = "Beranda",
                 icon = painterResource(id = R.drawable.home),
                 screen = Screen.Home,
-                contentDescription = "home",
-
-                ),
+                contentDescription = "home"
+            ),
             NavigationItem(
                 title = "Langganan",
                 icon = painterResource(id = R.drawable.subscription),
@@ -60,7 +47,6 @@ fun BottomNavigation(
                 screen = Screen.Scan,
                 contentDescription = "pindai"
             ),
-
             NavigationItem(
                 title = "Riwayat",
                 icon = painterResource(id = R.drawable.history),
@@ -72,13 +58,12 @@ fun BottomNavigation(
                 icon = painterResource(id = R.drawable.profile),
                 screen = Screen.Profile,
                 contentDescription = "profil"
-            ),
+            )
         )
 
-        navItem.map { item ->
+        navItems.forEach { item ->
             NavigationBarItem(
                 selected = currentRoute == item.screen.route,
-                modifier = Modifier.padding(top = 16.dp),
                 onClick = {
                     navController.navigate(item.screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -89,82 +74,30 @@ fun BottomNavigation(
                     }
                 },
                 icon = {
-                    if (currentRoute == item.screen.route) {
-                        when ((item.screen.route)) {
-                            Screen.Home.route -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.home),
-                                    contentDescription = item.title,
-                                    modifier = modifier.size(18.dp),
-                                    tint = PrimaryGreen
-                                )
-                            }
-
-                            Screen.Langganan.route -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.subscription),
-                                    contentDescription = item.title,
-                                    modifier = modifier.size(18.dp),
-                                    tint = PrimaryGreen
-                                )
-                            }
-
-                            Screen.Scan.route -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.scan),
-                                    contentDescription = item.title,
-                                    modifier = modifier.size(18.dp),
-                                    tint = PrimaryGreen
-                                )
-                            }
-
-                            Screen.History.route -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.history),
-                                    contentDescription = item.title,
-                                    modifier = modifier.size(18.dp),
-                                    tint = PrimaryGreen
-                                )
-                            }
-
-                            Screen.Profile.route -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.profile),
-                                    contentDescription = item.title,
-                                    modifier = modifier.size(18.dp),
-                                    tint = PrimaryGreen
-                                )
-                            }
-
-                            else -> {
-                                Icon(
-                                    painter = item.icon, contentDescription = item.title,
-                                    modifier = modifier.size(18.dp),
-                                )
-                            }
-                        }
-                    } else {
-                        Icon(
-                            painter = item.icon, contentDescription = item.title,
-                            modifier = modifier.size(18.dp),
-                        )
-                    }
+                    Icon(
+                        painter = item.icon,
+                        contentDescription = item.title,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (currentRoute == item.screen.route) PrimaryGreen else MaterialTheme.colorScheme.onSurface
+                    )
                 },
                 label = {
-                    if (currentRoute == item.screen.route) {
-                        Text(
-                            text = item.title, style = MaterialTheme.typography.bodyMedium.copy(
-                                fontSize = 9.sp,
-                                color = PrimaryGreen,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily(
-                                    Font(R.font.quicksand_bold)
-                                )
-                            )
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                            color = if (currentRoute == item.screen.route) PrimaryGreen else MaterialTheme.colorScheme.onSurface
                         )
-                    }
+                    )
                 },
                 alwaysShowLabel = false,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = PrimaryGreen,
+                    selectedTextColor = PrimaryGreen,
+                    indicatorColor = GreenSoft // Background hijau untuk item yang dipilih
+                )
             )
         }
     }

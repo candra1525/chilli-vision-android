@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -31,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
@@ -117,10 +121,6 @@ private fun FormRegister(
     navController: NavController
 ) {
     var textFullname by remember {
-        mutableStateOf("")
-    }
-
-    var textEmail by remember {
         mutableStateOf("")
     }
 
@@ -234,50 +234,6 @@ private fun FormRegister(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Alamat Email",
-            modifier = Modifier,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp,
-                color = PrimaryGreen,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily(Font(R.font.quicksand_bold))
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = textEmail,
-            onValueChange = {
-                textEmail = it
-            },
-            placeholder = {
-                Text(
-                    text = "Masukkan Alamat Email Anda (Opsional)",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 11.sp,
-                        fontFamily = FontFamily(Font(R.font.quicksand_medium))
-                    )
-                )
-            },
-            isError = textEmail.isBlank(),
-            visualTransformation = VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email, imeAction = ImeAction.Done
-            ),
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                fontFamily = FontFamily(Font(R.font.quicksand_medium))
-            )
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
             text = "Kata Sandi *",
             modifier = Modifier,
             style = MaterialTheme.typography.bodyMedium.copy(
@@ -365,7 +321,7 @@ private fun FormRegister(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        SyaratKetentuan(isChecked = isChecked, onCheckedChange = { isChecked = it })
+        SyaratKetentuan(isChecked = isChecked, onCheckedChange = { isChecked = it }, navController = navController)
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -374,7 +330,6 @@ private fun FormRegister(
                 validationRegister(
                     viewModel = viewModel,
                     fullname = textFullname.trim(),
-                    email = textEmail.trim(),
                     no_handphone = textNoHandphone.trim(),
                     password = textPassword.trim(),
                     confirmPassword = textKonfirmasiPassword.trim(),
@@ -409,7 +364,8 @@ private fun FormRegister(
 private fun SyaratKetentuan(
     modifier: Modifier = Modifier,
     isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    navController: NavController
 ) {
     Column(modifier = Modifier) {
         Text(
@@ -422,12 +378,31 @@ private fun SyaratKetentuan(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        CheckBox(isChecked = isChecked, onCheckedChange = onCheckedChange)
+        CheckBox(isChecked = isChecked, onCheckedChange = onCheckedChange, navController = navController)
     }
 }
 
 @Composable
-fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navController: NavController) {
+    val annotatedString = buildAnnotatedString {
+        append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
+
+        pushStringAnnotation(tag = "terms", annotation = "terms")
+        withStyle(style = SpanStyle(color = PrimaryGreen, fontWeight = FontWeight.Bold)) {
+            append("Ketentuan Layanan")
+        }
+        pop()
+
+        append(" dan ")
+
+        pushStringAnnotation(tag = "privacy", annotation = "privacy")
+        withStyle(style = SpanStyle(color = PrimaryGreen, fontWeight = FontWeight.Bold)) {
+            append("Kebijakan Privasi")
+        }
+        pop()
+        append(".")
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = Modifier
     ) {
@@ -440,22 +415,35 @@ fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
                 checkmarkColor = Color.White
             ),
         )
+
         Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua Ketentuan Layanan dan Kebijakkan Privasi.",
+
+        ClickableText(
+            text = annotatedString,
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 10.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_medium)),
                 textAlign = TextAlign.Justify
-            )
+            ),
+            onClick = { offset ->
+                annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset)
+                    .firstOrNull()?.let {
+                        navController.navigate("terms") // Ganti dengan route yang sesuai
+                    }
+
+                annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                    .firstOrNull()?.let {
+                        navController.navigate("privacy") // Ganti dengan route yang sesuai
+                    }
+            }
         )
     }
 }
 
+
 private fun validationRegister(
     viewModel: RegisterScreenViewModel,
     fullname: String,
-    email: String,
     no_handphone: String,
     password: String,
     confirmPassword: String,
@@ -498,7 +486,6 @@ private fun validationRegister(
                 register(
                     viewModel,
                     fullname,
-                    email,
                     no_handphone,
                     password,
                     context as LifecycleOwner,
@@ -515,14 +502,13 @@ private fun validationRegister(
 private fun register(
     viewModel: RegisterScreenViewModel,
     fullname: String,
-    email: String,
     no_handphone: String,
     password: String,
     lifecycleOwner: LifecycleOwner,
     navController: NavController,
     onLoadingStateChanged: (Boolean) -> Unit
 ) {
-    viewModel.setRegister(fullname, email, no_handphone, password)
+    viewModel.setRegister(fullname, no_handphone, password)
         .observe(lifecycleOwner) { result ->
             if (result != null) {
                 when (result) {

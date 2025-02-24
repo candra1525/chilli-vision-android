@@ -17,6 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,11 +30,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
+import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.directToWhatsapp
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -49,6 +57,18 @@ fun ProfileScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    var fullname by remember {
+        mutableStateOf("")
+    }
+
+    viewModel.getPreferences().asLiveData().observe(context as LifecycleOwner) {
+        if (it != null) {
+            fullname = it.fullname
+        } else {
+            fullname = "Pengguna Chilli Vision"
+        }
+    }
+
     Column(
         modifier = modifier
             .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp)
@@ -56,7 +76,7 @@ fun ProfileScreen(
     ) {
         TitleProfile()
         Spacer(modifier = Modifier.height(32.dp))
-        SectionImageProfile()
+        SectionImageProfile(viewModel = viewModel, fullname = fullname)
         TextBold(
             text = "Pengaturan Akun",
             sized = 12,
@@ -82,7 +102,16 @@ fun ProfileScreen(
             textAlign = TextAlign.Start
         )
         Spacer(modifier = Modifier.height(16.dp))
-        MenuProfile(name = "Hubungi Pengembang Aplikasi", icon = R.drawable.call_dev_icon)
+        MenuProfile(
+            name = "Hubungi Pengembang Aplikasi",
+            icon = R.drawable.call_dev_icon,
+            onClick = {
+                directToWhatsapp(
+                    context,
+                    "62895603231365",
+                    "Halo, saya ${fullname} ingin bertanya tentang aplikasi Chilli Vision"
+                )
+            })
 
         Spacer(modifier = Modifier.height(32.dp))
         TextBold(
@@ -132,21 +161,28 @@ private fun TitleProfile() {
 }
 
 @Composable
-private fun SectionImageProfile() {
+private fun SectionImageProfile(viewModel: ProfileScreenViewModel, fullname: String) {
+    val context = LocalContext.current
+    var image by remember {
+        mutableStateOf("")
+    }
+
+    runBlocking {
+        viewModel.getPreferences().asLiveData().observe(context as LifecycleOwner) {
+            if (it != null) {
+                image = it.image
+            }
+        }
+    }
+
     Spacer(modifier = Modifier.height(16.dp))
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Image
-        Image(
-            painter = painterResource(id = R.drawable.dummy_profile),
-            contentDescription = "Logo ${R.string.app_name}",
-            modifier = Modifier.size(80.dp)
-        )
-
+        InitialAvatar(fullname = fullname, imageUrl = image, size = 100.dp)
         Spacer(modifier = Modifier.height(16.dp))
-        TextBold(text = "Chilli Vision", colors = PrimaryGreen, sized = 18)
+        TextBold(text = fullname, colors = PrimaryGreen, sized = 20)
         Spacer(modifier = Modifier.height(4.dp))
         TextBold(
             text = "Paket Gratis",
@@ -158,6 +194,7 @@ private fun SectionImageProfile() {
 
     }
 }
+
 
 @Composable
 private fun MenuProfile(name: String, icon: Int, onClick: () -> Unit = {}) {

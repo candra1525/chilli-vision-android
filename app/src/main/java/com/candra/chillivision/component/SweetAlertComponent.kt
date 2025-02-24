@@ -75,5 +75,22 @@ fun SweetAlertComponent(
             sweetAlertDialog.setCancelable(isCancel)
             sweetAlertDialog.show()
         }
+
+        "perhatian" -> {
+            val sweetAlertDialog =
+                SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
+                    .setTitleText(title)
+                    .setContentText(contentText)
+                    .setConfirmButton("Ya") {
+                        confirmYes()
+                        it.dismissWithAnimation()
+                    }
+                    .setCancelButton("Tidak") {
+                        it.dismissWithAnimation()
+                    }
+            sweetAlertDialog.setCancelable(isCancel)
+            sweetAlertDialog.show()
+        }
+
     }
 }

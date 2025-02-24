@@ -8,6 +8,8 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.11.00"
+#lottie = "6.6.2"
+lottieCompose = "6.6.2"
 navigationCompose = "2.8.4"
 coilVersion = "2.2.2"
 lifecycleVersion = "2.8.7"
@@ -18,9 +20,10 @@ datastoreVersion = "1.1.1"
 swipeToRefreshVersion = "0.27.0"
 glideVersion = "4.16.0"
 sweetalertVersion = "1.6.2"
-lottieVersion = "6.2.0"
+#lottieVersion = "6.2.0"
 kotlin-parcelize-version = "2.1.0"
 navigationAnimation = "0.36.0"
+runtimeLivedata = "1.7.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,14 +76,16 @@ datastore = { group = "androidx.datastore", name = "datastore-preferences", vers
 swipe-to-refresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "swipeToRefreshVersion" }
 
 # Lottie
-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottieVersion" }
+#lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottieVersion" }
+#lottie-v662 = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 
 # Sweet Alert
 sweet-alert = { group = "com.github.f0ris.sweetalert", name = "library", version.ref = "sweetalertVersion"}
 
 # Navigation Animation
 nav-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "navigationAnimation" }
-
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 
 [plugins]

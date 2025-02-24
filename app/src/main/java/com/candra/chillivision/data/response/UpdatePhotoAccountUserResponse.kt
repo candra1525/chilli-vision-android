@@ -5,10 +5,10 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class UpdateAccountUserResponse(
+data class UpdatePhotoAccountUserResponse(
 
 	@field:SerializedName("data")
-	val data: DataUpdateAccountUser? = null,
+	val data: UpdatePhotoAccountUser? = null,
 
 	@field:SerializedName("message")
 	val message: String? = null,
@@ -18,32 +18,32 @@ data class UpdateAccountUserResponse(
 ) : Parcelable
 
 @Parcelize
-data class DataUpdateAccountUser(
+data class UpdatePhotoAccountUser(
 
-    @field:SerializedName("image")
+	@field:SerializedName("image")
 	val image: String? = null,
 
-    @field:SerializedName("role")
+	@field:SerializedName("role")
 	val role: String? = null,
 
-    @field:SerializedName("updated_at")
+	@field:SerializedName("updated_at")
 	val updatedAt: String? = null,
 
-    @field:SerializedName("image_url")
-	val imageUrl: String? = null,
-
-    @field:SerializedName("created_at")
+	@field:SerializedName("created_at")
 	val createdAt: String? = null,
 
-    @field:SerializedName("no_handphone")
+	@field:SerializedName("no_handphone")
 	val noHandphone: String? = null,
 
-    @field:SerializedName("id")
+	@field:SerializedName("id")
 	val id: String? = null,
 
-    @field:SerializedName("fullname")
+	@field:SerializedName("fullname")
 	val fullname: String? = null,
 
-    @field:SerializedName("deleted_at")
-	val deletedAt: String? = null
+	@field:SerializedName("deleted_at")
+	val deletedAt: String? = null,
+
+	@field:SerializedName("url_image")
+	val urlImage: String? = null
 ) : Parcelable

@@ -5,19 +5,24 @@ import androidx.lifecycle.liveData
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.network.ApiService
 import com.candra.chillivision.data.preferences.UserPreferences
+import com.candra.chillivision.data.response.DeletePhotoProfileResponse
 import com.candra.chillivision.data.response.LoginResponse
 import com.candra.chillivision.data.response.LogoutResponse
 import com.candra.chillivision.data.response.RegisterResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
+import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
+import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 class ChilliVisionRepository constructor(
     private val preferences: UserPreferences, private val apiService: ApiService
 ) {
     // Preferences
     suspend fun savePreferences(
-        token: String, id: String, fullname: String, no_handphone: String, email: String
-    ) = preferences.savePreferences(token, id, fullname, no_handphone, email)
+        token: String, id: String, fullname: String, no_handphone: String, image : String
+    ) = preferences.savePreferences(token, id, fullname, no_handphone, image)
 
     suspend fun clearToken() = preferences.clearPreferences()
 
@@ -37,11 +42,11 @@ class ChilliVisionRepository constructor(
 
     // Register User
     fun setRegister(
-        fullname: String, email: String = null.toString(), no_handphone: String, password: String
+        fullname: String, no_handphone: String, password: String
     ): LiveData<Result<RegisterResponse>> = liveData {
         emit(Result.Loading)
         try {
-            val response = apiService.registerUser(fullname, email, no_handphone, password)
+            val response = apiService.registerUser(fullname, no_handphone, password)
             emit(Result.Success(response))
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Error Occurred!"))
@@ -59,15 +64,42 @@ class ChilliVisionRepository constructor(
         }
     }
 
-    // Ubah Profile
-    fun setUbahProfile(
-        id: String, fullname: String, email: String, no_handphone: String
+    // Update Account User
+    fun setUpdateAccountUser(
+        id: String,
+        fullname: String,
+        no_handphone: String,
     ): LiveData<Result<UpdateAccountUserResponse>> = liveData {
         emit(Result.Loading)
         try {
-            val response = apiService.updateAccountUser(
-                fullname, email, no_handphone, id
-            )
+            val response = apiService.updateAccountUser(id, fullname, no_handphone)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }
+
+    // Update Photo Account User
+    fun setUpdatePhotoAccountUser(
+        id : String,
+        image : MultipartBody.Part
+    ) : LiveData<Result<UpdatePhotoAccountUserResponse>> = liveData {
+        emit(Result.Loading)
+        try{
+            val response = apiService.updatePhotoAccountUser(id, image)
+            emit(Result.Success(response))
+        }
+        catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+
+    }
+
+    // Delete Photo Profile
+    fun setDeletePhotoProfile(id: String): LiveData<Result<DeletePhotoProfileResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val response = apiService.deletePhotoProfile(id)
             emit(Result.Success(response))
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Error Occurred!"))
@@ -76,7 +108,7 @@ class ChilliVisionRepository constructor(
 
     // Ubah Password
     fun setUbahPassword(
-        id: String, old_password: String, password: String
+        old_password: String, password: String, id: String
     ): LiveData<Result<UpdatePasswordUserResponse>> = liveData {
         emit(Result.Loading)
         try {
@@ -88,4 +120,16 @@ class ChilliVisionRepository constructor(
             emit(Result.Error(e.message ?: "Error Occurred!"))
         }
     }
+
+    // Get All Subscriptions
+    fun getAllSubscriptions() : LiveData<Result<SubscriptionsGetAllResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getAllSubscriptions()
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }
+
 }

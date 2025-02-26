@@ -7,6 +7,7 @@ import com.candra.chillivision.data.di.Injection
 import com.candra.chillivision.data.repository.ChilliVisionRepository
 import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.LanggananScreenViewModel
+import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreenViewModel
 import com.candra.chillivision.ui.pages.login.LoginScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ProfileScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandiViewModel
@@ -47,6 +48,11 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
 
             // langganan
             modelClass.isAssignableFrom(LanggananScreenViewModel::class.java) -> LanggananScreenViewModel(
+                repository
+            ) as T
+
+            // detail langganan
+            modelClass.isAssignableFrom(DetailLanggananScreenViewModel::class.java) -> DetailLanggananScreenViewModel(
                 repository
             ) as T
 

@@ -81,7 +81,7 @@ private fun ImageAboutApps(modifier: Modifier = Modifier) {
 
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Image(
-            painter = painterResource(id = R.drawable.dummy_profile),
+            painter = painterResource(id = R.drawable.chilli_vision_logo),
             contentDescription = "icon ${R.string.app_name}",
             modifier = modifier
                 .size(100.dp)

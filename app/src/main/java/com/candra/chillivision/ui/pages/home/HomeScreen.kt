@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
+import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.createImageUri
 import com.candra.chillivision.component.handleCameraPermission
@@ -71,16 +72,11 @@ fun HomeScreen(
         )
     )
 ) {
-
     val context = LocalContext.current
-
     val lifecycleOwner = LocalLifecycleOwner.current
-    var isAvailableToken by remember {
-        mutableStateOf(true)
-    }
-    var fullname by remember {
-        mutableStateOf("")
-    }
+    var isAvailableToken by remember { mutableStateOf(true) }
+    var fullname by remember { mutableStateOf("") }
+    var image by remember { mutableStateOf("") }
 
     val tokenLiveData = viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
         Log.d("HomeScreen", "Token: $it")
@@ -89,6 +85,7 @@ fun HomeScreen(
         } else {
             isAvailableToken = true
             fullname = it.fullname
+            image = it.image
         }
     }
 
@@ -106,28 +103,34 @@ fun HomeScreen(
                 .verticalScroll(scrollState)
                 .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
         ) {
-            HeaderHomeScreen(isDarkTheme, fullname)
+            HeaderHomeScreen(isDarkTheme, fullname, image, navController)
             QuickAccess(isDarkTheme, navController, context)
             TanyaAI(isDarkTheme, navController)
             VideoTutorial(isDarkTheme, context)
         }
     }
-//    Connected(context = context, modifier = modifier, navController = navController, viewModel = viewModel)
-
-
-
 }
 
 @Composable
-private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String) {
+private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String, image : String, navController: NavController) {
     Row(
         modifier = Modifier
-            .padding(vertical = 16.dp)
+            .padding(vertical = 24.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        InitialAvatar(
+            fullname = fullname,
+            imageUrl = image,
+            size = 35.dp,
+            fs = 25
+        )
+
+        Column(
+            modifier = Modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(
                 text = "Hai, $fullname",
                 modifier = Modifier,
@@ -155,9 +158,8 @@ private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String) {
 }
 
 @Composable
-private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, context : Context) {
-
-    // Simpan URI agar tidak hilang saat izin diminta
+private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, context : Context)
+{
     var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     val cameraLauncher =
@@ -221,7 +223,6 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, cont
                 handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
             })
             MenuQuickAccess(title = "Unggah\nGambar", icon = R.drawable.upload_cloud, onClick = {
-//                navController.navigate("gallery")
                 launcher.launch("image/*")
             })
         }
@@ -300,12 +301,8 @@ private fun MenuTanyaAI(isDarkTheme: Boolean, navController: NavController) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(color = if (isDarkTheme) BlackMode else WhiteSoft)
-            .border(
-                width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
-            )
-            .clickable {
-                navController.navigate("chilliAI")
-            }
+            .border(width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp))
+            .clickable { navController.navigate("chilliAI") }
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
@@ -443,15 +440,3 @@ private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDark
         }
     }
 }
-
-
-//@Composable
-//private fun Connected(context : Context, modifier: Modifier, navController: NavController, viewModel: HomeScreenViewModel) {
-//    if(isInternetAvailable(context)){
-//
-//    } else{
-//        navController.navigate("error") {
-//            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-//        }
-//    }
-//}

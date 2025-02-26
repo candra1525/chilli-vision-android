@@ -1,11 +1,14 @@
 package com.candra.chillivision.data.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.network.ApiService
 import com.candra.chillivision.data.preferences.UserPreferences
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
+import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
+import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.LoginResponse
 import com.candra.chillivision.data.response.LogoutResponse
 import com.candra.chillivision.data.response.RegisterResponse
@@ -13,6 +16,11 @@ import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
+import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 
@@ -121,8 +129,7 @@ class ChilliVisionRepository constructor(
         }
     }
 
-    // Get All Subscriptions
-    fun getAllSubscriptions() : LiveData<Result<SubscriptionsGetAllResponse>> = liveData {
+    fun getAllSubscriptions(): Flow<Result<SubscriptionsGetAllResponse>> = flow {
         emit(Result.Loading)
         try {
             val response = apiService.getAllSubscriptions()
@@ -130,6 +137,43 @@ class ChilliVisionRepository constructor(
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Error Occurred!"))
         }
-    }
+    }.flowOn(Dispatchers.IO)
+
+
+    // Get Detail Subscription
+    fun getDetailSubscription(id : String) : Flow<Result<SubscriptionsGetDetailResponse>> = flow{
+        emit(Result.Loading)
+
+        try{
+            val response = apiService.getDetailSubscription(id = id)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    // History Subscription
+    // Get All History Subscription from User
+    fun getAllHistorySubscription(idUser : String) : Flow<Result<ListHistorySubscriptionResponse>> = flow{
+        emit(Result.Loading)
+        try {
+            val response = apiService.getAllHistorySubscriptionUser(idUser = idUser)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    // Get All History Subscription Active from User
+    fun getHistorySubscriptionUserActive(idUser : String) : Flow<Result<ListHistorySubscriptionActiveResponse>> = flow{
+        emit(Result.Loading)
+        try {
+            val response = apiService.getHistorySubscriptionUserActive(idUser = idUser)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
+
 
 }

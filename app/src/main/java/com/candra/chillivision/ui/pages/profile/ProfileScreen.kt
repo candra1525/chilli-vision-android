@@ -85,7 +85,7 @@ fun ProfileScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         MenuProfile(
-            name = "Ubah Profile",
+            name = "Ubah Profil",
             icon = R.drawable.profile_icon,
             onClick = { navController.navigate("changeProfile") })
         Spacer(modifier = Modifier.height(16.dp))

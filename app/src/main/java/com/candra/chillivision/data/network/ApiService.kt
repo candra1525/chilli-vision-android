@@ -7,6 +7,8 @@ import com.candra.chillivision.data.response.DeletePhotoProfileResponse
 import com.candra.chillivision.data.response.DetailHistoryUserResponse
 import com.candra.chillivision.data.response.HistoryDeleteUserResponse
 import com.candra.chillivision.data.response.HistoryUserResponse
+import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
+import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.LoginResponse
 import com.candra.chillivision.data.response.LogoutResponse
 import com.candra.chillivision.data.response.RegisterResponse
@@ -15,6 +17,7 @@ import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
+import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.DELETE
@@ -123,14 +126,20 @@ interface ApiService {
 
 
     // Get Subscription
-    @GET("subscription/user/{idUser}")
+    @GET("subscriptions/user/{idUser}")
     suspend fun getSubscription(
         @Path("idUser") idUser: String
     ): SubscriptionUserResponse
 
+    // Get Detail Subscription
+    @GET("subscriptions/detail/{id}")
+    suspend fun getDetailSubscription(
+        @Path("id") id: String
+    ): SubscriptionsGetDetailResponse
+
     // Create Subscription
     @Multipart
-    @POST("subscription/create")
+    @POST("subscriptions/create")
     suspend fun createSubscription(
         @Part("title") title: String,
         @Part("image_transaction") image_transaction: MultipartBody.Part,
@@ -138,4 +147,17 @@ interface ApiService {
         @Part("end_date") end_date: String,
         @Part("user_id") user_id: String,
     ): CreateSubscriptionUserResponse
+
+    // History Subscription
+    // Get All History Subscription from User
+    @GET("history-subscriptions/list-history/{idUser}")
+    suspend fun getAllHistorySubscriptionUser(
+        @Path("idUser") idUser: String
+    ): ListHistorySubscriptionResponse
+
+    // Get History Subscription Active from User
+    @GET("history-subscriptions/list-active/{idUser}")
+    suspend fun getHistorySubscriptionUserActive(
+        @Path("idUser") idUser: String
+    ): ListHistorySubscriptionActiveResponse
 }

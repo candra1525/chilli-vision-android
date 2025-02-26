@@ -106,20 +106,7 @@ fun ScanScreen(modifier: Modifier = Modifier, navController: NavController) {
             "Unggah Gambar",
             "Dengan menggunggah gambar tanaman cabai, maka anda dapat mengetahui penyakit yang ada pada tanaman cabai tersebut.",
             modifier, onClick = {
-//                navController.navigate("gallery")
                 launcher.launch("image/*")
-            }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        MenuScanIcon(
-            isDarkTheme,
-            R.drawable.upload_cloud,
-            "Konfirmasi Scan",
-            "Testing",
-            modifier, onClick = {
-                navController.navigate("confirmScan")
             }
         )
     }

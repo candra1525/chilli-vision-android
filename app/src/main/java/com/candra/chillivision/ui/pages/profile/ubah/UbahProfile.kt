@@ -61,6 +61,7 @@ import com.candra.chillivision.component.ButtonBorderGreen
 import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.compressImage
 import com.candra.chillivision.component.uriToFile
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
@@ -228,19 +229,21 @@ private fun FormUbahProfile(
     ) { uri: Uri? ->
         imageUri = uri
         val imageFile = imageUri?.let { uriToFile(it, context) }
-        val mimeType = when {
-            imageFile?.extension == "png" -> "image/png"
-            imageFile?.extension == "jpg" || imageFile?.extension == "jpeg" -> "image/jpeg"
-            else -> "image/jpeg" // Default
-        }
-        val requestImageToFile = imageFile?.asRequestBody(mimeType.toMediaType())
-        val multipartBody = requestImageToFile?.let {
-            MultipartBody.Part.createFormData(
-                "image", imageFile.name, it
-            )
-        }
 
-        if (multipartBody != null) {
+        if (imageFile != null) {
+            val compressedFile = compressImage(imageFile, 2048)
+
+            val mimeType = when (compressedFile.extension.lowercase()) {
+                "png" -> "image/png"
+                "jpg", "jpeg" -> "image/jpeg"
+                else -> "image/jpeg" // Default
+            }
+
+            val requestImageToFile = compressedFile.asRequestBody(mimeType.toMediaType())
+            val multipartBody = MultipartBody.Part.createFormData(
+                "image", compressedFile.name, requestImageToFile
+            )
+
             viewModel.updatePhotoAccountUser(
                 image = multipartBody,
                 id = idUser
@@ -290,7 +293,6 @@ private fun FormUbahProfile(
                             contentText = "Mohon maaf sepertinya ada kesalahan sistem. Mohon ulangi beberapa saat lagi...",
                             type = "error"
                         )
-
                     }
                 }
             }
@@ -381,7 +383,7 @@ private fun FormUbahProfile(
                                 }
                             )
                         },
-                        text = "Hapus",
+                        text = "Hapus Foto",
                         color = Red,
                         textColor = Red,
                         width = 150.dp,

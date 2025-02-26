@@ -5,10 +5,10 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class SubscriptionsGetAllResponse(
+data class SubscriptionsGetDetailResponse(
 
 	@field:SerializedName("data")
-	val data: List<SubscriptionsGetAll>? = null,
+	val data: SubscriptionsGetDetail? = null,
 
 	@field:SerializedName("message")
 	val message: String? = null,
@@ -18,7 +18,7 @@ data class SubscriptionsGetAllResponse(
 ) : Parcelable
 
 @Parcelize
-data class SubscriptionsGetAll(
+data class SubscriptionsGetDetail(
 
 	@field:SerializedName("image_subscriptions")
 	val imageSubscriptions: String? = null,

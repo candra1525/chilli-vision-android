@@ -25,6 +25,7 @@ import com.candra.chillivision.ui.pages.home.HomeScreen
 import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
 import com.candra.chillivision.ui.pages.login.LoginScreen
 import com.candra.chillivision.ui.pages.langganan.LanggananScreen
+import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreen
 import com.candra.chillivision.ui.pages.profile.ProfileScreen
 import com.candra.chillivision.ui.pages.profile.lainnya.TentangAplikasi
 import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandi
@@ -69,7 +70,8 @@ fun Navigation(modifier: Modifier = Modifier) {
         Screen.Privacy.route,
         Screen.Terms.route,
         Screen.ConfirmScan.route,
-        Screen.Analysis.route
+        Screen.Analysis.route,
+        Screen.DetailLangganan.route
     )
 
     // Jika tidak ada koneksi, alihkan ke ErrorScreen
@@ -181,6 +183,10 @@ fun Navigation(modifier: Modifier = Modifier) {
 
             composable(route = Screen.Analysis.route) {
                 AnalysisScreen(modifier, navController)
+            }
+
+            composable("detailLangganan?idLangganan={idLangganan}") { backStackEntry ->
+                DetailLanggananScreen(modifier, navController)
             }
         }
     }

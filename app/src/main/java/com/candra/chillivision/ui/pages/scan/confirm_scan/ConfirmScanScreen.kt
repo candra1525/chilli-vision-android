@@ -40,6 +40,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.candra.chillivision.R
+import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonCustomColorWithIcon
 import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.TextBold
@@ -150,24 +151,3 @@ fun ContentDetection(imageUri: String?, modifier: Modifier = Modifier) {
 }
 
 
-@Composable
-fun AnimatedLoading(modifier: Modifier = Modifier) {
-    val animasiLoad by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(
-            R.raw.loading_animation_for_analysis
-        )
-    )
-
-    val animasiLoadProgress by animateLottieCompositionAsState(
-        animasiLoad,
-        iterations = LottieConstants.IterateForever,
-        isPlaying = true
-    )
-
-
-    LottieAnimation(
-        composition = animasiLoad,
-        progress = animasiLoadProgress,
-        modifier = modifier
-    )
-}

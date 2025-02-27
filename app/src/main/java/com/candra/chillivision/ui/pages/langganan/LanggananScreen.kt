@@ -271,7 +271,6 @@ fun BeliLanggananScreen(
     }
 }
 
-
 @Composable
 fun SubscriptionCard(subscription: SubscriptionsGetAll, navController: NavController) {
     Card(

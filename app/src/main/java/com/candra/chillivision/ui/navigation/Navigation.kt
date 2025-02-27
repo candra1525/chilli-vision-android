@@ -1,7 +1,9 @@
 package com.candra.chillivision.ui.navigation
 
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -45,6 +47,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // Mengatur Semua Navigasi
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class, DelicateCoroutinesApi::class)
 @Composable
 fun Navigation(modifier: Modifier = Modifier) {
@@ -134,7 +137,7 @@ fun Navigation(modifier: Modifier = Modifier) {
                 ScanScreen(modifier, navController)
             }
             composable(route = Screen.History.route) {
-                HistoryScreen(modifier)
+                HistoryScreen(modifier, navController)
             }
             composable(route = Screen.Profile.route) {
                 ProfileScreen(modifier, navController)

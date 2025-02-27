@@ -63,10 +63,14 @@ import com.candra.chillivision.ui.theme.WhiteSoft
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Period
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Date
 import java.util.Locale
 
 fun Modifier.dashedBorder(width: Dp, radius: Dp, color: Color) =
@@ -473,4 +477,16 @@ fun compressImage(imageFile: File, maxSizeKB: Int): File {
     FileOutputStream(compressedFile).use { it.write(outputStream.toByteArray()) }
 
     return compressedFile
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun convertIsoToDateTime(isoTimestamp: String): String {
+    // Formatter untuk parsing timestamp ISO 8601
+    val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'")
+    val dateTime = LocalDateTime.parse(isoTimestamp, inputFormatter)
+
+    // Formatter untuk output dengan leading zero di tanggal
+    val outputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
+
+    return dateTime.atZone(ZoneId.of("UTC")).format(outputFormatter)
 }

@@ -16,6 +16,7 @@ import com.candra.chillivision.data.response.SubscriptionUserResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
+import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
 import okhttp3.MultipartBody
@@ -94,7 +95,7 @@ interface ApiService {
     @GET("history/history-by-user/{idUser}")
     suspend fun getHistory(
         @Path("idUser") idUser: String
-    ): HistoryUserResponse
+    ): HistoryAnalysisResponse
 
     // Get Detail History
     @GET("history/detail{id}")

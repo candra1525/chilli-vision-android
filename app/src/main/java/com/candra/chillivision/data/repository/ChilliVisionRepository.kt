@@ -7,6 +7,7 @@ import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.network.ApiService
 import com.candra.chillivision.data.preferences.UserPreferences
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
+import com.candra.chillivision.data.response.HistoryUserResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.LoginResponse
@@ -15,6 +16,7 @@ import com.candra.chillivision.data.response.RegisterResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
+import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
 import kotlinx.coroutines.Dispatchers
@@ -139,7 +141,6 @@ class ChilliVisionRepository constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-
     // Get Detail Subscription
     fun getDetailSubscription(id : String) : Flow<Result<SubscriptionsGetDetailResponse>> = flow{
         emit(Result.Loading)
@@ -175,5 +176,15 @@ class ChilliVisionRepository constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    // Get History
+    fun getHistoryAnalysis(idUser: String) : Flow<Result<HistoryAnalysisResponse>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getHistory(idUser = idUser)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
 
 }

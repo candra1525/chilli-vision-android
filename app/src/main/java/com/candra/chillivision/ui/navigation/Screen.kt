@@ -4,11 +4,22 @@ package com.candra.chillivision.ui.navigation
 // Mengatur Semua Screen yang bisa digunakan
 sealed class Screen(val route : String)
 {
+    // Home
     data object Home : Screen("home")
+
+    // Langganan
     data object Langganan : Screen("langganan")
+
+    // Detail Langganan
     data object DetailLangganan : Screen("detailLangganan")
+
+    // Scan
     data object Scan : Screen("scan")
+
+    // Profil
     data object Profile : Screen("profile")
+
+    // History
     data object History : Screen("history")
 
     // Login
@@ -33,7 +44,7 @@ sealed class Screen(val route : String)
     data object TanyaAI : Screen("chilliAI")
 
     // Gallery
-//    data object Gallery : Screen("gallery")
+    //    data object Gallery : Screen("gallery")
 
     // Terms
     data object Terms : Screen("terms")

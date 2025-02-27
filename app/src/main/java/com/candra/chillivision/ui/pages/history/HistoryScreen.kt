@@ -1,16 +1,286 @@
 package com.candra.chillivision.ui.pages.history
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.candra.chillivision.R
+import com.candra.chillivision.component.AnimatedLoading
+import com.candra.chillivision.component.ButtonGreen
+import com.candra.chillivision.component.NotFound
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.convertIsoToDateTime
+import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysis
+import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
+import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import com.candra.chillivision.ui.theme.WhiteSoft
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HistoryScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    viewModel: HistoryScreenViewModel = viewModel(
+        factory = ViewModelFactory.getInstance(
+            LocalContext.current
+        )
+    )
+) {
+    Column(
+        modifier = modifier
+            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp),
+    ) {
+        TitleHistory()
+        Spacer(modifier = Modifier.height(16.dp))
+        HistoryContent(viewModel = viewModel)
+    }
+}
+
 
 @Composable
-fun HistoryScreen(modifier : Modifier = Modifier) {
-    Column(modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 32.dp )) {
-        TextBold(text = "Riwayat", colors = PrimaryGreen, sized = 18)
+private fun TitleHistory() {
+    TextBold(text = "Riwayat", colors = PrimaryGreen, sized = 18)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HistoryContent(viewModel: HistoryScreenViewModel) {
+    var savedHistoryAnalysis by rememberSaveable {
+        mutableStateOf<Result<HistoryAnalysisResponse>?>(null)
+    }
+
+    var idUser by rememberSaveable { mutableStateOf("") }
+    var url by remember {
+        mutableStateOf("")
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        viewModel.getPreferences().asLiveData().observe(lifecycleOwner) { userData ->
+            if (idUser.isEmpty()) {
+                idUser = userData.id
+                url = userData.image
+            }
+        }
+    }
+
+    Log.d("HistoryScreenIMG", "image")
+    HistoryAnalysisContent(
+        viewModel = viewModel,
+        savedHistoryAnalysis = savedHistoryAnalysis,
+        idUser = idUser,
+        onSavedHistoryAnalysis = {
+            savedHistoryAnalysis = it
+        }
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HistoryAnalysisContent(
+    viewModel: HistoryScreenViewModel,
+    savedHistoryAnalysis: Result<HistoryAnalysisResponse>?,
+    idUser: String,
+    onSavedHistoryAnalysis: (Result<HistoryAnalysisResponse>) -> Unit,
+) {
+    val historyAnalysisState by viewModel.historyAnalisis.collectAsState()
+
+    LaunchedEffect(idUser) {
+        if (idUser.isNotEmpty() && historyAnalysisState !is Result.Success) {
+            viewModel.fetchHistoryAnalisis(idUser)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (historyAnalysisState) {
+            is Result.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AnimatedLoading(modifier = Modifier.size(120.dp))
+                        TextBold(
+                            text = "Sedang memuat...",
+                            sized = 14,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            is Result.Success -> {
+                val history = (historyAnalysisState as Result.Success).data.data ?: emptyList()
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(0.dp, 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(history) { historyAnalysis ->
+                        HistoryCard(historyAnalysis = historyAnalysis)
+                    }
+                }
+            }
+
+            is Result.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        NotFound(modifier = Modifier.size(200.dp))
+                        TextBold(
+                            text = "Tidak ada langganan yang aktif saat ini 😉",
+                            sized = 14,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HistoryCard(historyAnalysis: HistoryAnalysis) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+//                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Column(
+                    modifier = Modifier
+//                        .padding(8.dp, 0.dp)
+                        .weight(1f)
+                ) {
+                    TextBold(
+                        text = historyAnalysis.title ?: "",
+                        colors = PrimaryGreen,
+                        sized = 14,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(0.dp, 8.dp)
+                    )
+
+                    Text(
+                        text = historyAnalysis.description ?: "",
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            textAlign = TextAlign.Justify,
+                            fontSize = 10.sp,
+                            color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                            fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                        ),
+                    )
+                }
+                AsyncImage(
+                    model = historyAnalysis.urlImage ?: "",
+                    contentDescription = "Subscription Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(75.dp)
+                        .height(75.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(0.dp, 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                historyAnalysis.createdAt?.let {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = convertIsoToDateTime(it),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            textAlign = TextAlign.Start,
+                            fontSize = 10.sp,
+                            color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                            fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                        ),
+                    )
+                }
+
+                ButtonGreen(onClick = {
+                    /*TODO*/
+                }, text = "Lihat", isLoading = false, modifier = Modifier.width(80.dp).height(30.dp))
+            }
+        }
     }
 }

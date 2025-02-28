@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +46,6 @@ import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
-import kotlinx.coroutines.runBlocking
 
 @Composable
 fun LoginScreen(
@@ -286,7 +286,7 @@ private fun validationLogin(
     } else {
         login(
             viewModel = viewModel,
-            no_handphone = no_handphone,
+            noHandphone = no_handphone,
             lifecycleOwner = context as LifecycleOwner,
             password = password,
             navController = navController,
@@ -298,75 +298,59 @@ private fun validationLogin(
 
 private fun login(
     viewModel: LoginScreenViewModel,
-    no_handphone: String,
+    noHandphone: String,
     lifecycleOwner: LifecycleOwner,
     password: String,
     navController: NavController,
     onLoadingStateChanged: (Boolean) -> Unit
 ) {
-    viewModel.setLogin(no_handphone, password).observe(lifecycleOwner) { result ->
-        if (result != null) {
-            when (result) {
-                is Result.Loading -> {
-                    onLoadingStateChanged(true)
-                }
+    viewModel.loginUser(noHandphone, password)
 
-                is Result.Success -> {
-                    onLoadingStateChanged(false)
+    viewModel.loginResult.observe(lifecycleOwner) { result ->
+        when (result) {
+            is Result.Loading -> {
+                onLoadingStateChanged(true)
+            }
 
-                    val dataLogin = result.data.data
-                    val token = dataLogin?.token
-                    val id = dataLogin?.id.toString()
-                    val fullname = dataLogin?.fullname.toString()
-                    val noHandphone = dataLogin?.noHandphone.toString()
-                    val image = if (dataLogin?.imageUrl.toString() == "null"){
-                        ""
-                    } else {
-                        dataLogin?.imageUrl.toString()
-                    }
+            is Result.Success -> {
+                onLoadingStateChanged(false)
 
-                    if (token != null) {
-                        runBlocking {
-                            viewModel.savePreferences(token, id, fullname, noHandphone, image)
-                            Log.d("Token Berhasil Disimpan OK", "login: $image")
-                        }
-                        SweetAlertComponent(
-                            lifecycleOwner as Context,
-                            "Berhasil",
-                            "Hai, ${fullname},  Anda berhasil Masuk",
-                            "success"
-                        )
-                        navController.navigate("home") {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        }
-                        Log.d("Token Berhasil Disimpan", "login: $token")
-                    }
-                }
+                val fullname = result.data.data?.fullname.orEmpty()
 
-                is Result.Error -> {
-                    onLoadingStateChanged(false)
-                    Log.e("LoginScreen", "login: ${result}")
-                    SweetAlertComponent(
-                        lifecycleOwner as Context,
-                        "Gagal",
-                        "Mohon maaf anda gagal masuk, silahkan pastikan no handphone dan password benar",
-                        "error"
-                    )
-                }
+                SweetAlertComponent(
+                    lifecycleOwner as Context,
+                    "Berhasil",
+                    "Hai, ${fullname}, Anda berhasil Masuk",
+                    "success"
+                )
 
-                else -> {
-                    Log.e("LoginScreen", "error: ${result}")
-                    SweetAlertComponent(
-                        lifecycleOwner as Context,
-                        "Kesalahan",
-                        "Mohon maaf sepertinya ada kesalahan sistem. Mohon ulangi beberapa saat lagi...",
-                        "error"
-                    )
-
+                navController.navigate("home") {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
             }
+
+            is Result.Error -> {
+                onLoadingStateChanged(false)
+                Log.e("LoginScreen", "login: ${result}")
+
+                SweetAlertComponent(
+                    lifecycleOwner as Context,
+                    "Gagal",
+                    "Mohon pastikan nomor handphone dan password benar",
+                    "error"
+                )
+            }
+
+            else -> {
+                Log.e("LoginScreen", "error: ${result}")
+
+                SweetAlertComponent(
+                    lifecycleOwner as Context,
+                    "Kesalahan",
+                    "Terjadi kesalahan sistem. Coba lagi nanti.",
+                    "error"
+                )
+            }
         }
-
     }
-
 }

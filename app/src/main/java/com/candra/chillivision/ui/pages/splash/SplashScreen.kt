@@ -114,7 +114,7 @@ class SplashScreen : ComponentActivity() {
     }
 
     companion object {
-        private const val SPLASH_SCREEN_DURATION = 2000L
+        private const val SPLASH_SCREEN_DURATION = 500L
     }
 
 }

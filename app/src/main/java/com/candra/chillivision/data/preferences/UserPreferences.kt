@@ -8,18 +8,18 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.candra.chillivision.data.model.UserModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "token")
 
 class UserPreferences private constructor(private val dataStore: DataStore<Preferences>) {
-    suspend fun savePreferences(
-        token: String,
-        id: String,
-        fullname: String,
-        noHandphone: String,
-        image: String
-    ) {
+
+    val tokenFlow: Flow<String> = dataStore.data.map { pref ->
+        pref[TOKEN_KEY] ?: ""
+    }.distinctUntilChanged()
+
+    suspend fun savePreferences(token: String, id: String, fullname: String, noHandphone: String, image: String) {
         dataStore.edit { pref ->
             pref[TOKEN_KEY] = token
             pref[ID_KEY] = id
@@ -28,6 +28,7 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
             pref[IMAGE_KEY] = image
         }
     }
+
 
     fun getPreferences(): Flow<UserModel> {
         return dataStore.data.map { pref ->

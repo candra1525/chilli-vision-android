@@ -56,6 +56,7 @@ import com.candra.chillivision.component.NotFound
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.convertIsoToDateTime
 import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.model.UserModel
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysis
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.vmf.ViewModelFactory
@@ -93,26 +94,20 @@ private fun TitleHistory() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HistoryContent(viewModel: HistoryScreenViewModel) {
-    var savedHistoryAnalysis by rememberSaveable {
-        mutableStateOf<Result<HistoryAnalysisResponse>?>(null)
-    }
+    val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
 
-    var idUser by rememberSaveable { mutableStateOf("") }
-    var url by remember {
-        mutableStateOf("")
-    }
+    var savedHistoryAnalysis by rememberSaveable { mutableStateOf<Result<HistoryAnalysisResponse>?>(null) }
+    var prevIdUser by rememberSaveable { mutableStateOf("") } // Simpan nilai agar tidak reset saat rotasi
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
-        viewModel.getPreferences().asLiveData().observe(lifecycleOwner) { userData ->
-            if (idUser.isEmpty()) {
-                idUser = userData.id
-                url = userData.image
-            }
+    val idUser = userData.id
+
+    LaunchedEffect(idUser) {
+        if (idUser.isNotEmpty() && idUser != prevIdUser) {
+            viewModel.fetchHistoryAnalisis(idUser)
+            prevIdUser = idUser // Perbarui ID user sebelumnya
         }
     }
 
-    Log.d("HistoryScreenIMG", "image")
     HistoryAnalysisContent(
         viewModel = viewModel,
         savedHistoryAnalysis = savedHistoryAnalysis,
@@ -122,6 +117,8 @@ fun HistoryContent(viewModel: HistoryScreenViewModel) {
         }
     )
 }
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -184,7 +181,7 @@ fun HistoryAnalysisContent(
                     ) {
                         NotFound(modifier = Modifier.size(200.dp))
                         TextBold(
-                            text = "Tidak ada langganan yang aktif saat ini 😉",
+                            text = "Tidak ada riwayat yang tersimpan saat ini 😉",
                             sized = 14,
                             textAlign = TextAlign.Center
                         )
@@ -210,7 +207,7 @@ fun HistoryCard(historyAnalysis: HistoryAnalysis) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(18.dp)
         ) {
             Row(
                 modifier = Modifier

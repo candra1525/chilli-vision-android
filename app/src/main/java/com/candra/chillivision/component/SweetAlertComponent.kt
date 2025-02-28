@@ -1,6 +1,7 @@
 package com.candra.chillivision.component
 
 import android.content.Context
+import androidx.compose.runtime.Composable
 import cn.pedant.SweetAlert.SweetAlertDialog
 
 fun SweetAlertComponent(

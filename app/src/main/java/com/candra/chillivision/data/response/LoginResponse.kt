@@ -23,6 +23,9 @@ data class DataLogin(
 	@field:SerializedName("image")
 	val image: String? = null,
 
+	@field:SerializedName("image_url")
+	val imageUrl: String? = null,
+
 	@field:SerializedName("role")
 	val role: String? = null,
 

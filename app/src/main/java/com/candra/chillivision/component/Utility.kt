@@ -298,6 +298,7 @@ fun ButtonCustomColorWithIcon(
 fun ButtonBorderCustom(
     onClick: () -> Unit,
     text: String,
+    textSize : Int = 12,
     color: Color,
     textColor: Color,
     width: Dp? = null, // Parameter width opsional
@@ -308,12 +309,12 @@ fun ButtonBorderCustom(
         onClick = onClick,
         modifier = modifier
             .then(if (width != null) Modifier.width(width) else Modifier.fillMaxWidth())
-            .height(40.dp)
             .border(
                 width = 1.dp,
                 color = color,
                 shape = RoundedCornerShape(8.dp)
-            ),
+            )
+            .height(40.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
@@ -334,7 +335,7 @@ fun ButtonBorderCustom(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp,
+                fontSize = textSize.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                 textAlign = TextAlign.Center,
             )
@@ -349,6 +350,7 @@ fun ButtonBorderCustom(
 fun ButtonBorderGreen(
     onClick: () -> Unit,
     text: String,
+    textSize : Int = 12,
     width: Dp? = null, // Parameter width opsional
     icon: ImageVector? = null, // Parameter icon opsional
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
@@ -357,12 +359,12 @@ fun ButtonBorderGreen(
         onClick = onClick,
         modifier = modifier
             .then(if (width != null) Modifier.width(width) else Modifier.fillMaxWidth())
-            .height(40.dp)
             .border(
                 width = 1.dp,
                 color = PrimaryGreen,
                 shape = RoundedCornerShape(8.dp)
-            ),
+            )
+            .height(40.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
@@ -383,7 +385,7 @@ fun ButtonBorderGreen(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp,
+                fontSize = textSize.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                 textAlign = TextAlign.Center,
             )

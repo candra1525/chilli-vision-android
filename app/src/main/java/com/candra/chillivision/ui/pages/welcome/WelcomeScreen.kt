@@ -163,7 +163,7 @@ fun BottomWelcome(navController: NavController) {
         Text(
             text = "Dengan masuk atau mendaftar pada Chilli Vision, kamu menyetujui Ketentuan Layanan dan Kebijakan Privasi.",
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 8.sp,
+                fontSize = 9.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_regular)),
                 textAlign = TextAlign.Justify,
             ),

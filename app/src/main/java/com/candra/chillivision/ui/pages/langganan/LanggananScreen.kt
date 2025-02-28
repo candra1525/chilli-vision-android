@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -65,6 +65,8 @@ import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.formatRupiah
 import com.candra.chillivision.component.konversiFormatTanggal
 import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.response.ListHistorySubscription
+import com.candra.chillivision.data.response.ListHistorySubscriptionActive
 import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAll
@@ -85,8 +87,7 @@ fun LanggananScreen(
     )
 ) {
     Column(
-        modifier = modifier
-            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp)
+        modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp)
     ) {
         LanggananTitle(modifier)
         Spacer(modifier = Modifier.height(16.dp))
@@ -134,24 +135,18 @@ fun TabScreen(viewModel: LanggananScreenViewModel, navController: NavController)
 
 
     Column {
-        androidx.compose.material3.TabRow(
-            selectedTabIndex = state,
+        androidx.compose.material3.TabRow(selectedTabIndex = state,
             containerColor = Color.Transparent,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
-                    Modifier.tabIndicatorOffset(tabPositions[state]),
-                    color = PrimaryGreen
+                    Modifier.tabIndicatorOffset(tabPositions[state]), color = PrimaryGreen
                 )
-            }
-        ) {
+            }) {
             titles.forEachIndexed { index, title ->
-                Tab(
-                    selected = state == index,
-                    onClick = {
-                        scrollStates[state] = scrollStates[state] ?: 0
-                        state = index
-                    }
-                ) {
+                Tab(selected = state == index, onClick = {
+                    scrollStates[state] = scrollStates[state] ?: 0
+                    state = index
+                }) {
                     Row(
                         modifier = Modifier
                             .padding(8.dp)
@@ -181,31 +176,26 @@ fun TabScreen(viewModel: LanggananScreenViewModel, navController: NavController)
         when (state) {
             0 -> BeliLanggananScreen(viewModel, navController)
 
-            1 -> ActiveSubscription(
-                viewModel = viewModel,
+            1 -> ActiveSubscription(viewModel = viewModel,
                 initialScroll = scrollStates[state] ?: 0,
                 onScrollChanged = { scrollStates[state] = it },
                 idUser = idUser,
                 savedSubscriptionsActive = savedSubscriptionsActive,
-                onSaveSubscriptionsActive = { savedSubscriptionsActive = it }
-            )
+                onSaveSubscriptionsActive = { savedSubscriptionsActive = it })
 
-            2 -> HistorySubscription(
-                viewModel = viewModel,
+            2 -> HistorySubscription(viewModel = viewModel,
                 initialScroll = scrollStates[state] ?: 0,
                 onScrollChanged = { scrollStates[state] = it },
                 idUser = idUser,
                 savedSubscriptionsHistory = savedSubscriptionsHistory,
-                onSaveSubscriptionsHistory = { savedSubscriptionsHistory = it }
-            )
+                onSaveSubscriptionsHistory = { savedSubscriptionsHistory = it })
         }
     }
 }
 
 @Composable
 fun BeliLanggananScreen(
-    viewModel: LanggananScreenViewModel,
-    navController: NavController
+    viewModel: LanggananScreenViewModel, navController: NavController
 ) {
     val subscriptionsState by viewModel.subscriptions.collectAsState()
 
@@ -213,8 +203,7 @@ fun BeliLanggananScreen(
         when (subscriptionsState) {
             is Result.Loading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -222,9 +211,7 @@ fun BeliLanggananScreen(
                     ) {
                         AnimatedLoading(modifier = Modifier.size(120.dp))
                         TextBold(
-                            text = "Sedang memuat...",
-                            sized = 14,
-                            textAlign = TextAlign.Center
+                            text = "Sedang memuat...", sized = 14, textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -246,8 +233,7 @@ fun BeliLanggananScreen(
 
             is Result.Error -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -255,9 +241,7 @@ fun BeliLanggananScreen(
                     ) {
                         NotFound(modifier = Modifier.size(200.dp))
                         TextBold(
-                            text = "Halaman bermasalah 🥲",
-                            sized = 14,
-                            textAlign = TextAlign.Center
+                            text = "Halaman bermasalah 🥲", sized = 14, textAlign = TextAlign.Center
                         )
                         // button load ulang
                         ButtonGreen(onClick = {
@@ -287,9 +271,7 @@ fun SubscriptionCard(subscription: SubscriptionsGetAll, navController: NavContro
                 .padding(16.dp)
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -305,26 +287,21 @@ fun SubscriptionCard(subscription: SubscriptionsGetAll, navController: NavContro
                 )
 
                 Column(
-                    modifier = Modifier
-                        .padding(8.dp, 0.dp)
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    TextBold(
-                        text = (
-                                if (subscription.title != null) {
-                                    subscription.title + subscription.period?.let { " - $it Bulan" }
-                                } else {
-                                    "-"
-                                }),
+                    TextBold(text = (if (subscription.title != null) {
+                        subscription.title + subscription.period?.let { " - $it Bulan" }
+                    } else {
+                        "-"
+                    }),
                         colors = PrimaryGreen,
-                        sized = 18,
+                        sized = 16,
                         textAlign = TextAlign.Start,
-                        modifier = Modifier.padding(0.dp, 8.dp)
-                    )
+                        modifier = Modifier.padding(0.dp, 8.dp))
 
                     TextBold(
                         text = "${subscription.price?.let { formatRupiah(it) }}",
-                        sized = 16,
+                        sized = 12,
                         textAlign = TextAlign.End,
                         colors = if (isSystemInDarkTheme()) White else BlackMode
                     )
@@ -352,10 +329,9 @@ fun ActiveSubscription(
     onScrollChanged: (Int) -> Unit,
     savedSubscriptionsActive: Result<ListHistorySubscriptionActiveResponse>?,
     idUser: String,
-    onSaveSubscriptionsActive: (Result<ListHistorySubscriptionActiveResponse>) -> Unit // Tambahkan ini
+    onSaveSubscriptionsActive: (Result<ListHistorySubscriptionActiveResponse>) -> Unit
 ) {
-    val scrollState = rememberScrollState(initialScroll)
-
+    val listState = rememberLazyListState()
     val subscriptionsActiveState by viewModel.subscriptionsActive.collectAsState()
 
     LaunchedEffect(idUser) {
@@ -366,7 +342,7 @@ fun ActiveSubscription(
 
     LaunchedEffect(subscriptionsActiveState) {
         if (subscriptionsActiveState is Result.Success) {
-            onSaveSubscriptionsActive(subscriptionsActiveState) // Perbarui di TabScreen
+            onSaveSubscriptionsActive(subscriptionsActiveState)
         }
     }
 
@@ -394,126 +370,27 @@ fun ActiveSubscription(
             }
 
             is Result.Success -> {
-                val subscriptions =
-                    (displayedSubscriptionsState as Result.Success<ListHistorySubscriptionActiveResponse>).data
+                val subscriptions = displayedSubscriptionsState.data.data ?: emptyList()
 
-                if (subscriptions.data?.isEmpty() == true) {
-                    Text(
-                        text = "Tidak ada langganan aktif",
-                        modifier = Modifier,
-                        color = Color.Gray
-                    )
+                if (subscriptions.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Tidak ada langganan aktif",
+                            color = Color.Gray
+                        )
+                    }
                 } else {
-                    subscriptions.data?.forEach { subscription ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(2.dp, RoundedCornerShape(8.dp))
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surface),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    // Jika ada gambar di subscription, tampilkan
-                                    AsyncImage(
-                                        model = subscription?.imageUrl ?: "",
-                                        contentDescription = "Subscription Image",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(100.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .padding(8.dp)
-                                    )
-
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(8.dp, 0.dp)
-                                            .fillMaxWidth()
-                                    ) {
-                                        TextBold(
-                                            text = (
-                                                    if (subscription?.subscriptions?.title != null) {
-                                                        subscription.subscriptions.title + subscription.subscriptions.period?.let { " - $it Bulan" }
-                                                    } else {
-                                                        "-"
-                                                    }),
-                                            colors = PrimaryGreen,
-                                            sized = 18,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier.padding(0.dp, 8.dp)
-                                        )
-
-                                        subscription?.subscriptions?.price?.let { formatRupiah(it) }
-                                            ?.let {
-                                                TextBold(
-                                                    text = it,
-                                                    sized = 16,
-                                                    textAlign = TextAlign.End,
-                                                    colors = if (isSystemInDarkTheme()) White else BlackMode
-                                                )
-                                            }
-
-//                                        TextBold(
-//                                            text = subscription?.endDate?.let {
-//                                                konversiFormatTanggal(
-//                                                    it
-//                                                )
-//                                            }
-//                                                ?: "",
-//                                            sized = 16,
-//                                            textAlign = TextAlign.End,
-//                                            colors = if (isSystemInDarkTheme()) White else BlackMode
-//                                        )
-//
-//
-//
-//                                        Spacer(modifier = Modifier.padding(8.dp))
-//
-//                                        ButtonGreen(onClick = {
-//                                            // Navigasi atau aksi lainnya
-//                                        }, text = "Lihat Detail", isLoading = false)
-                                    }
-                                }
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    TextBold(
-                                        text = subscription?.endDate?.let {
-                                            konversiFormatTanggal(
-                                                it
-                                            )
-                                        }
-                                            ?: "",
-                                        sized = 16,
-                                        textAlign = TextAlign.End,
-                                        colors = if (isSystemInDarkTheme()) White else BlackMode
-                                    )
-                                    Spacer(modifier = Modifier.padding(8.dp))
-                                    ButtonBorderGreen(onClick = { /*TODO*/ }, text = "Lihat Detail", modifier = Modifier.width(120.dp))
-//                                    ButtonGreen(onClick = {
-//                                        // Navigasi atau aksi lainnya
-//                                    }, text = "Lihat Detail", isLoading = false)
-                                }
-
-
-                            }
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(subscriptions) { subscription ->
+                            ActiveSubscriptionItem(subscription)
                         }
                     }
                 }
@@ -539,8 +416,87 @@ fun ActiveSubscription(
             }
         }
     }
+}
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ActiveSubscriptionItem(subscription: ListHistorySubscriptionActive?) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                AsyncImage(
+                    model = subscription?.subscriptions?.urlImage ?: "",
+                    contentDescription = "Subscription Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(100.dp)
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                )
 
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    TextBold(
+                        text = subscription?.subscriptions?.title?.let {
+                            "$it - ${subscription.subscriptions.period ?: "-"} Bulan"
+                        } ?: "-",
+                        colors = PrimaryGreen,
+                        sized = 16,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(0.dp, 8.dp)
+                    )
+
+                    subscription?.subscriptions?.price?.let { formatRupiah(it) }?.let {
+                        TextBold(
+                            text = it,
+                            sized = 12,
+                            textAlign = TextAlign.End,
+                            colors = if (isSystemInDarkTheme()) White else BlackMode
+                        )
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                subscription?.endDate?.let { konversiFormatTanggal(it) }?.let {
+                    TextBold(
+                        text = "Berlaku hingga : $it",
+                        sized = 10,
+                        textAlign = TextAlign.End,
+                        colors = if (isSystemInDarkTheme()) White else BlackMode
+                    )
+                }
+                Spacer(modifier = Modifier.padding(8.dp))
+                ButtonBorderGreen(
+                    onClick = { /* TODO: Tambahkan navigasi atau aksi */ },
+                    text = "Lihat Detail",
+                    textSize = 10,
+                    modifier = Modifier.width(120.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -550,9 +506,9 @@ fun HistorySubscription(
     onScrollChanged: (Int) -> Unit,
     savedSubscriptionsHistory: Result<ListHistorySubscriptionResponse>?,
     idUser: String,
-    onSaveSubscriptionsHistory: (Result<ListHistorySubscriptionResponse>) -> Unit // Tambahkan ini
+    onSaveSubscriptionsHistory: (Result<ListHistorySubscriptionResponse>) -> Unit
 ) {
-    val scrollState = rememberScrollState(initialScroll)
+    val listState = rememberLazyListState()
 
     val subscriptionsHistoryState by viewModel.subscriptionsHistory.collectAsState()
 
@@ -564,7 +520,7 @@ fun HistorySubscription(
 
     LaunchedEffect(subscriptionsHistoryState) {
         if (subscriptionsHistoryState is Result.Success) {
-            onSaveSubscriptionsHistory(subscriptionsHistoryState) // Perbarui di TabScreen
+            onSaveSubscriptionsHistory(subscriptionsHistoryState)
         }
     }
 
@@ -592,77 +548,27 @@ fun HistorySubscription(
             }
 
             is Result.Success -> {
-                val subscriptions =
-                    (displayedSubscriptionsState as Result.Success<ListHistorySubscriptionResponse>).data
+                val subscriptions = displayedSubscriptionsState.data.data ?: emptyList()
 
-                if (subscriptions.data?.isEmpty() == true) {
-                    Text(
-                        text = "Tidak ada langganan aktif",
-                        modifier = Modifier,
-                        color = Color.Gray
-                    )
+                if (subscriptions.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Tidak ada langganan aktif",
+                            color = Color.Gray
+                        )
+                    }
                 } else {
-                    subscriptions.data?.forEach { subscription ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(2.dp, RoundedCornerShape(8.dp))
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surface),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    // Jika ada gambar di subscription, tampilkan
-                                    AsyncImage(
-                                        model = subscription?.imageUrl ?: "",
-                                        contentDescription = "Subscription Image",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(100.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .padding(8.dp)
-                                    )
-
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(8.dp, 0.dp)
-                                            .fillMaxWidth()
-                                    ) {
-                                        TextBold(
-                                            text = subscription?.subscriptions?.title ?: "",
-                                            colors = PrimaryGreen,
-                                            sized = 18,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier.padding(0.dp, 8.dp)
-                                        )
-
-                                        TextBold(
-                                            text = subscription?.status ?: "",
-                                            sized = 16,
-                                            textAlign = TextAlign.End,
-                                            colors = if (isSystemInDarkTheme()) White else BlackMode
-                                        )
-
-                                        Spacer(modifier = Modifier.padding(8.dp))
-
-                                        ButtonGreen(onClick = {
-                                            // Navigasi atau aksi lainnya
-                                        }, text = "Lihat Detail", isLoading = false)
-                                    }
-                                }
-                            }
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(subscriptions) { subscription ->
+                            HistorySubscriptionItem(subscription)
                         }
                     }
                 }
@@ -684,6 +590,81 @@ fun HistorySubscription(
                             textAlign = TextAlign.Center
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HistorySubscriptionItem(subscription: ListHistorySubscription?) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                AsyncImage(
+                    model = subscription?.subscriptions?.urlImage ?: "",
+                    contentDescription = "Subscription Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(100.dp)
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextBold(
+                        text = "${subscription?.subscriptions?.title ?: "-"} - ${subscription?.subscriptions?.period ?: "-"} Bulan",
+                        colors = PrimaryGreen,
+                        sized = 16,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(0.dp, 8.dp)
+                    )
+
+                    TextBold(
+                        text = when (subscription?.status) {
+                            "pending" -> "Menunggu Konfirmasi"
+                            "success" -> "Berhasil"
+                            "expired" -> "Kadaluarsa"
+                            "cancel" -> "Dibatalkan"
+                            else -> "-"
+                        },
+                        sized = 12,
+                        textAlign = TextAlign.End,
+                        colors = if (isSystemInDarkTheme()) White else BlackMode
+                    )
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        ButtonBorderGreen(
+                            onClick = { /*TODO*/ },
+                            text = "Lihat Detail",
+                            textSize = 10,
+                            modifier = Modifier.width(120.dp)
+                        )
+                    }
+
                 }
             }
         }

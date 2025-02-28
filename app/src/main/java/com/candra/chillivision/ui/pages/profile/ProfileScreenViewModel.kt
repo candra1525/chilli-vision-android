@@ -5,6 +5,6 @@ import com.candra.chillivision.data.repository.ChilliVisionRepository
 
 class ProfileScreenViewModel (private val repository : ChilliVisionRepository) : ViewModel(){
     fun setLogout() = repository.setLogout()
-    suspend fun clearToken() = repository.clearToken()
+    suspend fun clearPreferences() = repository.clearPreferences()
     fun getPreferences() = repository.getPreferences()
 }

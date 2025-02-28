@@ -1,5 +1,6 @@
 package com.candra.chillivision.ui.pages.langganan.detail
 
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -54,13 +56,19 @@ import com.candra.chillivision.component.DateToday
 import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.compressImage
 import com.candra.chillivision.component.dashedBorder
 import com.candra.chillivision.component.directToWhatsapp
 import com.candra.chillivision.component.formatRupiah
 import com.candra.chillivision.component.konversiFormatTanggal
+import com.candra.chillivision.component.uriToFile
 import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.model.UserModel
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -73,6 +81,8 @@ fun DetailLanggananScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
+    val idUser = userData.id
 
     // Ambil idLangganan dari navigation arguments
     val idLangganan = remember {
@@ -97,6 +107,8 @@ fun DetailLanggananScreen(
     var description by remember { mutableStateOf("") }
     var isLoaded by remember { mutableStateOf(false) }
     var isBuy by remember { mutableStateOf(false) }
+
+    var isLoadingSubmit by remember { mutableStateOf(false) }
 
     var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isUpload by remember { mutableStateOf(false) }
@@ -165,7 +177,6 @@ fun DetailLanggananScreen(
                         .padding(32.dp, 0.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.padding(8.dp))
 
                     AsyncImage(
                         model = imageUrl,
@@ -175,11 +186,11 @@ fun DetailLanggananScreen(
 
                     Spacer(modifier = Modifier.padding(16.dp))
 
-                    TextBold(text = title, sized = 24)
+                    TextBold(text = title, sized = 20)
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
-                    TextBold(text = formatRupiah(price), sized = 18, colors = PrimaryGreen)
+                    TextBold(text = formatRupiah(price), sized = 16, colors = PrimaryGreen)
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
@@ -246,24 +257,34 @@ fun DetailLanggananScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TextBold(text = "Tanggal Mulai : ", sized = 12)
-                            konversiFormatTanggal(DateToday())?.let {
-                                TextBold(
-                                    text = it,
-                                    sized = 12
-                                )
-                            }
-
-                            TextBold(text = "Tanggal Berhenti : ", sized = 12)
-                            DatePlusMonths(
-                                DateToday(),
-                                period
-                            )?.let {
-                                konversiFormatTanggal(it)?.let {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                TextBold(text = "Tanggal Mulai", sized = 12)
+                                konversiFormatTanggal(DateToday())?.let {
                                     TextBold(
                                         text = it,
                                         sized = 12
                                     )
+                                }
+                            }
+
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                TextBold(text = "Tanggal Berhenti", sized = 12)
+                                DatePlusMonths(
+                                    DateToday(),
+                                    period
+                                )?.let {
+                                    konversiFormatTanggal(it)?.let {
+                                        TextBold(
+                                            text = it,
+                                            sized = 12
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -271,9 +292,23 @@ fun DetailLanggananScreen(
 
                     Spacer(modifier = Modifier.padding(16.dp))
 
+                    if (isLoadingSubmit){
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AnimatedLoading(modifier = Modifier.size(60.dp))
+                            TextBold(
+                                text = "Sedang memproses...",
+                                sized = 11,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(0.dp, 0.dp, 0.dp, 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -285,38 +320,137 @@ fun DetailLanggananScreen(
                                     "Halo Admin 👋🏻, saya ingin bertanya terkait Paket Aplikasi Chilli Vision 🌶️"
                                 )
                             },
-                            text = "WhatsApp Admin",
+                            text = "Tanya Admin",
                             color = PrimaryGreen,
-                            width = 180.dp,
+                            modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.Phone
                         )
+
+                        Spacer(modifier = Modifier.padding(8.dp))
 
                         if (!isBuy) {
                             ButtonCustomColorWithIcon(
                                 onClick = {
                                     isBuy = true
                                 },
-                                text = "Beli Sekarang",
+                                text = "Beli",
                                 color = PrimaryGreen,
-                                width = 180.dp,
+                                modifier = Modifier.weight(1f),
                                 icon = Icons.Filled.ShoppingCart
                             )
                         } else {
                             ButtonCustomColorWithIcon(
                                 onClick = {
-                                    isBuy = false
-                                    isUpload = false
-                                    capturedImageUri = null
-                                    SweetAlertComponent(context = context, title = "Berhasil", contentText = "Bukti transaksi berhasil disimpan", type = "success", isCancel = false)
+                                    if (capturedImageUri == null || capturedImageUri == Uri.EMPTY || capturedImageUri == Uri.parse("")) {
+                                        SweetAlertComponent(
+                                            context = context,
+                                            title = "Peringatan",
+                                            contentText = "Silahkan unggah bukti transaksi",
+                                            type = "warning",
+                                            isCancel = false
+                                        )
+                                    }
+                                    else {
+                                        isLoadingSubmit = true
+                                        BuySubscription(
+                                            context = context,
+                                            viewModel = viewModel,
+                                            idLangganan = idLangganan,
+                                            idUser = idUser,
+                                            period = period,
+                                            capturedImageUri = capturedImageUri
+                                        ){
+                                            isBuy = false
+                                            isUpload = false
+                                            capturedImageUri = null
+                                            isLoadingSubmit = false
+                                        }
+                                    }
                                 },
                                 text = "Yakin Beli",
                                 color = PrimaryGreen,
-                                width = 180.dp,
-                                icon = Icons.Filled.ShoppingCart
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Filled.ShoppingCart,
                             )
                         }
 
                     }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun BuySubscription(
+    context: Context,
+    viewModel: DetailLanggananScreenViewModel,
+    idLangganan: String,
+    idUser: String,
+    period: Int,
+    capturedImageUri: Uri?,
+    onSucess : () -> Unit
+){
+    val imageFile = capturedImageUri?.let {
+        uriToFile(
+            imageUri = it,
+            context = context
+        )
+    }
+
+    if (imageFile != null) {
+        val compressedFile = compressImage(imageFile, 2048)
+
+        val mimeType = when (compressedFile.extension.lowercase()) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "image/jpeg" // Default
+        }
+
+        val requestImageToFile =
+            compressedFile.asRequestBody(mimeType.toMediaTypeOrNull())
+        val multipartBody = MultipartBody.Part.createFormData(
+            "image_transaction", // harus sesuai dengan API Service
+            compressedFile.name,
+            requestImageToFile
+        )
+
+        viewModel.setCreateHistorySubscription(
+            subscriptionId = idLangganan,
+            userId = idUser,
+            startDate = DateToday(),
+            endDate = DatePlusMonths(
+                DateToday(),
+                period
+            ).toString(),
+            imageTransaction = multipartBody
+        ).observe(context as LifecycleOwner) { result ->
+            when (result) {
+                is Result.Loading -> { /* Tampilkan loading */
+
+                }
+
+                is Result.Success -> {
+                    onSucess()
+                    SweetAlertComponent(
+                        context = context,
+                        title = "Berhasil",
+                        contentText = "Transaksi berhasil, silahkan lihat pada halaman riwayat langganan",
+                        type = "success",
+                        isCancel = false
+                    )
+                }
+
+                is Result.Error -> {
+                    SweetAlertComponent(
+                        context = context,
+                        title = "Gagal",
+                        contentText = result.errorMessage
+                            ?: "Terjadi kesalahan",
+                        type = "error",
+                        isCancel = false
+                    )
                 }
             }
         }

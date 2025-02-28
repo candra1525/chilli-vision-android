@@ -29,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,18 +79,21 @@ fun HomeScreen(
     var fullname by remember { mutableStateOf("") }
     var image by remember { mutableStateOf("") }
 
-    val tokenLiveData = viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
-        Log.d("HomeScreen", "Token: $it")
-        if (it.token.isEmpty()) {
-            isAvailableToken = false
-        } else {
-            isAvailableToken = true
-            fullname = it.fullname
-            image = it.image
+    LaunchedEffect(Unit) {
+        if (fullname.isEmpty()) {
+            viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
+                Log.d("HomeScreen", "Token: $it")
+                if (it.token.isEmpty()) {
+                    isAvailableToken = false
+                } else {
+                    isAvailableToken = true
+                    fullname = it.fullname
+                    image = it.image
+                }
+            }
         }
     }
 
-    Log.d("HomeScreen", "Token: $tokenLiveData")
     if (!isAvailableToken) {
         navController.navigate("welcome") {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -112,7 +116,12 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String, image : String, navController: NavController) {
+private fun HeaderHomeScreen(
+    isDarkTheme: Boolean,
+    fullname: String,
+    image: String,
+    navController: NavController
+) {
     Row(
         modifier = Modifier
             .padding(vertical = 24.dp)
@@ -158,8 +167,7 @@ private fun HeaderHomeScreen(isDarkTheme: Boolean, fullname : String, image : St
 }
 
 @Composable
-private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, context : Context)
-{
+private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, context: Context) {
     var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     val cameraLauncher =
@@ -179,7 +187,6 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, cont
             navController.navigate("confirmScan?imageUri=${Uri.encode(it.toString())}")
         }
     }
-
 
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -217,11 +224,14 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, cont
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            MenuQuickAccess(title = "Potret\nLangsung", icon = R.drawable.potret_langsung, onClick = {
-                val newUri = createImageUri(context)
-                capturedImageUri = newUri
-                handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
-            })
+            MenuQuickAccess(
+                title = "Potret\nLangsung",
+                icon = R.drawable.potret_langsung,
+                onClick = {
+                    val newUri = createImageUri(context)
+                    capturedImageUri = newUri
+                    handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
+                })
             MenuQuickAccess(title = "Unggah\nGambar", icon = R.drawable.upload_cloud, onClick = {
                 launcher.launch("image/*")
             })
@@ -230,7 +240,7 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, cont
 }
 
 @Composable
-private fun MenuQuickAccess(title: String, icon: Int, onClick : () -> Unit = {}) {
+private fun MenuQuickAccess(title: String, icon: Int, onClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .width(100.dp)
@@ -388,7 +398,14 @@ private fun VideoTutorial(isDarkTheme: Boolean, context: Context) {
 }
 
 @Composable
-private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDarkTheme: Boolean, context: Context, link: String) {
+private fun MenuVideoTutorial(
+    title: String,
+    textDesc: String,
+    icon: Int,
+    isDarkTheme: Boolean,
+    context: Context,
+    link: String
+) {
     Row(
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
@@ -403,8 +420,7 @@ private fun MenuVideoTutorial(title: String, textDesc: String, icon: Int, isDark
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Pastikan intent berjalan di task baru
                 context.startActivity(intent)
-            }
-        ,
+            },
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -1,18 +1,22 @@
 package com.candra.chillivision.ui.pages.profile
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,10 +38,12 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
+import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.directToWhatsapp
+import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -57,101 +63,155 @@ fun ProfileScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
     var fullname by remember {
         mutableStateOf("")
     }
 
-    viewModel.getPreferences().asLiveData().observe(context as LifecycleOwner) {
-        if (it != null) {
-            fullname = it.fullname
-        } else {
-            fullname = "Pengguna Chilli Vision"
+    LaunchedEffect(Unit) {
+        if (fullname.isEmpty()) {
+            viewModel.getPreferences().asLiveData().observe(context as LifecycleOwner) {
+                if (it != null) {
+                    fullname = it.fullname
+                } else {
+                    fullname = "Pengguna Chilli Vision"
+                }
+            }
         }
     }
 
+
+
     Column(
-        modifier = modifier
-            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp)
-            .verticalScroll(scrollState),
+        modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 85.dp)
     ) {
         TitleProfile()
-        Spacer(modifier = Modifier.height(32.dp))
-        SectionImageProfile(viewModel = viewModel, fullname = fullname)
-        TextBold(
-            text = "Pengaturan Akun",
-            sized = 12,
-            textAlign = TextAlign.Start,
-            colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
-        )
         Spacer(modifier = Modifier.height(16.dp))
-        MenuProfile(
-            name = "Ubah Profil",
-            icon = R.drawable.profile_icon,
-            onClick = { navController.navigate("changeProfile") })
-        Spacer(modifier = Modifier.height(16.dp))
-        MenuProfile(
-            name = "Ubah Kata Sandi",
-            icon = R.drawable.password_icon,
-            onClick = { navController.navigate("changePassword") })
 
-        Spacer(modifier = Modifier.height(32.dp))
-        TextBold(
-            text = "Bantuan",
-            colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
-            sized = 12,
-            textAlign = TextAlign.Start
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        MenuProfile(
-            name = "Hubungi Pengembang Aplikasi",
-            icon = R.drawable.call_dev_icon,
-            onClick = {
-                directToWhatsapp(
-                    context,
-                    "62895603231365",
-                    "Halo, saya ${fullname} ingin bertanya tentang aplikasi Chilli Vision"
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AnimatedLoading(modifier = Modifier.size(120.dp))
+                    TextBold(
+                        text = "Mohon menunggu...", sized = 14, textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(scrollState)
+            ) {
+                SectionImageProfile(viewModel = viewModel, fullname = fullname)
+                TextBold(
+                    text = "Pengaturan Akun",
+                    sized = 12,
+                    textAlign = TextAlign.Start,
+                    colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
                 )
-            })
+                Spacer(modifier = Modifier.height(16.dp))
+                MenuProfile(
+                    name = "Ubah Profil",
+                    icon = R.drawable.profile_icon,
+                    onClick = { navController.navigate("changeProfile") })
+                Spacer(modifier = Modifier.height(16.dp))
+                MenuProfile(
+                    name = "Ubah Kata Sandi",
+                    icon = R.drawable.password_icon,
+                    onClick = { navController.navigate("changePassword") })
 
-        Spacer(modifier = Modifier.height(32.dp))
-        TextBold(
-            text = "Lainnya",
-            colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
-            sized = 12,
-            textAlign = TextAlign.Start
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        MenuProfile(
-            name = "Tentang Aplikasi",
-            icon = R.drawable.about_apps_icon,
-            onClick = { navController.navigate("aboutApps") })
-        Spacer(modifier = Modifier.height(16.dp))
-        MenuProfile(name = "Keluar Aplikasi", icon = R.drawable.logout_icon, onClick = {
-            SweetAlertComponent(
-                context = context,
-                title = "Keluar Aplikasi",
-                contentText = "Apakah anda yakin ingin keluar aplikasi?",
-                type = "logout",
-                isCancel = true,
-                confirmYes = {
+                Spacer(modifier = Modifier.height(32.dp))
+                TextBold(
+                    text = "Bantuan",
+                    colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                    sized = 12,
+                    textAlign = TextAlign.Start
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                MenuProfile(
+                    name = "Hubungi Pengembang Aplikasi",
+                    icon = R.drawable.call_dev_icon,
+                    onClick = {
+                        directToWhatsapp(
+                            context,
+                            "62895603231365",
+                            "Halo, saya ${fullname} ingin bertanya tentang aplikasi Chilli Vision"
+                        )
+                    })
+
+                Spacer(modifier = Modifier.height(32.dp))
+                TextBold(
+                    text = "Lainnya",
+                    colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                    sized = 12,
+                    textAlign = TextAlign.Start
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                MenuProfile(
+                    name = "Tentang Aplikasi",
+                    icon = R.drawable.about_apps_icon,
+                    onClick = { navController.navigate("aboutApps") })
+                Spacer(modifier = Modifier.height(16.dp))
+                MenuProfile(name = "Keluar Aplikasi", icon = R.drawable.logout_icon, onClick = {
                     SweetAlertComponent(
                         context = context,
-                        title = "Berhasil",
-                        contentText = "Anda berhasil keluar aplikasi",
-                        type = "success"
-                    )
-
-                    viewModel.setLogout().observe(context as LifecycleOwner) {
-                        navController.navigate("welcome") {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        title = "Keluar Aplikasi",
+                        contentText = "Apakah anda yakin ingin keluar aplikasi?",
+                        type = "logout",
+                        isCancel = true,
+                        confirmYes = {
+//                            viewModel.setLogout().observe(context as LifecycleOwner) { result ->
+//                                when (result) {
+//                                    is Result.Loading -> {
+//                                        Log.d("Logout", "Loading...")
+//                                        isLoading = true
+//                                    }
+//
+//                                    is Result.Success -> {
+//                                        Log.d("Logout", "Logout success: ${result.data}")
+//
+//                                    }
+//
+//                                    is Result.Error -> {
+//                                        isLoading = false
+//                                        SweetAlertComponent(
+//                                            context = context,
+//                                            title = "Gagal",
+//                                            contentText = "Gagal keluar aplikasi",
+//                                            type = "error"
+//                                        )
+//                                        Log.d("Logout", "Error: ${result.errorMessage}")
+//                                    }
+//                                }
+//                            }
+                            runBlocking {
+                                viewModel.clearPreferences()
+                            }
+                            SweetAlertComponent(
+                                context = context,
+                                title = "Berhasil",
+                                contentText = "Anda berhasil keluar aplikasi",
+                                type = "success"
+                            )
+                            isLoading = false
+                            navController.navigate("welcome") {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    inclusive = true
+                                }
+                            }
                         }
-                    }
-                    runBlocking {
-                        viewModel.clearToken()
-                    }
-                }
-            )
-        })
+                    )
+                })
+            }
+        }
     }
 }
 
@@ -167,17 +227,20 @@ private fun SectionImageProfile(viewModel: ProfileScreenViewModel, fullname: Str
         mutableStateOf("")
     }
 
-    runBlocking {
-        viewModel.getPreferences().asLiveData().observe(context as LifecycleOwner) {
-            if (it != null) {
-                image = it.image
+    LaunchedEffect(Unit) {
+        if (image.isEmpty()) {
+            viewModel.getPreferences().asLiveData().observe(context as LifecycleOwner) {
+                if (it != null) {
+                    image = it.image
+                }
             }
         }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 8.dp, 0.dp, 0.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         InitialAvatar(fullname = fullname, imageUrl = image, size = 100.dp)
@@ -190,8 +253,6 @@ private fun SectionImageProfile(viewModel: ProfileScreenViewModel, fullname: Str
             sized = 12
         )
         Spacer(modifier = Modifier.height(32.dp))
-
-
     }
 }
 

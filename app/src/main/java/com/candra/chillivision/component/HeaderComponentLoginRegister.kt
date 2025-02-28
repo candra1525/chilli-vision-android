@@ -89,7 +89,7 @@ fun HeaderComponent(text : String,modifier: Modifier = Modifier, navController: 
 
         Text(
             text = text, style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                 color = PrimaryGreen,
                 textAlign = TextAlign.Center

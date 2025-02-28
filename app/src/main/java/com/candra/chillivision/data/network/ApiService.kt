@@ -1,22 +1,17 @@
 package com.candra.chillivision.data.network
 
-import com.candra.chillivision.data.response.CountHistoryUserResponse
-import com.candra.chillivision.data.response.CreateHistoryUserResponse
 import com.candra.chillivision.data.response.CreateSubscriptionUserResponse
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
-import com.candra.chillivision.data.response.DetailHistoryUserResponse
-import com.candra.chillivision.data.response.HistoryDeleteUserResponse
-import com.candra.chillivision.data.response.HistoryUserResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.LoginResponse
 import com.candra.chillivision.data.response.LogoutResponse
 import com.candra.chillivision.data.response.RegisterResponse
-import com.candra.chillivision.data.response.SubscriptionUserResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
+import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
 import okhttp3.MultipartBody
@@ -81,62 +76,62 @@ interface ApiService {
     ): UpdatePasswordUserResponse
 
     // Logout User
-    @FormUrlEncoded
-    @POST("auth/logout")
+    @POST("user/logout")
     suspend fun logoutUser(): LogoutResponse
-
 
     // Subscriptions
     // Get All Subscriptions
     @GET("subscriptions/all")
     suspend fun getAllSubscriptions(): SubscriptionsGetAllResponse
 
-    // Get History User
-    @GET("history/history-by-user/{idUser}")
-    suspend fun getHistory(
-        @Path("idUser") idUser: String
-    ): HistoryAnalysisResponse
-
-    // Get Detail History
-    @GET("history/detail{id}")
-    suspend fun getDetailHistory(
-        @Path("id") id: String
-    ): DetailHistoryUserResponse
-
-    // Create History
-    @Multipart
-    @POST("history/create")
-    suspend fun createHistory(
-        @Part("title") title: String,
-        @Part("image") image: MultipartBody.Part,
-        @Part("description") description: String,
-        @Part("user_id") user_id: String
-    ): CreateHistoryUserResponse
-
-    // Count History
-    @GET("history/count/{idUser}")
-    suspend fun countHistory(
-        @Path("idUser") idUser: String
-    ): CountHistoryUserResponse
-
-    // Delete History
-    @DELETE("history/delete/{id}")
-    suspend fun deleteHistory(
-        @Path("id") id: String
-    ): HistoryDeleteUserResponse
-
-
-    // Get Subscription
-    @GET("subscriptions/user/{idUser}")
-    suspend fun getSubscription(
-        @Path("idUser") idUser: String
-    ): SubscriptionUserResponse
-
     // Get Detail Subscription
     @GET("subscriptions/detail/{id}")
     suspend fun getDetailSubscription(
         @Path("id") id: String
     ): SubscriptionsGetDetailResponse
+
+    // History
+    @GET("history/history-by-user/{idUser}")
+    suspend fun getHistory(
+        @Path("idUser") idUser: String
+    ): HistoryAnalysisResponse
+
+
+    // Get Detail History
+//    @GET("history/detail{id}")
+//    suspend fun getDetailHistory(
+//        @Path("id") id: String
+//    ): DetailHistoryUserResponse
+
+    // Create History
+//    @Multipart
+//    @POST("history/create")
+//    suspend fun createHistory(
+//        @Part("title") title: String,
+//        @Part("image") image: MultipartBody.Part,
+//        @Part("description") description: String,
+//        @Part("user_id") user_id: String
+//    ): CreateHistoryUserResponse
+
+    // Count History
+//    @GET("history/count/{idUser}")
+//    suspend fun countHistory(
+//        @Path("idUser") idUser: String
+//    ): CountHistoryUserResponse
+
+    // Delete History
+//    @DELETE("history/delete/{id}")
+//    suspend fun deleteHistory(
+//        @Path("id") id: String
+//    ): HistoryDeleteUserResponse
+
+
+    // Get Subscription
+//    @GET("subscriptions/user/{idUser}")
+//    suspend fun getSubscription(
+//        @Path("idUser") idUser: String
+//    ): SubscriptionUserResponse
+
 
     // Create Subscription
     @Multipart
@@ -161,4 +156,16 @@ interface ApiService {
     suspend fun getHistorySubscriptionUserActive(
         @Path("idUser") idUser: String
     ): ListHistorySubscriptionActiveResponse
+
+    @Multipart
+    @POST("history-subscriptions/create")
+    suspend fun createHistorySubscription(
+        @Part("user_id") user_id: RequestBody,
+        @Part("subscription_id") subscription_id: RequestBody,
+        @Part("start_date") start_date: RequestBody,
+        @Part("end_date") end_date: RequestBody,
+        @Part image_transaction: MultipartBody.Part
+    ): CreateHistorySubscriptionResponse
+
+
 }

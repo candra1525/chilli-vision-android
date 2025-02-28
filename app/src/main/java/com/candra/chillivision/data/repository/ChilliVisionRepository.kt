@@ -7,7 +7,6 @@ import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.network.ApiService
 import com.candra.chillivision.data.preferences.UserPreferences
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
-import com.candra.chillivision.data.response.HistoryUserResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.LoginResponse
@@ -17,24 +16,27 @@ import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
+import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ChilliVisionRepository constructor(
     private val preferences: UserPreferences, private val apiService: ApiService
 ) {
     // Preferences
     suspend fun savePreferences(
-        token: String, id: String, fullname: String, no_handphone: String, image : String
+        token: String, id: String, fullname: String, no_handphone: String, image: String
     ) = preferences.savePreferences(token, id, fullname, no_handphone, image)
 
-    suspend fun clearToken() = preferences.clearPreferences()
+    suspend fun clearPreferences() = preferences.clearPreferences()
 
     fun getPreferences() = preferences.getPreferences()
 
@@ -67,7 +69,10 @@ class ChilliVisionRepository constructor(
     fun setLogout(): LiveData<Result<LogoutResponse>> = liveData {
         emit(Result.Loading)
         try {
+            Log.d("Logout", "Calling API logout...")
             val response = apiService.logoutUser()
+
+            Log.d("Logout", "Logout success: $response")
             emit(Result.Success(response))
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Error Occurred!"))
@@ -91,15 +96,14 @@ class ChilliVisionRepository constructor(
 
     // Update Photo Account User
     fun setUpdatePhotoAccountUser(
-        id : String,
-        image : MultipartBody.Part
-    ) : LiveData<Result<UpdatePhotoAccountUserResponse>> = liveData {
+        id: String,
+        image: MultipartBody.Part
+    ): LiveData<Result<UpdatePhotoAccountUserResponse>> = liveData {
         emit(Result.Loading)
-        try{
+        try {
             val response = apiService.updatePhotoAccountUser(id, image)
             emit(Result.Success(response))
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Error Occurred!"))
         }
 
@@ -142,10 +146,10 @@ class ChilliVisionRepository constructor(
     }.flowOn(Dispatchers.IO)
 
     // Get Detail Subscription
-    fun getDetailSubscription(id : String) : Flow<Result<SubscriptionsGetDetailResponse>> = flow{
+    fun getDetailSubscription(id: String): Flow<Result<SubscriptionsGetDetailResponse>> = flow {
         emit(Result.Loading)
 
-        try{
+        try {
             val response = apiService.getDetailSubscription(id = id)
             emit(Result.Success(response))
         } catch (e: Exception) {
@@ -155,29 +159,31 @@ class ChilliVisionRepository constructor(
 
     // History Subscription
     // Get All History Subscription from User
-    fun getAllHistorySubscription(idUser : String) : Flow<Result<ListHistorySubscriptionResponse>> = flow{
-        emit(Result.Loading)
-        try {
-            val response = apiService.getAllHistorySubscriptionUser(idUser = idUser)
-            emit(Result.Success(response))
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Error Occurred!"))
-        }
-    }.flowOn(Dispatchers.IO)
+    fun getAllHistorySubscription(idUser: String): Flow<Result<ListHistorySubscriptionResponse>> =
+        flow {
+            emit(Result.Loading)
+            try {
+                val response = apiService.getAllHistorySubscriptionUser(idUser = idUser)
+                emit(Result.Success(response))
+            } catch (e: Exception) {
+                emit(Result.Error(e.message ?: "Error Occurred!"))
+            }
+        }.flowOn(Dispatchers.IO)
 
     // Get All History Subscription Active from User
-    fun getHistorySubscriptionUserActive(idUser : String) : Flow<Result<ListHistorySubscriptionActiveResponse>> = flow{
-        emit(Result.Loading)
-        try {
-            val response = apiService.getHistorySubscriptionUserActive(idUser = idUser)
-            emit(Result.Success(response))
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Error Occurred!"))
-        }
-    }.flowOn(Dispatchers.IO)
+    fun getHistorySubscriptionUserActive(idUser: String): Flow<Result<ListHistorySubscriptionActiveResponse>> =
+        flow {
+            emit(Result.Loading)
+            try {
+                val response = apiService.getHistorySubscriptionUserActive(idUser = idUser)
+                emit(Result.Success(response))
+            } catch (e: Exception) {
+                emit(Result.Error(e.message ?: "Error Occurred!"))
+            }
+        }.flowOn(Dispatchers.IO)
 
     // Get History
-    fun getHistoryAnalysis(idUser: String) : Flow<Result<HistoryAnalysisResponse>> = flow {
+    fun getHistoryAnalysis(idUser: String): Flow<Result<HistoryAnalysisResponse>> = flow {
         emit(Result.Loading)
         try {
             val response = apiService.getHistory(idUser = idUser)
@@ -186,5 +192,53 @@ class ChilliVisionRepository constructor(
             emit(Result.Error(e.message ?: "Error Occurred!"))
         }
     }.flowOn(Dispatchers.IO)
+
+    // Create History
+//    fun createHistory(
+//        title : String, image : MultipartBody.Part, description : String, user_id : String
+//    ) : LiveData<Result<CreateHistoryUserResponse>> = liveData {
+//        emit(Result.Loading)
+//        try {
+//            val response = apiService.createHistory(
+//                title = title,
+//                image = image,
+//                description = description,
+//                user_id = user_id
+//            )
+//            emit(Result.Success(response))
+//        } catch (e: Exception) {
+//            emit(Result.Error(e.message ?: "Error Occurred!"))
+//        }
+//    }
+
+
+    fun setCreateHistorySubscription(
+        user_id: String,
+        subscription_id: String,
+        start_date: String,
+        end_date: String,
+        image_transaction: MultipartBody.Part
+    ): LiveData<Result<CreateHistorySubscriptionResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val userIdBody = user_id.toRequestBody("text/plain".toMediaTypeOrNull())
+            val subscriptionIdBody = subscription_id.toRequestBody("text/plain".toMediaTypeOrNull())
+            val startDateBody = start_date.toRequestBody("text/plain".toMediaTypeOrNull())
+            val endDateBody = end_date.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = apiService.createHistorySubscription(
+                user_id = userIdBody,
+                subscription_id = subscriptionIdBody,
+                start_date = startDateBody,
+                end_date = endDateBody,
+                image_transaction = image_transaction
+            )
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }
+
+
 
 }

@@ -52,6 +52,9 @@ class ChilliVisionRepository constructor(
             }
         }
 
+
+
+
     // Register User
     fun setRegister(
         fullname: String, no_handphone: String, password: String
@@ -238,7 +241,6 @@ class ChilliVisionRepository constructor(
             emit(Result.Error(e.message ?: "Error Occurred!"))
         }
     }
-
 
 
 }

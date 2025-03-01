@@ -81,7 +81,7 @@ fun HistoryScreen(
     ) {
         TitleHistory()
         Spacer(modifier = Modifier.height(16.dp))
-        HistoryContent(viewModel = viewModel)
+        HistoryContent(viewModel = viewModel, navController = navController)
     }
 }
 
@@ -93,7 +93,7 @@ private fun TitleHistory() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HistoryContent(viewModel: HistoryScreenViewModel) {
+fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavController) {
     val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
 
     var savedHistoryAnalysis by rememberSaveable { mutableStateOf<Result<HistoryAnalysisResponse>?>(null) }
@@ -114,7 +114,8 @@ fun HistoryContent(viewModel: HistoryScreenViewModel) {
         idUser = idUser,
         onSavedHistoryAnalysis = {
             savedHistoryAnalysis = it
-        }
+        },
+        navController = navController
     )
 }
 
@@ -127,6 +128,7 @@ fun HistoryAnalysisContent(
     savedHistoryAnalysis: Result<HistoryAnalysisResponse>?,
     idUser: String,
     onSavedHistoryAnalysis: (Result<HistoryAnalysisResponse>) -> Unit,
+    navController: NavController
 ) {
     val historyAnalysisState by viewModel.historyAnalisis.collectAsState()
 
@@ -165,7 +167,7 @@ fun HistoryAnalysisContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(history) { historyAnalysis ->
-                        HistoryCard(historyAnalysis = historyAnalysis)
+                        HistoryCard(historyAnalysis = historyAnalysis, navController = navController)
                     }
                 }
             }
@@ -195,7 +197,7 @@ fun HistoryAnalysisContent(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HistoryCard(historyAnalysis: HistoryAnalysis) {
+fun HistoryCard(historyAnalysis: HistoryAnalysis, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -275,7 +277,7 @@ fun HistoryCard(historyAnalysis: HistoryAnalysis) {
                 }
 
                 ButtonGreen(onClick = {
-                    /*TODO*/
+                    navController.navigate("detailHistory")
                 }, text = "Lihat", isLoading = false, modifier = Modifier.width(80.dp).height(30.dp))
             }
         }

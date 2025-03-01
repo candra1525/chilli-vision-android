@@ -24,12 +24,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -42,6 +45,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,8 +53,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
+import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.HeaderComponentLoginRegister
 import com.candra.chillivision.component.SweetAlertComponent
+import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -120,6 +126,12 @@ private fun FormRegister(
     context: Context,
     navController: NavController
 ) {
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     var textFullname by remember {
         mutableStateOf("")
     }
@@ -179,12 +191,14 @@ private fun FormRegister(
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(48.dp)
+                .focusRequester(focusRequester),
             textStyle = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_medium))
-            )
+            ),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -228,7 +242,8 @@ private fun FormRegister(
                 fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_medium))
-            )
+            ),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -273,6 +288,7 @@ private fun FormRegister(
                 fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_medium))
             ),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -317,45 +333,61 @@ private fun FormRegister(
                 fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_medium))
             ),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        SyaratKetentuan(isChecked = isChecked, onCheckedChange = { isChecked = it }, navController = navController)
+        SyaratKetentuan(
+            isChecked = isChecked,
+            onCheckedChange = { isChecked = it },
+            navController = navController,
+            isLoading = isLoading
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(
-            onClick = {
-                validationRegister(
-                    viewModel = viewModel,
-                    fullname = textFullname.trim(),
-                    no_handphone = textNoHandphone.trim(),
-                    password = textPassword.trim(),
-                    confirmPassword = textKonfirmasiPassword.trim(),
-                    isChecked = isChecked,
-                    context = context,
-                    navController = navController,
-                ) { loading ->
-                    isLoading = loading
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp),
-            shape = RoundedCornerShape(8.dp),
-            enabled = !isLoading,
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-        ) {
-            Text(
-                text = if (isLoading) "Memuat..." else "Lanjut",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily(Font(R.font.quicksand_bold)),
-                    textAlign = TextAlign.Center,
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+        if (isLoading) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AnimatedLoading(modifier = Modifier.width(80.dp))
+                TextBold(text = "Memuat...", modifier = Modifier.padding(top = 8.dp), sized = 10)
+            }
+        } else {
+            Button(
+                onClick = {
+                    validationRegister(
+                        viewModel = viewModel,
+                        fullname = textFullname.trim(),
+                        no_handphone = textNoHandphone.trim(),
+                        password = textPassword.trim(),
+                        confirmPassword = textKonfirmasiPassword.trim(),
+                        isChecked = isChecked,
+                        context = context,
+                        navController = navController,
+                    ) { loading ->
+                        isLoading = loading
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
+                shape = RoundedCornerShape(8.dp),
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+            ) {
+                Text(
+                    text = if (isLoading) "Memuat..." else "Lanjut",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                        textAlign = TextAlign.Center,
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -365,7 +397,8 @@ private fun SyaratKetentuan(
     modifier: Modifier = Modifier,
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    navController: NavController
+    navController: NavController,
+    isLoading: Boolean = false
 ) {
     Column(modifier = Modifier) {
         Text(
@@ -378,17 +411,28 @@ private fun SyaratKetentuan(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        CheckBox(isChecked = isChecked, onCheckedChange = onCheckedChange, navController = navController)
+        CheckBox(
+            isChecked = isChecked,
+            onCheckedChange = onCheckedChange,
+            navController = navController,
+            isLoading = isLoading
+        )
     }
 }
 
 @Composable
-fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navController: NavController) {
+fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navController: NavController, isLoading : Boolean = false) {
     val annotatedString = buildAnnotatedString {
         append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
 
         pushStringAnnotation(tag = "terms", annotation = "terms")
-        withStyle(style = SpanStyle(color = PrimaryGreen, fontWeight = FontWeight.Bold)) {
+        withStyle(
+            style = SpanStyle(
+                color = PrimaryGreen,
+                fontWeight = FontWeight.Bold,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
             append("Ketentuan Layanan")
         }
         pop()
@@ -396,7 +440,13 @@ fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navControll
         append(" dan ")
 
         pushStringAnnotation(tag = "privacy", annotation = "privacy")
-        withStyle(style = SpanStyle(color = PrimaryGreen, fontWeight = FontWeight.Bold)) {
+        withStyle(
+            style = SpanStyle(
+                color = PrimaryGreen,
+                fontWeight = FontWeight.Bold,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
             append("Kebijakan Privasi")
         }
         pop()
@@ -414,6 +464,7 @@ fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navControll
                 uncheckedColor = Color.Gray,
                 checkmarkColor = Color.White
             ),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -452,6 +503,32 @@ private fun validationRegister(
     context: Context,
     onLoadingStateChanged: (Boolean) -> Unit
 ) {
+    if (fullname.isEmpty() || no_handphone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        SweetAlertComponent(
+            context,
+            "Peringatan",
+            "Nama Lengkap, No Handphone, Kata Sandi, dan Konfirmasi Kata Sandi tidak boleh kosong",
+            "warning"
+        )
+        return
+    }
+    if (password.length < 8) {
+        SweetAlertComponent(
+            context, "Peringatan", "Kata Sandi minimal 8 karakter", "warning"
+        )
+        return
+    }
+
+    if (password != confirmPassword) {
+        SweetAlertComponent(
+            context,
+            "Peringatan",
+            "Konfirmasi Kata Sandi tidak sama dengan Kata Sandi",
+            "warning"
+        )
+        return
+    }
+
     if (!isChecked) {
         SweetAlertComponent(
             context,
@@ -462,39 +539,16 @@ private fun validationRegister(
         return
     }
 
-    if (fullname.isEmpty() || no_handphone.isEmpty() || password.isEmpty()) {
-        SweetAlertComponent(
-            context,
-            "Peringatan",
-            "Nama Lengkap, No Handphone, dan Kata Sandi tidak boleh kosong",
-            "warning"
-        )
-    } else {
-        if (password.length < 6) {
-            SweetAlertComponent(
-                context, "Peringatan", "Kata Sandi minimal 6 karakter", "warning"
-            )
-        } else {
-            if (password != confirmPassword) {
-                SweetAlertComponent(
-                    context,
-                    "Peringatan",
-                    "Konfirmasi Kata Sandi tidak sama dengan Kata Sandi",
-                    "warning"
-                )
-            } else {
-                register(
-                    viewModel,
-                    fullname,
-                    no_handphone,
-                    password,
-                    context as LifecycleOwner,
-                    navController,
-                    onLoadingStateChanged
-                )
-            }
-        }
-    }
+    register(
+        viewModel,
+        fullname,
+        no_handphone,
+        password,
+        context as LifecycleOwner,
+        navController,
+        onLoadingStateChanged
+    )
+
 
 }
 

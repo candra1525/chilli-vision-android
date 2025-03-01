@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.candra.chillivision.data.di.Injection
 import com.candra.chillivision.data.repository.ChilliVisionRepository
 import com.candra.chillivision.ui.pages.history.HistoryScreenViewModel
+import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScreenViewModel
 import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.LanggananScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreenViewModel
@@ -59,6 +60,11 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
 
             // langganan
             modelClass.isAssignableFrom(HistoryScreenViewModel::class.java) -> HistoryScreenViewModel(
+                repository
+            ) as T
+
+            // Detail History
+            modelClass.isAssignableFrom(DetailHistoryScreenViewModel::class.java) -> DetailHistoryScreenViewModel(
                 repository
             ) as T
 

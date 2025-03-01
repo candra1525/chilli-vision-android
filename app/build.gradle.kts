@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.glide)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.volley)
     annotationProcessor(libs.lifecycle.compiler)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.livedata.ktx)

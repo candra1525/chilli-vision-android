@@ -199,6 +199,18 @@ fun InitialAvatar(
                 )
             }
 
+            imageUrl == "null" -> {
+                Text(
+                    text = firstLetter,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = fs.sp,  // Sesuaikan font dengan ukuran avatar
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold))
+                    )
+                )
+            }
+
             imageUrl.isNotEmpty() -> {
                 Image(
                     painter = rememberAsyncImagePainter(model = imageUrl),

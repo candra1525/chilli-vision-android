@@ -58,6 +58,10 @@ sealed class Screen(val route : String)
     // Analysis
     data object Analysis : Screen("analysis")
 
+    // Detail History
+    data object DetailHistory : Screen("detailHistory")
+
     // Error
     data object Error : Screen("error")
+
 }

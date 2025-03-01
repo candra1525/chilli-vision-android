@@ -13,11 +13,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,8 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
@@ -56,6 +53,7 @@ import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.createImageUri
 import com.candra.chillivision.component.handleCameraPermission
+import com.candra.chillivision.data.model.UserModel
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GreenSoft
@@ -63,57 +61,113 @@ import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 
+//@Composable
+//fun HomeScreen(
+//    modifier: Modifier = Modifier,
+//    navController: NavController,
+//    viewModel: HomeScreenViewModel = viewModel(
+//        factory = ViewModelFactory.getInstance(
+//            LocalContext.current)
+//    )
+//) {
+//    val context = LocalContext.current
+//    val isDarkTheme = isSystemInDarkTheme()
+//    val scrollState = rememberScrollState()
+//
+//    val userPreferences by viewModel.getPreferences().collectAsState(initial = null)
+//
+//    when {
+//        userPreferences == null -> {
+//            Box(
+//                modifier = Modifier.fillMaxSize(),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Column (
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                ){
+//                    AnimatedLoading(modifier = Modifier.width(100.dp))
+//                    TextBold(text = "Memuat Data...", sized = 12, colors = PrimaryGreen)
+//                }
+//            }
+//        }
+//
+//        userPreferences!!.token.isEmpty() -> {
+//            LaunchedEffect(Unit) {
+//                navController.navigate("welcome") {
+//                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+//                }
+//            }
+//        }
+//
+//        else -> {
+//            Column(
+//                modifier = modifier
+//                    .verticalScroll(scrollState)
+//                    .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
+//            ) {
+//                HeaderHomeScreen(isDarkTheme, userPreferences!!.fullname, userPreferences!!.image, navController)
+//                QuickAccess(isDarkTheme, navController, context)
+//                TanyaAI(isDarkTheme, navController)
+//                VideoTutorial(isDarkTheme, context)
+//            }
+//        }
+//    }
+//}
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     viewModel: HomeScreenViewModel = viewModel(
-        factory = ViewModelFactory.getInstance(
-            LocalContext.current
-        )
+        factory = ViewModelFactory.getInstance(LocalContext.current)
     )
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var isAvailableToken by remember { mutableStateOf(true) }
-    var fullname by remember { mutableStateOf("") }
-    var image by remember { mutableStateOf("") }
+    val isDarkTheme = isSystemInDarkTheme()
+    val scrollState = rememberScrollState()
 
-    LaunchedEffect(Unit) {
-        if (fullname.isEmpty()) {
-            viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
-                Log.d("HomeScreen", "Token: $it")
-                if (it.token.isEmpty()) {
-                    isAvailableToken = false
-                } else {
-                    isAvailableToken = true
-                    fullname = it.fullname
-                    image = it.image
+    // Pastikan hanya membaca data sekali saat pertama kali dibuka
+    val userPreferences by viewModel.getPreferences()
+        .collectAsState(initial = null)
+
+    // Cek apakah data sudah tersedia
+    when {
+        userPreferences == null -> {
+            // Jika data belum dimuat, jangan tampilkan apapun (menghindari flicker)
+            return
+        }
+        userPreferences?.token.isNullOrEmpty() -> {
+            // Jika token kosong, langsung arahkan ke welcome (sekali saja)
+            LaunchedEffect(Unit) {
+                navController.navigate("welcome") {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
             }
         }
-    }
-
-    if (!isAvailableToken) {
-        navController.navigate("welcome") {
-            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-        }
-    } else {
-        val isDarkTheme = isSystemInDarkTheme()
-        val scrollState = rememberScrollState()
-
-        Column(
-            modifier = modifier
-                .verticalScroll(scrollState)
-                .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
-        ) {
-            HeaderHomeScreen(isDarkTheme, fullname, image, navController)
-            QuickAccess(isDarkTheme, navController, context)
-            TanyaAI(isDarkTheme, navController)
-            VideoTutorial(isDarkTheme, context)
+        else -> {
+            Log.d("HomeScreen", "UserPreferences: $userPreferences")
+            // Jika token ada, langsung render HomeScreen
+            Column(
+                modifier = modifier
+                    .verticalScroll(scrollState)
+                    .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
+            ) {
+                HeaderHomeScreen(
+                    isDarkTheme,
+                    userPreferences?.fullname ?: "",
+                    userPreferences?.image ?: "",
+                    navController
+                )
+                QuickAccess(isDarkTheme, navController, context)
+                TanyaAI(isDarkTheme, navController)
+                VideoTutorial(isDarkTheme, context)
+            }
         }
     }
 }
+
+
 
 @Composable
 private fun HeaderHomeScreen(

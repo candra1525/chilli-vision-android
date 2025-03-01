@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -24,7 +26,11 @@ import com.candra.chillivision.R
 import com.candra.chillivision.ui.theme.PrimaryGreen
 
 @Composable
-fun HeaderComponentLoginRegister(context : Context, modifier: Modifier = Modifier, navController: NavController) {
+fun HeaderComponentLoginRegister(
+    context: Context,
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -35,7 +41,7 @@ fun HeaderComponentLoginRegister(context : Context, modifier: Modifier = Modifie
             contentDescription = "back header ${R.string.app_name}",
             modifier = Modifier
                 .size(24.dp)
-                .clickable { navigationAction(context, "back",navController) },
+                .clickable { navigationAction(context, "back", navController) },
         )
 
         Text(
@@ -56,24 +62,37 @@ fun HeaderComponentLoginRegister(context : Context, modifier: Modifier = Modifie
                 .size(24.dp)
                 .fillMaxWidth()
                 .align(Alignment.CenterEnd)
-                .clickable { navigationAction(context,"action", navController) },
+                .clickable { navigationAction(context, "action", navController) },
         )
     }
 }
 
-private fun navigationAction(context : Context, action : String, navController: NavController){
-    if(action == "back"){
+private fun navigationAction(context: Context, action: String, navController: NavController) {
+    if (action == "back") {
         navController.navigate("welcome") {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
         }
-    } else if (action == "action"){
-        SweetAlertComponent(context = context, title = "Information", contentText = "This is information", type = "info")
+    } else if (action == "action") {
+        SweetAlertComponent(
+            context = context,
+            title = "Information",
+            contentText = "This is information",
+            type = "info"
+        )
     }
 }
 
 
 @Composable
-fun HeaderComponent(text : String,modifier: Modifier = Modifier, navController: NavController) {
+fun HeaderComponent(
+    text: String,
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    icon: ImageVector? = null,
+    iconColor: Color? = null,
+    sized : Int = 24,
+    onIconClick: () -> Unit = {}
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -96,12 +115,32 @@ fun HeaderComponent(text : String,modifier: Modifier = Modifier, navController: 
             ), modifier = Modifier
                 .fillMaxWidth()
         )
+
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor ?: PrimaryGreen,
+                modifier = Modifier
+                    .size(sized.dp)
+                    .clickable {
+                        onIconClick()
+                    }
+                    .align(Alignment.CenterEnd),
+
+                )
+        }
     }
 }
 
 
 @Composable
-fun HeaderComponentAnalysis(context : Context, text : String,modifier: Modifier = Modifier, navController: NavController) {
+fun HeaderComponentAnalysis(
+    context: Context,
+    text: String,
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -133,7 +172,8 @@ fun HeaderComponentAnalysis(context : Context, text : String,modifier: Modifier 
                 .fillMaxWidth()
                 .align(Alignment.CenterEnd)
                 .clickable {
-                    navigationAction(context,"action", navController) },
+                    navigationAction(context, "action", navController)
+                },
         )
     }
 }

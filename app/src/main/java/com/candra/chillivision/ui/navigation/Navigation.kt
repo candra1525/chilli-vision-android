@@ -23,6 +23,7 @@ import com.candra.chillivision.component.ConnectivityStatus
 import com.candra.chillivision.ui.pages.analysis.AnalysisScreen
 import com.candra.chillivision.ui.pages.error.ErrorScreen
 import com.candra.chillivision.ui.pages.history.HistoryScreen
+import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScreen
 import com.candra.chillivision.ui.pages.home.HomeScreen
 import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
 import com.candra.chillivision.ui.pages.login.LoginScreen
@@ -74,7 +75,8 @@ fun Navigation(modifier: Modifier = Modifier) {
         Screen.Terms.route,
         Screen.ConfirmScan.route,
         Screen.Analysis.route,
-        Screen.DetailLangganan.route
+        Screen.DetailLangganan.route,
+        Screen.DetailHistory.route
     )
 
     // Jika tidak ada koneksi, alihkan ke ErrorScreen
@@ -164,9 +166,9 @@ fun Navigation(modifier: Modifier = Modifier) {
                 ChilliAIScreen(modifier, navController)
             }
 
-//            composable(route = Screen.Gallery.route) {
-//                GalleryScreen(modifier, navController)
-//            }
+            composable(route = Screen.DetailHistory.route) {
+                DetailHistoryScreen(modifier, navController)
+            }
 
             composable(route = Screen.Error.route){
                 ErrorScreen(modifier, navController)

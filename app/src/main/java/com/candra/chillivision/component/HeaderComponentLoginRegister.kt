@@ -90,7 +90,8 @@ fun HeaderComponent(
     navController: NavController,
     icon: ImageVector? = null,
     iconColor: Color? = null,
-    sized : Int = 24,
+    sized: Int = 24,
+    fontSized: Int = 18,
     onIconClick: () -> Unit = {}
 ) {
     Box(
@@ -103,17 +104,17 @@ fun HeaderComponent(
             contentDescription = "back header ${R.string.app_name}",
             modifier = Modifier
                 .size(24.dp)
+                .align(Alignment.CenterStart)
                 .clickable { navController.popBackStack() },
         )
 
         Text(
             text = text, style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 16.sp,
+                fontSize = fontSized.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                 color = PrimaryGreen,
                 textAlign = TextAlign.Center
-            ), modifier = Modifier
-                .fillMaxWidth()
+            ), modifier = Modifier.align(Alignment.Center)
         )
 
         if (icon != null) {
@@ -126,9 +127,8 @@ fun HeaderComponent(
                     .clickable {
                         onIconClick()
                     }
-                    .align(Alignment.CenterEnd),
-
-                )
+                    .align(Alignment.CenterEnd)
+            )
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.candra.chillivision.ui.navigation
 
+//import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreen
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -26,9 +27,9 @@ import com.candra.chillivision.ui.pages.history.HistoryScreen
 import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScreen
 import com.candra.chillivision.ui.pages.home.HomeScreen
 import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
-import com.candra.chillivision.ui.pages.login.LoginScreen
 import com.candra.chillivision.ui.pages.langganan.LanggananScreen
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreen
+import com.candra.chillivision.ui.pages.login.LoginScreen
 import com.candra.chillivision.ui.pages.profile.ProfileScreen
 import com.candra.chillivision.ui.pages.profile.lainnya.TentangAplikasi
 import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandi
@@ -36,7 +37,6 @@ import com.candra.chillivision.ui.pages.profile.ubah.UbahProfile
 import com.candra.chillivision.ui.pages.register.RegisterScreen
 import com.candra.chillivision.ui.pages.scan.ScanScreen
 import com.candra.chillivision.ui.pages.scan.confirm_scan.ConfirmScanScreen
-//import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreen
 import com.candra.chillivision.ui.pages.terms_privacy.privacy.PrivacyScreen
 import com.candra.chillivision.ui.pages.terms_privacy.terms.TermsScreen
 import com.candra.chillivision.ui.pages.welcome.WelcomeScreen
@@ -46,6 +46,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 // Mengatur Semua Navigasi
 @RequiresApi(Build.VERSION_CODES.O)
@@ -166,23 +168,40 @@ fun Navigation(modifier: Modifier = Modifier) {
                 ChilliAIScreen(modifier, navController)
             }
 
-            composable(route = Screen.DetailHistory.route) {
-                DetailHistoryScreen(modifier, navController)
+            composable(Screen.DetailHistory.route) { backStackEntry ->
+                val idHistory = backStackEntry.arguments?.getString("idHistory")
+                val title = backStackEntry.arguments?.getString("title")
+                val description = backStackEntry.arguments?.getString("description")
+                val createdAt = backStackEntry.arguments?.getString("createdAt")
+                val urlImage = backStackEntry.arguments?.getString("urlImage")?.let {
+                    URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+                }
+                if (idHistory != null && title != null && description != null && createdAt != null && urlImage != null) {
+                    DetailHistoryScreen(
+                        modifier = modifier,
+                        navController = navController,
+                        idHistory = idHistory,
+                        title = title,
+                        description = description,
+                        createdAt = createdAt,
+                        urlImage = urlImage,
+                    )
+                }
             }
 
-            composable(route = Screen.Error.route){
+            composable(route = Screen.Error.route) {
                 ErrorScreen(modifier, navController)
             }
 
-            composable(route = Screen.Terms.route){
+            composable(route = Screen.Terms.route) {
                 TermsScreen(modifier, navController)
             }
 
-            composable(route = Screen.Privacy.route){
+            composable(route = Screen.Privacy.route) {
                 PrivacyScreen(modifier, navController)
             }
 
-            composable("confirmScan?imageUri={imageUri}") { backStackEntry ->
+            composable(Screen.ConfirmScan.route) {
                 ConfirmScanScreen(modifier, navController)
             }
 
@@ -190,7 +209,7 @@ fun Navigation(modifier: Modifier = Modifier) {
                 AnalysisScreen(modifier, navController)
             }
 
-            composable("detailLangganan?idLangganan={idLangganan}") { backStackEntry ->
+            composable(Screen.DetailLangganan.route) {
                 DetailLanggananScreen(modifier, navController)
             }
         }

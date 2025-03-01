@@ -35,3 +35,23 @@ fun TextBold(
         )
     )
 }
+
+@Composable
+fun TextRegular(
+    text: String,
+    sized: Int = 12,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Start,
+    colors: Color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+    onClick: () -> Unit = {}
+) {
+    Text(
+        text = text, modifier = modifier, style = MaterialTheme.typography.bodyMedium.copy(
+            fontSize = sized.sp,
+            fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+            fontWeight = FontWeight.Normal,
+            textAlign = textAlign,
+            color = colors
+        )
+    )
+}

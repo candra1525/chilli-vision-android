@@ -2,7 +2,7 @@ package com.candra.chillivision.ui.pages.login
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -57,7 +57,9 @@ import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import com.candra.chillivision.ui.theme.WhiteSoft
 import kotlinx.coroutines.runBlocking
 
 @Composable
@@ -294,8 +296,13 @@ private fun Catatan(modifier: Modifier = Modifier, navController: NavController)
         Spacer(modifier = Modifier.height(8.dp))
 
         val annotatedString = buildAnnotatedString {
-            append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
-
+            withStyle(
+                style = SpanStyle(
+                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                )
+            ) {
+                append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
+            }
             pushStringAnnotation(tag = "terms", annotation = "terms")
             withStyle(
                 style = SpanStyle(
@@ -308,8 +315,13 @@ private fun Catatan(modifier: Modifier = Modifier, navController: NavController)
             }
             pop()
 
-            append(" dan ")
-
+            withStyle(
+                style = SpanStyle(
+                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                )
+            ) {
+                append(" dan ")
+            }
             pushStringAnnotation(tag = "privacy", annotation = "privacy")
             withStyle(
                 style = SpanStyle(
@@ -321,7 +333,13 @@ private fun Catatan(modifier: Modifier = Modifier, navController: NavController)
                 append("Kebijakan Privasi")
             }
             pop()
-            append(".")
+            withStyle(
+                style = SpanStyle(
+                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                )
+            ) {
+                append(".")
+            }
         }
 
 

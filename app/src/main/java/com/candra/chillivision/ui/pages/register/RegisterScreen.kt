@@ -1,6 +1,7 @@
 package com.candra.chillivision.ui.pages.register
 
 import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,7 +60,9 @@ import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import com.candra.chillivision.ui.theme.WhiteSoft
 
 @Composable
 fun RegisterScreen(
@@ -423,8 +426,13 @@ private fun SyaratKetentuan(
 @Composable
 fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navController: NavController, isLoading : Boolean = false) {
     val annotatedString = buildAnnotatedString {
-        append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
-
+        withStyle(
+            style = SpanStyle(
+                color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+            )
+        ) {
+            append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
+        }
         pushStringAnnotation(tag = "terms", annotation = "terms")
         withStyle(
             style = SpanStyle(
@@ -437,8 +445,13 @@ fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navControll
         }
         pop()
 
-        append(" dan ")
-
+        withStyle(
+            style = SpanStyle(
+                color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+            )
+        ) {
+            append(" dan ")
+        }
         pushStringAnnotation(tag = "privacy", annotation = "privacy")
         withStyle(
             style = SpanStyle(
@@ -450,7 +463,13 @@ fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navControll
             append("Kebijakan Privasi")
         }
         pop()
-        append(".")
+        withStyle(
+            style = SpanStyle(
+                color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+            )
+        ) {
+            append(".")
+        }
     }
 
     Row(

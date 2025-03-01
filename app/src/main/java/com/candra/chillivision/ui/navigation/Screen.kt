@@ -11,7 +11,7 @@ sealed class Screen(val route : String)
     data object Langganan : Screen("langganan")
 
     // Detail Langganan
-    data object DetailLangganan : Screen("detailLangganan")
+    data object DetailLangganan : Screen("detailLangganan?idLangganan={idLangganan}")
 
     // Scan
     data object Scan : Screen("scan")
@@ -53,13 +53,13 @@ sealed class Screen(val route : String)
     data object Privacy : Screen("privacy")
 
     // Confirm Screen
-    data object ConfirmScan : Screen("confirmScan")
+    data object ConfirmScan : Screen("confirmScan?imageUri={imageUri}")
 
     // Analysis
     data object Analysis : Screen("analysis")
 
     // Detail History
-    data object DetailHistory : Screen("detailHistory")
+    data object DetailHistory : Screen("detailHistory/{idHistory}/{title}/{description}/{createdAt}/{urlImage}")
 
     // Error
     data object Error : Screen("error")

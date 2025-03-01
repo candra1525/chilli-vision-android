@@ -1,7 +1,6 @@
 package com.candra.chillivision.ui.pages.history
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -29,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,8 +42,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -60,9 +56,12 @@ import com.candra.chillivision.data.model.UserModel
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysis
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -96,7 +95,11 @@ private fun TitleHistory() {
 fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavController) {
     val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
 
-    var savedHistoryAnalysis by rememberSaveable { mutableStateOf<Result<HistoryAnalysisResponse>?>(null) }
+    var savedHistoryAnalysis by rememberSaveable {
+        mutableStateOf<Result<HistoryAnalysisResponse>?>(
+            null
+        )
+    }
     var prevIdUser by rememberSaveable { mutableStateOf("") } // Simpan nilai agar tidak reset saat rotasi
 
     val idUser = userData.id
@@ -118,7 +121,6 @@ fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavControll
         navController = navController
     )
 }
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -167,7 +169,10 @@ fun HistoryAnalysisContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(history) { historyAnalysis ->
-                        HistoryCard(historyAnalysis = historyAnalysis, navController = navController)
+                        HistoryCard(
+                            historyAnalysis = historyAnalysis,
+                            navController = navController
+                        )
                     }
                 }
             }
@@ -276,9 +281,37 @@ fun HistoryCard(historyAnalysis: HistoryAnalysis, navController: NavController) 
                     )
                 }
 
-                ButtonGreen(onClick = {
-                    navController.navigate("detailHistory")
-                }, text = "Lihat", isLoading = false, modifier = Modifier.width(80.dp).height(30.dp))
+                ButtonGreen(
+                    onClick = {
+                        navController.navigate(
+                            route = Screen.DetailHistory.route
+                                .replace(
+                                    "{idHistory}",
+                                    historyAnalysis.id.toString()
+                                ).replace(
+                                    "{title}",
+                                    historyAnalysis.title ?: ""
+                                ).replace(
+                                    "{description}",
+                                    historyAnalysis.description ?: ""
+                                ).replace(
+                                    "{createdAt}",
+                                    historyAnalysis.createdAt ?: ""
+                                ).replace(
+                                    "{urlImage}",
+                                    URLEncoder.encode(
+                                        historyAnalysis.urlImage ?: "",
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                )
+                        )
+                    },
+                    text = "Lihat",
+                    isLoading = false,
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(30.dp)
+                )
             }
         }
     }

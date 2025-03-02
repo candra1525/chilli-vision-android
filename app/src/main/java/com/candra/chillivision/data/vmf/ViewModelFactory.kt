@@ -10,6 +10,8 @@ import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScre
 import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.LanggananScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreenViewModel
+import com.candra.chillivision.ui.pages.langganan.detail_active.DetailActiveLanggananScreenViewModel
+import com.candra.chillivision.ui.pages.langganan.detail_history.DetailHistoryLanggananScreenViewModel
 import com.candra.chillivision.ui.pages.login.LoginScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ProfileScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandiViewModel
@@ -65,6 +67,16 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
 
             // Detail History
             modelClass.isAssignableFrom(DetailHistoryScreenViewModel::class.java) -> DetailHistoryScreenViewModel(
+                repository
+            ) as T
+
+            // Detail Active Langganan
+            modelClass.isAssignableFrom(DetailActiveLanggananScreenViewModel::class.java) -> DetailActiveLanggananScreenViewModel(
+                repository
+            ) as T
+
+            // Detail History Langganan
+            modelClass.isAssignableFrom(DetailHistoryLanggananScreenViewModel::class.java) -> DetailHistoryLanggananScreenViewModel(
                 repository
             ) as T
 

@@ -1,11 +1,11 @@
-package com.candra.chillivision.data.response
+package com.candra.chillivision.data.response.historyAnalysis
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class HistoryDeleteUserResponse(
+data class HistoryDeleteResponse(
 
 	@field:SerializedName("message")
 	val message: String? = null,

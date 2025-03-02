@@ -11,6 +11,7 @@ fun SweetAlertComponent(
     type: String,
     isCancel: Boolean = false,
     confirmYes: () -> Unit = {},
+    confirmNo : () -> Unit = {}
 ) {
     when (type) {
         "error" -> {
@@ -87,6 +88,7 @@ fun SweetAlertComponent(
                         it.dismissWithAnimation()
                     }
                     .setCancelButton("Tidak") {
+                        confirmNo()
                         it.dismissWithAnimation()
                     }
             sweetAlertDialog.setCancelable(isCancel)

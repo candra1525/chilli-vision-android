@@ -16,6 +16,7 @@ import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
+import com.candra.chillivision.data.response.historyAnalysis.HistoryDeleteResponse
 import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
@@ -51,9 +52,6 @@ class ChilliVisionRepository constructor(
                 emit(Result.Error(e.message ?: "Error Occurred!"))
             }
         }
-
-
-
 
     // Register User
     fun setRegister(
@@ -215,6 +213,7 @@ class ChilliVisionRepository constructor(
 //    }
 
 
+    // Create Subscription
     fun setCreateHistorySubscription(
         user_id: String,
         subscription_id: String,
@@ -241,6 +240,19 @@ class ChilliVisionRepository constructor(
             emit(Result.Error(e.message ?: "Error Occurred!"))
         }
     }
+
+    // Delete History
+    fun setDeteleHistory(idHistory : String) : LiveData<Result<HistoryDeleteResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val response = apiService.deleteHistory(idHistory)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }
+
+
 
 
 }

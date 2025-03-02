@@ -71,9 +71,12 @@ import com.candra.chillivision.data.response.ListHistorySubscriptionActiveRespon
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAll
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.White
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -125,9 +128,11 @@ fun TabScreen(viewModel: LanggananScreenViewModel, navController: NavController)
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
-        viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
-            idUser = it.id
+    LaunchedEffect(idUser) {
+        if (idUser.isEmpty()) {
+            viewModel.getPreferences().asLiveData().observe(lifecycleOwner) {
+                idUser = it.id
+            }
         }
     }
 
@@ -176,19 +181,34 @@ fun TabScreen(viewModel: LanggananScreenViewModel, navController: NavController)
         when (state) {
             0 -> BeliLanggananScreen(viewModel, navController)
 
-            1 -> ActiveSubscription(viewModel = viewModel,
-                initialScroll = scrollStates[state] ?: 0,
-                onScrollChanged = { scrollStates[state] = it },
-                idUser = idUser,
-                savedSubscriptionsActive = savedSubscriptionsActive,
-                onSaveSubscriptionsActive = { savedSubscriptionsActive = it })
+            1 -> {
+                if (idUser.isNotEmpty()) {
+                    ActiveSubscription(
+                        viewModel = viewModel,
+                        initialScroll = scrollStates[state] ?: 0,
+                        onScrollChanged = { scrollStates[state] = it },
+                        idUser = idUser,
+                        savedSubscriptionsActive = savedSubscriptionsActive,
+                        onSaveSubscriptionsActive = { savedSubscriptionsActive = it },
+                        navController = navController
+                    )
+                }
+            }
 
-            2 -> HistorySubscription(viewModel = viewModel,
-                initialScroll = scrollStates[state] ?: 0,
-                onScrollChanged = { scrollStates[state] = it },
-                idUser = idUser,
-                savedSubscriptionsHistory = savedSubscriptionsHistory,
-                onSaveSubscriptionsHistory = { savedSubscriptionsHistory = it })
+
+            2 -> {
+                if (idUser.isNotEmpty()) {
+                    HistorySubscription(
+                        viewModel = viewModel,
+                        initialScroll = scrollStates[state] ?: 0,
+                        onScrollChanged = { scrollStates[state] = it },
+                        idUser = idUser,
+                        savedSubscriptionsHistory = savedSubscriptionsHistory,
+                        onSaveSubscriptionsHistory = { savedSubscriptionsHistory = it },
+                        navController = navController
+                    )
+                }
+            }
         }
     }
 }
@@ -287,7 +307,9 @@ fun SubscriptionCard(subscription: SubscriptionsGetAll, navController: NavContro
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
                 ) {
                     TextBold(text = (if (subscription.title != null) {
                         subscription.title + subscription.period?.let { " - $it Bulan" }
@@ -329,13 +351,14 @@ fun ActiveSubscription(
     onScrollChanged: (Int) -> Unit,
     savedSubscriptionsActive: Result<ListHistorySubscriptionActiveResponse>?,
     idUser: String,
-    onSaveSubscriptionsActive: (Result<ListHistorySubscriptionActiveResponse>) -> Unit
+    onSaveSubscriptionsActive: (Result<ListHistorySubscriptionActiveResponse>) -> Unit,
+    navController: NavController
 ) {
     val listState = rememberLazyListState()
     val subscriptionsActiveState by viewModel.subscriptionsActive.collectAsState()
 
     LaunchedEffect(idUser) {
-        if (savedSubscriptionsActive == null) {
+        if (savedSubscriptionsActive == null && idUser.isNotEmpty()) {
             viewModel.fetchSubscriptionsActive(idUser)
         }
     }
@@ -390,7 +413,7 @@ fun ActiveSubscription(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(subscriptions) { subscription ->
-                            ActiveSubscriptionItem(subscription)
+                            ActiveSubscriptionItem(subscription, navController)
                         }
                     }
                 }
@@ -420,7 +443,10 @@ fun ActiveSubscription(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ActiveSubscriptionItem(subscription: ListHistorySubscriptionActive?) {
+fun ActiveSubscriptionItem(
+    subscription: ListHistorySubscriptionActive?,
+    navController: NavController
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -450,7 +476,11 @@ fun ActiveSubscriptionItem(subscription: ListHistorySubscriptionActive?) {
                         .padding(8.dp)
                 )
 
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
                     TextBold(
                         text = subscription?.subscriptions?.title?.let {
                             "$it - ${subscription.subscriptions.period ?: "-"} Bulan"
@@ -482,14 +512,59 @@ fun ActiveSubscriptionItem(subscription: ListHistorySubscriptionActive?) {
                 subscription?.endDate?.let { konversiFormatTanggal(it) }?.let {
                     TextBold(
                         text = "Berlaku hingga : $it",
-                        sized = 10,
+                        sized = 11,
                         textAlign = TextAlign.End,
                         colors = if (isSystemInDarkTheme()) White else BlackMode
                     )
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
                 ButtonBorderGreen(
-                    onClick = { /* TODO: Tambahkan navigasi atau aksi */ },
+                    onClick = {
+                        navController.navigate(
+                            route = Screen.DetailActiveLangganan.route
+                                .replace(
+                                    "{id}",
+                                    subscription?.id ?: "-",
+                                ).replace(
+                                    "{title}",
+                                    subscription?.subscriptions?.title ?: "-",
+                                ).replace(
+                                    "{price}",
+                                    subscription?.subscriptions?.price?.let { formatRupiah(it) }
+                                        ?: "-",
+                                ).replace(
+                                    "{startDate}",
+                                    subscription?.startDate ?: "-",
+                                ).replace(
+                                    "{endDate}",
+                                    subscription?.endDate ?: "-",
+                                ).replace(
+                                    "{description}",
+                                    subscription?.subscriptions?.description ?: "-",
+                                ).replace(
+                                    "{statusTransaction}",
+                                    subscription?.status ?: "-",
+                                ).replace(
+                                    "{paymentMethod}",
+                                    subscription?.paymentMethod ?: "-",
+                                ).replace(
+                                    "{period}",
+                                    subscription?.subscriptions?.period?.toString() ?: "-",
+                                ).replace(
+                                    "{urlImageSubscription}",
+                                    URLEncoder.encode(
+                                        subscription?.subscriptions?.urlImage ?: "-",
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                ).replace(
+                                    "{urlImageTransaction}",
+                                    URLEncoder.encode(
+                                        subscription?.imageUrl ?: "-",
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                )
+                        )
+                    },
                     text = "Lihat Detail",
                     textSize = 10,
                     modifier = Modifier.width(120.dp)
@@ -499,6 +574,7 @@ fun ActiveSubscriptionItem(subscription: ListHistorySubscriptionActive?) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HistorySubscription(
     viewModel: LanggananScreenViewModel,
@@ -506,14 +582,15 @@ fun HistorySubscription(
     onScrollChanged: (Int) -> Unit,
     savedSubscriptionsHistory: Result<ListHistorySubscriptionResponse>?,
     idUser: String,
-    onSaveSubscriptionsHistory: (Result<ListHistorySubscriptionResponse>) -> Unit
+    onSaveSubscriptionsHistory: (Result<ListHistorySubscriptionResponse>) -> Unit,
+    navController: NavController
 ) {
     val listState = rememberLazyListState()
 
     val subscriptionsHistoryState by viewModel.subscriptionsHistory.collectAsState()
 
     LaunchedEffect(idUser) {
-        if (savedSubscriptionsHistory == null) {
+        if (savedSubscriptionsHistory == null && idUser.isNotEmpty()) {
             viewModel.fetchSubscriptionsHistory(idUser)
         }
     }
@@ -568,7 +645,7 @@ fun HistorySubscription(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(subscriptions) { subscription ->
-                            HistorySubscriptionItem(subscription)
+                            HistorySubscriptionItem(subscription, navController)
                         }
                     }
                 }
@@ -596,8 +673,9 @@ fun HistorySubscription(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HistorySubscriptionItem(subscription: ListHistorySubscription?) {
+fun HistorySubscriptionItem(subscription: ListHistorySubscription?, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -628,7 +706,9 @@ fun HistorySubscriptionItem(subscription: ListHistorySubscription?) {
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
                 ) {
                     TextBold(
                         text = "${subscription?.subscriptions?.title ?: "-"} - ${subscription?.subscriptions?.period ?: "-"} Bulan",
@@ -658,7 +738,57 @@ fun HistorySubscriptionItem(subscription: ListHistorySubscription?) {
                         horizontalAlignment = Alignment.End
                     ) {
                         ButtonBorderGreen(
-                            onClick = { /*TODO*/ },
+                            onClick = {
+                                navController.navigate(
+                                    route = Screen.DetailHistoryLangganan.route
+                                        .replace(
+                                            "{id}",
+                                            subscription?.id ?: "-",
+                                        ).replace(
+                                            "{title}",
+                                            subscription?.subscriptions?.title ?: "-",
+                                        ).replace(
+                                            "{price}",
+                                            subscription?.subscriptions?.price?.let {
+                                                formatRupiah(
+                                                    it
+                                                )
+                                            }
+                                                ?: "-",
+                                        ).replace(
+                                            "{startDate}",
+                                            subscription?.startDate ?: "-",
+                                        ).replace(
+                                            "{endDate}",
+                                            subscription?.endDate ?: "-",
+                                        ).replace(
+                                            "{description}",
+                                            subscription?.subscriptions?.description ?: "-",
+                                        ).replace(
+                                            "{statusTransaction}",
+                                            subscription?.status ?: "-",
+                                        ).replace(
+                                            "{paymentMethod}",
+                                            subscription?.paymentMethod ?: "-",
+                                        ).replace(
+                                            "{period}",
+                                            subscription?.subscriptions?.period?.toString() ?: "-",
+                                        ).replace(
+                                            "{urlImageSubscription}",
+                                            URLEncoder.encode(
+                                                subscription?.subscriptions?.urlImage ?: "-",
+                                                StandardCharsets.UTF_8.toString()
+                                            )
+
+                                        ).replace(
+                                            "{urlImageTransaction}",
+                                            URLEncoder.encode(
+                                                subscription?.imageUrl ?: "-",
+                                                StandardCharsets.UTF_8.toString()
+                                            )
+                                        )
+                                )
+                            },
                             text = "Lihat Detail",
                             textSize = 10,
                             modifier = Modifier.width(120.dp)

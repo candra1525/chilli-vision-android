@@ -2,8 +2,7 @@ package com.candra.chillivision.ui.navigation
 
 
 // Mengatur Semua Screen yang bisa digunakan
-sealed class Screen(val route : String)
-{
+sealed class Screen(val route: String) {
     // Home
     data object Home : Screen("home")
 
@@ -12,6 +11,13 @@ sealed class Screen(val route : String)
 
     // Detail Langganan
     data object DetailLangganan : Screen("detailLangganan?idLangganan={idLangganan}")
+
+    // Detail Active Langganan
+    data object DetailActiveLangganan :
+        Screen("detailActiveLangganan/{id}/{title}/{price}/{startDate}/{endDate}/{description}/{statusTransaction}/{paymentMethod}/{period}/{urlImageSubscription}/{urlImageTransaction}")
+
+    // Detail History Langganan
+    data object DetailHistoryLangganan : Screen("detailHistoryLangganan/{id}/{title}/{price}/{startDate}/{endDate}/{description}/{statusTransaction}/{period}/{paymentMethod}/{urlImageSubscription}/{urlImageTransaction}")
 
     // Scan
     data object Scan : Screen("scan")
@@ -59,7 +65,8 @@ sealed class Screen(val route : String)
     data object Analysis : Screen("analysis")
 
     // Detail History
-    data object DetailHistory : Screen("detailHistory/{idHistory}/{title}/{description}/{createdAt}/{urlImage}")
+    data object DetailHistory :
+        Screen("detailHistory/{idHistory}/{title}/{description}/{createdAt}/{urlImage}")
 
     // Error
     data object Error : Screen("error")

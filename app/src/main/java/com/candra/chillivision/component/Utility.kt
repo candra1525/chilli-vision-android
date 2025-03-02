@@ -70,6 +70,7 @@ import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 
@@ -503,4 +504,13 @@ fun convertIsoToDateTime(isoTimestamp: String): String {
     val outputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
 
     return dateTime.atZone(ZoneId.of("UTC")).format(outputFormatter)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun daysRemaining(endDate: String): Long {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val nowDate = LocalDate.now() // Ambil tanggal sekarang
+    val endDateObj = LocalDate.parse(endDate, formatter)
+
+    return ChronoUnit.DAYS.between(nowDate, endDateObj)
 }

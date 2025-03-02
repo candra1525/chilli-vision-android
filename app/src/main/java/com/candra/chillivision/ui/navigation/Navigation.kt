@@ -29,6 +29,8 @@ import com.candra.chillivision.ui.pages.home.HomeScreen
 import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
 import com.candra.chillivision.ui.pages.langganan.LanggananScreen
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreen
+import com.candra.chillivision.ui.pages.langganan.detail_active.DetailActiveLanggananScreen
+import com.candra.chillivision.ui.pages.langganan.detail_history.DetailHistoryLanggananScreen
 import com.candra.chillivision.ui.pages.login.LoginScreen
 import com.candra.chillivision.ui.pages.profile.ProfileScreen
 import com.candra.chillivision.ui.pages.profile.lainnya.TentangAplikasi
@@ -78,7 +80,9 @@ fun Navigation(modifier: Modifier = Modifier) {
         Screen.ConfirmScan.route,
         Screen.Analysis.route,
         Screen.DetailLangganan.route,
-        Screen.DetailHistory.route
+        Screen.DetailHistory.route,
+        Screen.DetailActiveLangganan.route,
+        Screen.DetailHistoryLangganan.route
     )
 
     // Jika tidak ada koneksi, alihkan ke ErrorScreen
@@ -211,6 +215,106 @@ fun Navigation(modifier: Modifier = Modifier) {
 
             composable(Screen.DetailLangganan.route) {
                 DetailLanggananScreen(modifier, navController)
+            }
+
+            composable(Screen.DetailActiveLangganan.route) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id")
+                val title = backStackEntry.arguments?.getString("title")
+                val price = backStackEntry.arguments?.getString("price")
+                val startDate = backStackEntry.arguments?.getString("startDate")
+                val endDate = backStackEntry.arguments?.getString("endDate")
+                val description = backStackEntry.arguments?.getString("description")
+                val statusTransaction = backStackEntry.arguments?.getString("statusTransaction")
+                val paymentMethod = backStackEntry.arguments?.getString("paymentMethod")
+                val period = backStackEntry.arguments?.getString("period")
+                val urlImageSubscription =
+                    backStackEntry.arguments?.getString("urlImageSubscription")?.let {
+                        URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+                    }
+                val urlImageTransaction =
+                    backStackEntry.arguments?.getString("urlImageTransaction")?.let {
+                        URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+                    }
+
+                if (
+                    id != null &&
+                    title != null &&
+                    price != null &&
+                    startDate != null &&
+                    endDate != null &&
+                    description != null &&
+                    statusTransaction != null &&
+                    paymentMethod != null &&
+                    period != null &&
+                    urlImageSubscription != null &&
+                    urlImageTransaction != null
+                ) {
+                    DetailActiveLanggananScreen(
+                        modifier = modifier,
+                        navController = navController,
+                        id = id,
+                        title = title,
+                        price = price,
+                        startDate = startDate,
+                        endDate = endDate,
+                        description = description,
+                        statusTransaction = statusTransaction,
+                        paymentMethod = paymentMethod,
+                        period = period,
+                        urlImageSubscription = urlImageSubscription,
+                        urlImageTransaction = urlImageTransaction
+                    )
+                }
+            }
+
+            composable(Screen.DetailHistoryLangganan.route) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id")
+                val title = backStackEntry.arguments?.getString("title")
+                val price = backStackEntry.arguments?.getString("price")
+                val startDate = backStackEntry.arguments?.getString("startDate")
+                val endDate = backStackEntry.arguments?.getString("endDate")
+                val description = backStackEntry.arguments?.getString("description")
+                val statusTransaction = backStackEntry.arguments?.getString("statusTransaction")
+                val paymentMethod = backStackEntry.arguments?.getString("paymentMethod")
+                val period = backStackEntry.arguments?.getString("period")
+                val urlImageSubscription =
+                    backStackEntry.arguments?.getString("urlImageSubscription")?.let {
+                        URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+                    }
+                val urlImageTransaction =
+                    backStackEntry.arguments?.getString("urlImageTransaction")?.let {
+                        URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+                    }
+
+                if (
+                    id != null &&
+                    title != null &&
+                    price != null &&
+                    startDate != null &&
+                    endDate != null &&
+                    description != null &&
+                    statusTransaction != null &&
+                    paymentMethod != null &&
+                    period != null &&
+                    urlImageSubscription != null &&
+                    urlImageTransaction != null
+                ) {
+                    DetailHistoryLanggananScreen(
+                        modifier = modifier,
+                        navController = navController,
+                        id = id,
+                        title = title,
+                        price = price,
+                        startDate = startDate,
+                        endDate = endDate,
+                        description = description,
+                        statusTransaction = statusTransaction,
+                        paymentMethod = paymentMethod,
+                        period = period,
+                        urlImageSubscription = urlImageSubscription,
+                        urlImageTransaction = urlImageTransaction
+                    )
+                }
             }
         }
     }

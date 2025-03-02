@@ -2,6 +2,7 @@ package com.candra.chillivision.data.network
 
 import com.candra.chillivision.data.response.CreateSubscriptionUserResponse
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
+import com.candra.chillivision.data.response.historyAnalysis.HistoryDeleteResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
 import com.candra.chillivision.data.response.LoginResponse
@@ -119,11 +120,11 @@ interface ApiService {
 //        @Path("idUser") idUser: String
 //    ): CountHistoryUserResponse
 
-    // Delete History
-//    @DELETE("history/delete/{id}")
-//    suspend fun deleteHistory(
-//        @Path("id") id: String
-//    ): HistoryDeleteUserResponse
+//     Delete History
+    @DELETE("history/delete/{id}")
+    suspend fun deleteHistory(
+        @Path("id") id: String
+    ): HistoryDeleteResponse
 
 
     // Get Subscription

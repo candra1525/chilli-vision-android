@@ -158,7 +158,7 @@ fun DetailLanggananScreen(
         }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+//    Spacer(modifier = Modifier.height(16.dp))
 
     Column(
         modifier = modifier.fillMaxWidth()

@@ -1,8 +1,11 @@
 package com.candra.chillivision.ui.pages.history
 
+import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,12 +31,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
@@ -42,13 +47,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonGreen
+import com.candra.chillivision.component.Loading
 import com.candra.chillivision.component.NotFound
+import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.convertIsoToDateTime
 import com.candra.chillivision.data.common.Result
@@ -92,7 +100,8 @@ private fun TitleHistory() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavController) {
+private fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavController) {
+    val context = LocalContext.current
     val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
 
     var savedHistoryAnalysis by rememberSaveable {
@@ -118,21 +127,25 @@ fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavControll
         onSavedHistoryAnalysis = {
             savedHistoryAnalysis = it
         },
-        navController = navController
+        navController = navController,
+        context = context
     )
 }
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HistoryAnalysisContent(
+private fun HistoryAnalysisContent(
     viewModel: HistoryScreenViewModel,
     savedHistoryAnalysis: Result<HistoryAnalysisResponse>?,
     idUser: String,
     onSavedHistoryAnalysis: (Result<HistoryAnalysisResponse>) -> Unit,
-    navController: NavController
+    navController: NavController,
+    context: Context
 ) {
     val historyAnalysisState by viewModel.historyAnalisis.collectAsState()
+    var shouldRefresh by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
 
     LaunchedEffect(idUser) {
         if (idUser.isNotEmpty() && historyAnalysisState !is Result.Success) {
@@ -140,39 +153,45 @@ fun HistoryAnalysisContent(
         }
     }
 
+    LaunchedEffect(shouldRefresh) {
+        if (idUser.isNotEmpty()) {
+            Log.d("HistoryScreen", "Refreshing data...")
+            viewModel.fetchHistoryAnalisis(idUser)
+            shouldRefresh = false // Reset setelah refresh
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when (historyAnalysisState) {
             is Result.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AnimatedLoading(modifier = Modifier.size(120.dp))
-                        TextBold(
-                            text = "Sedang memuat...",
-                            sized = 14,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                Loading()
             }
 
             is Result.Success -> {
                 val history = (historyAnalysisState as Result.Success).data.data ?: emptyList()
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(0.dp, 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(history) { historyAnalysis ->
-                        HistoryCard(
-                            historyAnalysis = historyAnalysis,
-                            navController = navController
-                        )
+                if (isDeleting) {
+                    Loading(text = "Sedang menghapus data...")
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(0.dp, 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(history) { historyAnalysis ->
+                            HistoryCard(
+                                viewModel = viewModel,
+                                historyAnalysis = historyAnalysis,
+                                navController = navController,
+                                context = context,
+                                onSuccess = {
+                                    shouldRefresh = true
+                                    isDeleting = false // Reset setelah delete sukses
+                                },
+                                onLoadingDelete = {
+                                    isDeleting = true
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -202,13 +221,69 @@ fun HistoryAnalysisContent(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HistoryCard(historyAnalysis: HistoryAnalysis, navController: NavController) {
+private fun HistoryCard(
+    viewModel: HistoryScreenViewModel,
+    historyAnalysis: HistoryAnalysis,
+    navController: NavController,
+    context: Context,
+    onSuccess: () -> Unit = {},
+    onLoadingDelete: () -> Unit = {}
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        // Show Dialog
+        SweetAlertComponent(
+            context = context,
+            title = "Hapus Riwayat",
+            contentText = "Apakah Anda yakin ingin menghapus riwayat ini?",
+            type = "perhatian",
+            confirmYes = {
+                // Do Something
+                viewModel.deleteHistory(idHistory = historyAnalysis.id ?: "")
+                    .observe(context as LifecycleOwner) { result ->
+                        when (result) {
+                            is Result.Loading -> {
+                                onLoadingDelete()
+                            }
+
+                            is Result.Success -> {
+                                Log.d("HistoryScreen", "Delete Success, refreshing data...")
+                                onSuccess()
+                                SweetAlertComponent(
+                                    context = context,
+                                    title = "Berhasil",
+                                    contentText = "Riwayat berhasil dihapus",
+                                    type = "success",
+                                )
+                                showDialog = false
+                            }
+
+                            is Result.Error -> {
+                                // Do something
+                                showDialog = false
+                            }
+                        }
+                    }
+
+            },
+            confirmNo = {
+                showDialog = false
+            }
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(2.dp, RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.surface)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { showDialog = true }
+                )
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -316,3 +391,4 @@ fun HistoryCard(historyAnalysis: HistoryAnalysis, navController: NavController) 
         }
     }
 }
+

@@ -27,5 +27,7 @@ class HistoryScreenViewModel(private val repository: ChilliVisionRepository) : V
         }
     }
 
+    fun deleteHistory(idHistory: String) = repository.setDeteleHistory(idHistory)
+
     fun getPreferences() = repository.getPreferences()
 }

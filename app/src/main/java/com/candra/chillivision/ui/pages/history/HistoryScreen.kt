@@ -24,8 +24,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,7 +54,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.candra.chillivision.R
-import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonGreen
 import com.candra.chillivision.component.Loading
 import com.candra.chillivision.component.NotFound
@@ -134,6 +135,7 @@ private fun HistoryContent(viewModel: HistoryScreenViewModel, navController: Nav
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HistoryAnalysisContent(
@@ -173,25 +175,29 @@ private fun HistoryAnalysisContent(
                 if (isDeleting) {
                     Loading(text = "Sedang menghapus data...")
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(0.dp, 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(history) { historyAnalysis ->
-                            HistoryCard(
-                                viewModel = viewModel,
-                                historyAnalysis = historyAnalysis,
-                                navController = navController,
-                                context = context,
-                                onSuccess = {
-                                    shouldRefresh = true
-                                    isDeleting = false // Reset setelah delete sukses
-                                },
-                                onLoadingDelete = {
-                                    isDeleting = true
-                                }
-                            )
+                    PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
+                        shouldRefresh = true
+                    }) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(0.dp, 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(history) { historyAnalysis ->
+                                HistoryCard(
+                                    viewModel = viewModel,
+                                    historyAnalysis = historyAnalysis,
+                                    navController = navController,
+                                    context = context,
+                                    onSuccess = {
+                                        shouldRefresh = true
+                                        isDeleting = false // Reset setelah delete sukses
+                                    },
+                                    onLoadingDelete = {
+                                        isDeleting = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -211,6 +217,15 @@ private fun HistoryAnalysisContent(
                             text = "Tidak ada riwayat yang tersimpan saat ini 😉",
                             sized = 14,
                             textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        ButtonGreen(
+                            onClick = {
+                                shouldRefresh = true
+                            },
+                            text = "Perbarui",
+                            isLoading = false,
+                            modifier = Modifier
                         )
                     }
                 }

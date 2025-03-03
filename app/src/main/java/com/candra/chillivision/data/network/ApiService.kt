@@ -82,6 +82,12 @@ interface ApiService {
     @POST("user/logout")
     suspend fun logoutUser(): LogoutResponse
 
+    // Check Subscription Active
+    @GET("active-subscriptions/{idUser}")
+    suspend fun checkSubscriptionActive(
+        @Path("idUser") idUser: String
+    ): ActiveSubscrpitionUserResponse
+
     // Subscriptions
     // Get All Subscriptions
     @GET("subscriptions/all")
@@ -99,53 +105,11 @@ interface ApiService {
         @Path("idUser") idUser: String
     ): HistoryAnalysisResponse
 
-
-    // Get Detail History
-//    @GET("history/detail{id}")
-//    suspend fun getDetailHistory(
-//        @Path("id") id: String
-//    ): DetailHistoryUserResponse
-
-    // Create History
-//    @Multipart
-//    @POST("history/create")
-//    suspend fun createHistory(
-//        @Part("title") title: String,
-//        @Part("image") image: MultipartBody.Part,
-//        @Part("description") description: String,
-//        @Part("user_id") user_id: String
-//    ): CreateHistoryUserResponse
-
-    // Count History
-//    @GET("history/count/{idUser}")
-//    suspend fun countHistory(
-//        @Path("idUser") idUser: String
-//    ): CountHistoryUserResponse
-
-//     Delete History
+    //  Delete History
     @DELETE("history/delete/{id}")
     suspend fun deleteHistory(
         @Path("id") id: String
     ): HistoryDeleteResponse
-
-
-    // Get Subscription
-//    @GET("subscriptions/user/{idUser}")
-//    suspend fun getSubscription(
-//        @Path("idUser") idUser: String
-//    ): SubscriptionUserResponse
-
-
-    // Create Subscription
-    @Multipart
-    @POST("subscriptions/create")
-    suspend fun createSubscription(
-        @Part("title") title: String,
-        @Part("image_transaction") image_transaction: MultipartBody.Part,
-        @Part("start_date") start_date: String,
-        @Part("end_date") end_date: String,
-        @Part("user_id") user_id: String,
-    ): CreateSubscriptionUserResponse
 
     // History Subscription
     // Get All History Subscription from User
@@ -170,14 +134,23 @@ interface ApiService {
         @Part image_transaction: MultipartBody.Part
     ): CreateHistorySubscriptionResponse
 
-
     // Notification
     @GET("notification/all")
     suspend fun getAllNotification(): NotificationAllResponse
-
-    // Check Subscription Active
-    @GET("active-subscriptions/{idUser}")
-    suspend fun checkSubscriptionActive(
-        @Path("idUser") idUser: String
-    ): ActiveSubscrpitionUserResponse
 }
+
+// Create History
+//    @Multipart
+//    @POST("history/create")
+//    suspend fun createHistory(
+//        @Part("title") title: String,
+//        @Part("image") image: MultipartBody.Part,
+//        @Part("description") description: String,
+//        @Part("user_id") user_id: String
+//    ): CreateHistoryUserResponse
+
+// Count History
+//    @GET("history/count/{idUser}")
+//    suspend fun countHistory(
+//        @Path("idUser") idUser: String
+//    ): CountHistoryUserResponse

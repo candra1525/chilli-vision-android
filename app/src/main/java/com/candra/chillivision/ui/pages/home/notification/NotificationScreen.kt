@@ -22,11 +22,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +61,7 @@ import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NotificationScreen(
@@ -68,66 +75,83 @@ fun NotificationScreen(
     val context = LocalContext.current
     val notificationState by viewModel.notification.collectAsState()
 
+    var shouldRefresh by remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            viewModel.getAllNotification()
+            shouldRefresh = false
+        }
+    }
+
+
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
         HeaderComponent("Notifikasi", modifier, navController)
-        when (notificationState) {
-            is Result.Loading -> {
-                Loading()
-            }
 
-            is Result.Success -> {
-                val notif =
-                    (notificationState as Result.Success).data.data ?: emptyList()
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .imePadding()
-                ) {
-                    Column(
+        if (shouldRefresh) {
+            Loading()
+        } else {
+            when (notificationState) {
+                is Result.Loading -> {
+                    Loading()
+                }
+
+                is Result.Success -> {
+                    val notif =
+                        (notificationState as Result.Success).data.data ?: emptyList()
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp, 0.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxSize()
+                            .imePadding()
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(0.dp, 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp, 0.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            items(notif) { notification ->
-                                NotificationItem(
-                                    notification = notification,
-                                    navController = navController
-                                )
+                            PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
+                                shouldRefresh = true
+                            }) {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(0.dp, 8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    items(notif) { notification ->
+                                        NotificationItem(
+                                            notification = notification,
+                                            navController = navController
+                                        )
+                                    }
+                                }
                             }
+                        }
+                    }
+                }
 
+                is Result.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            NotFound(modifier = Modifier.size(200.dp))
+                            TextBold(
+                                text = "Tidak ada notifikasi saat ini 😉",
+                                sized = 14,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
                 }
             }
-
-            is Result.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        NotFound(modifier = Modifier.size(200.dp))
-                        TextBold(
-                            text = "Tidak ada notifikasi saat ini 😉",
-                            sized = 14,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
         }
-
     }
 
 }

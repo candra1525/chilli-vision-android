@@ -31,7 +31,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,7 +52,6 @@ import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.createImageUri
 import com.candra.chillivision.component.handleCameraPermission
-import com.candra.chillivision.data.model.UserModel
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GreenSoft
@@ -137,6 +135,7 @@ fun HomeScreen(
             // Jika data belum dimuat, jangan tampilkan apapun (menghindari flicker)
             return
         }
+
         userPreferences?.token.isNullOrEmpty() -> {
             // Jika token kosong, langsung arahkan ke welcome (sekali saja)
             LaunchedEffect(Unit) {
@@ -145,6 +144,7 @@ fun HomeScreen(
                 }
             }
         }
+
         else -> {
             Log.d("HomeScreen", "UserPreferences: $userPreferences")
             // Jika token ada, langsung render HomeScreen
@@ -166,7 +166,6 @@ fun HomeScreen(
         }
     }
 }
-
 
 
 @Composable
@@ -214,9 +213,11 @@ private fun HeaderHomeScreen(
         Image(
             painter = painterResource(id = R.drawable.notification),
             contentDescription = "Avatar",
-            modifier = Modifier.size(25.dp).clickable {
-                navController.navigate("notification")
-            }
+            modifier = Modifier
+                .size(25.dp)
+                .clickable {
+                    navController.navigate("notification")
+                }
         )
 
     }
@@ -471,12 +472,12 @@ private fun MenuVideoTutorial(
             .border(
                 width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
             )
-            .padding(8.dp)
             .clickable {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Pastikan intent berjalan di task baru
                 context.startActivity(intent)
-            },
+            }
+            .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {

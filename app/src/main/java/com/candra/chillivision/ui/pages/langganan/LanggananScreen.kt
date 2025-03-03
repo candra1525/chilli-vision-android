@@ -27,12 +27,14 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +62,7 @@ import coil.compose.AsyncImage
 import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonBorderGreen
 import com.candra.chillivision.component.ButtonGreen
+import com.candra.chillivision.component.Loading
 import com.candra.chillivision.component.NotFound
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.formatRupiah
@@ -213,40 +216,41 @@ fun TabScreen(viewModel: LanggananScreenViewModel, navController: NavController)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BeliLanggananScreen(
     viewModel: LanggananScreenViewModel, navController: NavController
 ) {
     val subscriptionsState by viewModel.subscriptions.collectAsState()
+    var shouldRefresh by remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            viewModel.fetchSubscriptions()
+            shouldRefresh = false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (subscriptionsState) {
             is Result.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AnimatedLoading(modifier = Modifier.size(120.dp))
-                        TextBold(
-                            text = "Sedang memuat...", sized = 14, textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                Loading()
             }
 
             is Result.Success -> {
                 val subscriptions = (subscriptionsState as Result.Success).data.data ?: emptyList()
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(0.dp, 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(subscriptions) { subscription ->
-                        SubscriptionCard(subscription, navController)
+                PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
+                    shouldRefresh = true
+                }) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(0.dp, 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(subscriptions) { subscription ->
+                            SubscriptionCard(subscription, navController)
+                        }
                     }
                 }
             }
@@ -263,10 +267,15 @@ fun BeliLanggananScreen(
                         TextBold(
                             text = "Halaman bermasalah 🥲", sized = 14, textAlign = TextAlign.Center
                         )
-                        // button load ulang
-                        ButtonGreen(onClick = {
-                            viewModel.fetchSubscriptions()
-                        }, text = "Coba Lagi", isLoading = false)
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        ButtonGreen(
+                            onClick = {
+                                shouldRefresh = true
+                            },
+                            text = "Perbarui",
+                            isLoading = false,
+                            modifier = Modifier
+                        )
 
                     }
                 }
@@ -343,6 +352,7 @@ fun SubscriptionCard(subscription: SubscriptionsGetAll, navController: NavContro
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ActiveSubscription(
@@ -356,10 +366,18 @@ fun ActiveSubscription(
 ) {
     val listState = rememberLazyListState()
     val subscriptionsActiveState by viewModel.subscriptionsActive.collectAsState()
+    var shouldRefresh by remember { mutableStateOf(false) }
 
     LaunchedEffect(idUser) {
         if (savedSubscriptionsActive == null && idUser.isNotEmpty()) {
             viewModel.fetchSubscriptionsActive(idUser)
+        }
+    }
+
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            viewModel.fetchSubscriptionsActive(idUser)
+            shouldRefresh = false
         }
     }
 
@@ -369,51 +387,41 @@ fun ActiveSubscription(
         }
     }
 
+
     val displayedSubscriptionsState = savedSubscriptionsActive ?: subscriptionsActiveState
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (displayedSubscriptionsState) {
             is Result.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AnimatedLoading(modifier = Modifier.size(120.dp))
-                        TextBold(
-                            text = "Sedang memuat...",
-                            sized = 14,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                Loading()
             }
 
             is Result.Success -> {
                 val subscriptions = displayedSubscriptionsState.data.data ?: emptyList()
 
-                if (subscriptions.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Tidak ada langganan aktif",
-                            color = Color.Gray
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(subscriptions) { subscription ->
-                            ActiveSubscriptionItem(subscription, navController)
+                PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
+                    shouldRefresh = true
+                }) {
+                    if (subscriptions.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Tidak ada langganan aktif",
+                                color = Color.Gray
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(subscriptions) { subscription ->
+                                ActiveSubscriptionItem(subscription, navController)
+                            }
                         }
                     }
                 }
@@ -433,6 +441,15 @@ fun ActiveSubscription(
                             text = "Tidak ada langganan yang aktif saat ini 😉",
                             sized = 14,
                             textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        ButtonGreen(
+                            onClick = {
+                                shouldRefresh = true
+                            },
+                            text = "Perbarui",
+                            isLoading = false,
+                            modifier = Modifier
                         )
                     }
                 }
@@ -574,6 +591,7 @@ fun ActiveSubscriptionItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HistorySubscription(
@@ -586,12 +604,19 @@ fun HistorySubscription(
     navController: NavController
 ) {
     val listState = rememberLazyListState()
-
+    var shouldRefresh by remember { mutableStateOf(false) }
     val subscriptionsHistoryState by viewModel.subscriptionsHistory.collectAsState()
 
     LaunchedEffect(idUser) {
         if (savedSubscriptionsHistory == null && idUser.isNotEmpty()) {
             viewModel.fetchSubscriptionsHistory(idUser)
+        }
+    }
+
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            viewModel.fetchSubscriptionsHistory(idUser)
+            shouldRefresh = false
         }
     }
 
@@ -601,51 +626,41 @@ fun HistorySubscription(
         }
     }
 
+
     val displayedSubscriptionsState = savedSubscriptionsHistory ?: subscriptionsHistoryState
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (displayedSubscriptionsState) {
             is Result.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AnimatedLoading(modifier = Modifier.size(120.dp))
-                        TextBold(
-                            text = "Sedang memuat...",
-                            sized = 14,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                Loading()
             }
 
             is Result.Success -> {
                 val subscriptions = displayedSubscriptionsState.data.data ?: emptyList()
 
-                if (subscriptions.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Tidak ada langganan aktif",
-                            color = Color.Gray
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(subscriptions) { subscription ->
-                            HistorySubscriptionItem(subscription, navController)
+                PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
+                    shouldRefresh = true
+                }) {
+                    if (subscriptions.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Tidak ada langganan aktif",
+                                color = Color.Gray
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(subscriptions) { subscription ->
+                                HistorySubscriptionItem(subscription, navController)
+                            }
                         }
                     }
                 }
@@ -665,6 +680,15 @@ fun HistorySubscription(
                             text = "Tidak ada riwayat langganan 😉",
                             sized = 14,
                             textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        ButtonGreen(
+                            onClick = {
+                                shouldRefresh = true
+                            },
+                            text = "Perbarui",
+                            isLoading = false,
+                            modifier = Modifier
                         )
                     }
                 }

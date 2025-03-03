@@ -17,14 +17,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -62,7 +63,7 @@ fun DetailHistoryLanggananScreen(
     description: String,
     statusTransaction: String,
     paymentMethod: String,
-    period : String,
+    period: String,
     urlImageSubscription: String,
     urlImageTransaction: String
 ) {
@@ -93,57 +94,67 @@ fun DetailHistoryLanggananScreen(
                     .padding(32.dp, 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                Row(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(8.dp, shape = RoundedCornerShape(8.dp))
-                        .background(Color.White) // Agar shadow terlihat
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .shadow(2.dp, RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    AsyncImage(
-                        model = urlImageSubscription,
-                        contentDescription = "Image Subscription",
+                    Row(
                         modifier = Modifier
-                            .size(120.dp)
-                            .weight(0.5f)
-                            .padding(16.dp)
-                    )
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TextBold(text = "$title - $period Bulan", sized = 18, textAlign = TextAlign.Justify)
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        TextBold(text = price, sized = 14, colors = PrimaryGreen)
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        TextBold(
-                            text = when (statusTransaction) {
-                                "active" -> "\uD83D\uDFE2 Aktif hingga ${
-                                    konversiFormatTanggal(
-                                        endDate
-                                    )
-                                }"
-
-                                "pending" -> "🟡 Menunggu Konfirmasi"
-                                "success" -> "Berhasil"
-                                "expired" -> "🔴 Kadaluarsa"
-                                "cancel" -> "Dibatalkan"
-                                else -> "-"
-                            },
-                            sized = 14,
-                            textAlign = TextAlign.Justify,
-                            colors = if (isSystemInDarkTheme()) White else BlackMode
+                        AsyncImage(
+                            model = urlImageSubscription,
+                            contentDescription = "Image Subscription",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .weight(0.5f)
+                                .padding(16.dp)
                         )
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        if (statusTransaction != "active" || statusTransaction != "pending" || statusTransaction != "cancel") {
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .weight(1f)
+                        ) {
                             TextBold(
-                                text = "Berakhir pada : " + konversiFormatTanggal(endDate),
-                                sized = 14,
-                                colors = if (daysRemaining(endDate).toInt() <= 3) Red else PrimaryGreen
+                                text = "$title - $period Bulan",
+                                sized = 18,
+                                textAlign = TextAlign.Justify
                             )
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            TextBold(text = price, sized = 14, colors = PrimaryGreen)
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            TextBold(
+                                text = when (statusTransaction) {
+                                    "active" -> "\uD83D\uDFE2 Aktif hingga ${
+                                        konversiFormatTanggal(
+                                            endDate
+                                        )
+                                    }"
+
+                                    "pending" -> "🟡 Menunggu Konfirmasi"
+                                    "success" -> "Berhasil"
+                                    "expired" -> "🔴 Kadaluarsa"
+                                    "cancel" -> "Dibatalkan"
+                                    else -> "-"
+                                },
+                                sized = 14,
+                                textAlign = TextAlign.Justify,
+                                colors = if (isSystemInDarkTheme()) White else BlackMode
+                            )
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            if (statusTransaction != "active" || statusTransaction != "pending" || statusTransaction != "cancel") {
+                                TextBold(
+                                    text = "Berakhir pada : " + konversiFormatTanggal(endDate),
+                                    sized = 14,
+                                    colors = if (daysRemaining(endDate).toInt() <= 3) Red else PrimaryGreen
+                                )
+                            }
                         }
                     }
                 }

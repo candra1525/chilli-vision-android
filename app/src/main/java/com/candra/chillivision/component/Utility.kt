@@ -500,11 +500,15 @@ fun convertIsoToDateTime(isoTimestamp: String): String {
     val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'")
     val dateTime = LocalDateTime.parse(isoTimestamp, inputFormatter)
 
-    // Formatter untuk output dengan leading zero di tanggal
+    // Konversi ke zona waktu GMT+7 (Asia/Jakarta)
+    val zonedDateTime = dateTime.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Jakarta"))
+
+    // Formatter untuk output dengan format 24 jam
     val outputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
 
-    return dateTime.atZone(ZoneId.of("UTC")).format(outputFormatter)
+    return zonedDateTime.format(outputFormatter)
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun daysRemaining(endDate: String): Long {

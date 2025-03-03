@@ -1,6 +1,5 @@
 package com.candra.chillivision.ui.navigation
 
-//import com.candra.chillivision.ui.pages.scan.gallery.GalleryScreen
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -21,11 +20,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.candra.chillivision.component.ConnectivityStatus
-import com.candra.chillivision.ui.pages.analysis.AnalysisScreen
 import com.candra.chillivision.ui.pages.error.ErrorScreen
 import com.candra.chillivision.ui.pages.history.HistoryScreen
 import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScreen
 import com.candra.chillivision.ui.pages.home.HomeScreen
+import com.candra.chillivision.ui.pages.home.notification.NotificationScreen
+import com.candra.chillivision.ui.pages.home.notification.notification_detail.NotificationDetailScreen
 import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreen
 import com.candra.chillivision.ui.pages.langganan.LanggananScreen
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreen
@@ -38,6 +38,7 @@ import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandi
 import com.candra.chillivision.ui.pages.profile.ubah.UbahProfile
 import com.candra.chillivision.ui.pages.register.RegisterScreen
 import com.candra.chillivision.ui.pages.scan.ScanScreen
+import com.candra.chillivision.ui.pages.scan.analysis_result.AnalysisResultScreen
 import com.candra.chillivision.ui.pages.scan.confirm_scan.ConfirmScanScreen
 import com.candra.chillivision.ui.pages.terms_privacy.privacy.PrivacyScreen
 import com.candra.chillivision.ui.pages.terms_privacy.terms.TermsScreen
@@ -73,16 +74,17 @@ fun Navigation(modifier: Modifier = Modifier) {
         Screen.Welcome.route,
         Screen.Register.route,
         Screen.TanyaAI.route,
-//        Screen.Gallery.route,
         Screen.Error.route,
         Screen.Privacy.route,
         Screen.Terms.route,
         Screen.ConfirmScan.route,
-        Screen.Analysis.route,
+        Screen.AnalysisResult.route,
         Screen.DetailLangganan.route,
         Screen.DetailHistory.route,
         Screen.DetailActiveLangganan.route,
-        Screen.DetailHistoryLangganan.route
+        Screen.DetailHistoryLangganan.route,
+        Screen.Notification.route,
+        Screen.NotificationDetail.route
     )
 
     // Jika tidak ada koneksi, alihkan ke ErrorScreen
@@ -156,6 +158,24 @@ fun Navigation(modifier: Modifier = Modifier) {
             composable(route = Screen.Home.route) {
                 HomeScreen(modifier, navController)
             }
+            composable(route = Screen.Notification.route) {
+                NotificationScreen(modifier, navController)
+            }
+            composable(route = Screen.NotificationDetail.route) { navBackStackEntry ->
+                val title = navBackStackEntry.arguments?.getString("title")
+                val description = navBackStackEntry.arguments?.getString("description")
+                val datePublish = navBackStackEntry.arguments?.getString("datePublish")
+                if (title != null && description != null && datePublish != null) {
+                    NotificationDetailScreen(
+                        modifier = modifier,
+                        navController = navController,
+                        title = title,
+                        description = description,
+                        datePublish = datePublish
+                    )
+                }
+
+            }
             composable(route = Screen.Langganan.route) {
                 LanggananScreen(modifier, navController)
             }
@@ -209,8 +229,8 @@ fun Navigation(modifier: Modifier = Modifier) {
                 ConfirmScanScreen(modifier, navController)
             }
 
-            composable(route = Screen.Analysis.route) {
-                AnalysisScreen(modifier, navController)
+            composable(route = Screen.AnalysisResult.route) {
+                AnalysisResultScreen(modifier, navController)
             }
 
             composable(Screen.DetailLangganan.route) {

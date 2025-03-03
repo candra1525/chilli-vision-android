@@ -6,6 +6,12 @@ sealed class Screen(val route: String) {
     // Home
     data object Home : Screen("home")
 
+    // Notification
+    data object Notification : Screen("notification")
+
+    // Detail notification
+    data object NotificationDetail : Screen("notificationDetail/{title}/{description}/{datePublish}")
+
     // Langganan
     data object Langganan : Screen("langganan")
 
@@ -62,7 +68,7 @@ sealed class Screen(val route: String) {
     data object ConfirmScan : Screen("confirmScan?imageUri={imageUri}")
 
     // Analysis
-    data object Analysis : Screen("analysis")
+    data object AnalysisResult : Screen("analysisResult")
 
     // Detail History
     data object DetailHistory :

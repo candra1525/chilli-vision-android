@@ -109,6 +109,7 @@ private fun HistoryContent(viewModel: HistoryScreenViewModel, navController: Nav
             null
         )
     }
+
     var prevIdUser by rememberSaveable { mutableStateOf("") } // Simpan nilai agar tidak reset saat rotasi
 
     val idUser = userData.id
@@ -294,14 +295,12 @@ private fun HistoryCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
-//                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
 
                 Column(
                     modifier = Modifier
-//                        .padding(8.dp, 0.dp)
                         .weight(1f)
                 ) {
                     TextBold(

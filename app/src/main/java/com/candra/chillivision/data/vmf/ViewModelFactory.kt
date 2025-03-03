@@ -8,6 +8,7 @@ import com.candra.chillivision.data.repository.ChilliVisionRepository
 import com.candra.chillivision.ui.pages.history.HistoryScreenViewModel
 import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScreenViewModel
 import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
+import com.candra.chillivision.ui.pages.home.notification.NotificationScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.LanggananScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.detail_active.DetailActiveLanggananScreenViewModel
@@ -17,6 +18,7 @@ import com.candra.chillivision.ui.pages.profile.ProfileScreenViewModel
 import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandiViewModel
 import com.candra.chillivision.ui.pages.profile.ubah.UbahProfileViewModel
 import com.candra.chillivision.ui.pages.register.RegisterScreenViewModel
+import com.candra.chillivision.ui.pages.scan.analysis_result.AnalysisResultScreenViewModel
 
 class ViewModelFactory(private val repository: ChilliVisionRepository) :
     ViewModelProvider.NewInstanceFactory() {
@@ -79,6 +81,17 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
             modelClass.isAssignableFrom(DetailHistoryLanggananScreenViewModel::class.java) -> DetailHistoryLanggananScreenViewModel(
                 repository
             ) as T
+
+            // Notification
+            modelClass.isAssignableFrom(NotificationScreenViewModel::class.java) -> NotificationScreenViewModel(
+                repository
+            ) as T
+
+            // Analysis
+            modelClass.isAssignableFrom(AnalysisResultScreenViewModel::class.java) -> AnalysisResultScreenViewModel(
+                repository
+            ) as T
+
 
             else -> throw IllegalArgumentException("ViewModel Not Found" + modelClass.name)
         }

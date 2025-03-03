@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,8 @@ import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.dashedBorder
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun ConfirmScanScreen(modifier: Modifier = Modifier, navController: NavController) {
@@ -57,6 +60,16 @@ fun ConfirmScanScreen(modifier: Modifier = Modifier, navController: NavControlle
 //    val imageUri = navBackStackEntry?.arguments?.getString("imageUri")
     val imageUri by remember {
         mutableStateOf(navController.currentBackStackEntry?.arguments?.getString("imageUri"))
+    }
+
+    var isDirect by remember{ mutableStateOf(false) }
+
+    LaunchedEffect(isDirect) {
+        if (isDirect) {
+            delay(2000)
+            navController.navigate("analysisResult")
+            isDirect = false
+        }
     }
 
 
@@ -102,6 +115,8 @@ fun ConfirmScanScreen(modifier: Modifier = Modifier, navController: NavControlle
                     Spacer(modifier = Modifier.height(8.dp))
                     TextBold(text = "Mohon Menunggu ...", sized = 14)
                 }
+
+                isDirect = true
 
             }
 

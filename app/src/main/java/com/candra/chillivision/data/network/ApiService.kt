@@ -12,6 +12,8 @@ import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
+import com.candra.chillivision.data.response.notification.NotificationAllResponse
+import com.candra.chillivision.data.response.subscriptions.ActiveSubscrpitionUserResponse
 import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
@@ -169,4 +171,13 @@ interface ApiService {
     ): CreateHistorySubscriptionResponse
 
 
+    // Notification
+    @GET("notification/all")
+    suspend fun getAllNotification(): NotificationAllResponse
+
+    // Check Subscription Active
+    @GET("active-subscriptions/{idUser}")
+    suspend fun checkSubscriptionActive(
+        @Path("idUser") idUser: String
+    ): ActiveSubscrpitionUserResponse
 }

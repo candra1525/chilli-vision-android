@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -292,7 +291,7 @@ fun DetailLanggananScreen(
 
                     Spacer(modifier = Modifier.padding(16.dp))
 
-                    if (isLoadingSubmit){
+                    if (isLoadingSubmit) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -305,76 +304,114 @@ fun DetailLanggananScreen(
                             )
                         }
                     } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp, 0.dp, 0.dp, 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ButtonCustomColorWithIcon(
-                            onClick = {
-                                directToWhatsapp(
-                                    context,
-                                    "62895603231365",
-                                    "Halo Admin 👋🏻, saya ingin bertanya terkait Paket Aplikasi Chilli Vision 🌶️"
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(0.dp, 0.dp, 0.dp, 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ButtonCustomColorWithIcon(
+                                onClick = {
+                                    directToWhatsapp(
+                                        context,
+                                        "62895603231365",
+                                        "Halo Admin 👋🏻, saya ingin bertanya terkait Paket Aplikasi Chilli Vision 🌶️"
+                                    )
+                                },
+                                text = "Tanya Admin",
+                                color = PrimaryGreen,
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Outlined.Phone
+                            )
+
+                            Spacer(modifier = Modifier.padding(8.dp))
+
+                            if (!isBuy) {
+                                ButtonCustomColorWithIcon(
+                                    onClick = {
+                                        isBuy = true
+                                    },
+                                    text = "Beli",
+                                    color = PrimaryGreen,
+                                    modifier = Modifier.weight(1f),
+                                    icon = Icons.Filled.ShoppingCart
                                 )
-                            },
-                            text = "Tanya Admin",
-                            color = PrimaryGreen,
-                            modifier = Modifier.weight(1f),
-                            icon = Icons.Outlined.Phone
-                        )
+                            } else {
+                                ButtonCustomColorWithIcon(
+                                    onClick = {
+                                        viewModel.checkSubscriptionActive(idUser)
+                                            .observe(context as LifecycleOwner) { result ->
+                                                when (result) {
+                                                    is Result.Loading -> {
+                                                        isLoadingSubmit = true
+                                                    }
 
-                        Spacer(modifier = Modifier.padding(8.dp))
+                                                    is Result.Success -> {
+                                                        val data =
+                                                            (result as Result.Success).data.data
+                                                        if (data != null) {
+                                                            SweetAlertComponent(
+                                                                context = context,
+                                                                title = "Peringatan",
+                                                                contentText = "Anda sudah memiliki langganan aktif",
+                                                                type = "warning",
+                                                                isCancel = false
+                                                            )
+                                                            isLoadingSubmit = false
+                                                        } else {
+                                                            if (capturedImageUri == null || capturedImageUri == Uri.EMPTY || capturedImageUri == Uri.parse(
+                                                                    ""
+                                                                )
+                                                            ) {
+                                                                SweetAlertComponent(
+                                                                    context = context,
+                                                                    title = "Peringatan",
+                                                                    contentText = "Silahkan unggah bukti transaksi",
+                                                                    type = "warning",
+                                                                    isCancel = false
+                                                                )
+                                                            } else {
+                                                                isLoadingSubmit = true
+                                                                BuySubscription(
+                                                                    context = context,
+                                                                    viewModel = viewModel,
+                                                                    idLangganan = idLangganan,
+                                                                    idUser = idUser,
+                                                                    period = period,
+                                                                    capturedImageUri = capturedImageUri
+                                                                ) {
+                                                                    isBuy = false
+                                                                    isUpload = false
+                                                                    capturedImageUri = null
+                                                                    isLoadingSubmit = false
+                                                                }
+                                                            }
+                                                        }
+                                                    }
 
-                        if (!isBuy) {
-                            ButtonCustomColorWithIcon(
-                                onClick = {
-                                    isBuy = true
-                                },
-                                text = "Beli",
-                                color = PrimaryGreen,
-                                modifier = Modifier.weight(1f),
-                                icon = Icons.Filled.ShoppingCart
-                            )
-                        } else {
-                            ButtonCustomColorWithIcon(
-                                onClick = {
-                                    if (capturedImageUri == null || capturedImageUri == Uri.EMPTY || capturedImageUri == Uri.parse("")) {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Peringatan",
-                                            contentText = "Silahkan unggah bukti transaksi",
-                                            type = "warning",
-                                            isCancel = false
-                                        )
-                                    }
-                                    else {
-                                        isLoadingSubmit = true
-                                        BuySubscription(
-                                            context = context,
-                                            viewModel = viewModel,
-                                            idLangganan = idLangganan,
-                                            idUser = idUser,
-                                            period = period,
-                                            capturedImageUri = capturedImageUri
-                                        ){
-                                            isBuy = false
-                                            isUpload = false
-                                            capturedImageUri = null
-                                            isLoadingSubmit = false
-                                        }
-                                    }
-                                },
-                                text = "Yakin Beli",
-                                color = PrimaryGreen,
-                                modifier = Modifier.weight(1f),
-                                icon = Icons.Filled.ShoppingCart,
-                            )
+                                                    is Result.Error -> {
+                                                        isLoadingSubmit = false
+                                                        SweetAlertComponent(
+                                                            context = context,
+                                                            title = "Gagal",
+                                                            contentText = (result as Result.Error).errorMessage
+                                                                ?: "Terjadi kesalahan",
+                                                            type = "error",
+                                                            isCancel = false
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                    },
+                                    text = "Yakin Beli",
+                                    color = PrimaryGreen,
+                                    modifier = Modifier.weight(1f),
+                                    icon = Icons.Filled.ShoppingCart,
+                                )
+                            }
+
                         }
-
-                    }
                     }
                 }
             }
@@ -390,8 +427,8 @@ fun BuySubscription(
     idUser: String,
     period: Int,
     capturedImageUri: Uri?,
-    onSucess : () -> Unit
-){
+    onSucess: () -> Unit
+) {
     val imageFile = capturedImageUri?.let {
         uriToFile(
             imageUri = it,

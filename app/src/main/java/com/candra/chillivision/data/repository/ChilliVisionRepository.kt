@@ -17,6 +17,8 @@ import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDeleteResponse
+import com.candra.chillivision.data.response.notification.NotificationAllResponse
+import com.candra.chillivision.data.response.subscriptions.ActiveSubscrpitionUserResponse
 import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
@@ -24,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -242,7 +243,7 @@ class ChilliVisionRepository constructor(
     }
 
     // Delete History
-    fun setDeteleHistory(idHistory : String) : LiveData<Result<HistoryDeleteResponse>> = liveData {
+    fun setDeteleHistory(idHistory: String): LiveData<Result<HistoryDeleteResponse>> = liveData {
         emit(Result.Loading)
         try {
             val response = apiService.deleteHistory(idHistory)
@@ -252,7 +253,27 @@ class ChilliVisionRepository constructor(
         }
     }
 
+    // Notification
+    fun getAllNotification(): Flow<Result<NotificationAllResponse>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getAllNotification()
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
 
-
+    // Check Subscription User
+    fun checkSubscriptionActive(idUser: String): LiveData<Result<ActiveSubscrpitionUserResponse>> =
+        liveData {
+            emit(Result.Loading)
+            try {
+                val response = apiService.checkSubscriptionActive(idUser = idUser)
+                emit(Result.Success(response))
+            } catch (e: Exception) {
+                emit(Result.Error(e.message ?: "Error Occurred!"))
+            }
+        }
 
 }

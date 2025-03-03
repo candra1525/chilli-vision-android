@@ -43,5 +43,8 @@ class DetailLanggananScreenViewModel(private val repository: ChilliVisionReposit
         image_transaction = imageTransaction
     )
 
+    // Check Subscription Active
+    fun checkSubscriptionActive(idUser : String) = repository.checkSubscriptionActive(idUser = idUser)
+
 
 }

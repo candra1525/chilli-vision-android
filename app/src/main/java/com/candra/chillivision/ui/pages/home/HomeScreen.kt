@@ -214,7 +214,9 @@ private fun HeaderHomeScreen(
         Image(
             painter = painterResource(id = R.drawable.notification),
             contentDescription = "Avatar",
-            modifier = Modifier.size(25.dp)
+            modifier = Modifier.size(25.dp).clickable {
+                navController.navigate("notification")
+            }
         )
 
     }

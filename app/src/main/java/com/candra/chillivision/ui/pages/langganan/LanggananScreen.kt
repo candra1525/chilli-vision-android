@@ -366,17 +366,20 @@ fun ActiveSubscription(
 ) {
     val listState = rememberLazyListState()
     val subscriptionsActiveState by viewModel.subscriptionsActive.collectAsState()
-    var shouldRefresh by remember { mutableStateOf(false) }
+    var shouldRefresh by rememberSaveable { mutableStateOf(false) }
+    var isFetched by rememberSaveable { mutableStateOf(false) } // Untuk mencegah fetch ulang saat rotate
 
     LaunchedEffect(idUser) {
-        if (savedSubscriptionsActive == null && idUser.isNotEmpty()) {
+        if (!isFetched && savedSubscriptionsActive == null && idUser.isNotEmpty()) {
             viewModel.fetchSubscriptionsActive(idUser)
+            isFetched = true
         }
     }
 
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh) {
             viewModel.fetchSubscriptionsActive(idUser)
+            onSaveSubscriptionsActive(subscriptionsActiveState)
             shouldRefresh = false
         }
     }
@@ -387,8 +390,8 @@ fun ActiveSubscription(
         }
     }
 
-
-    val displayedSubscriptionsState = savedSubscriptionsActive ?: subscriptionsActiveState
+    val displayedSubscriptionsState = subscriptionsActiveState.takeIf { it is Result.Loading }
+        ?: savedSubscriptionsActive
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (displayedSubscriptionsState) {
@@ -454,9 +457,12 @@ fun ActiveSubscription(
                     }
                 }
             }
+
+            else -> {}
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -616,6 +622,7 @@ fun HistorySubscription(
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh) {
             viewModel.fetchSubscriptionsHistory(idUser)
+            onSaveSubscriptionsHistory(subscriptionsHistoryState)
             shouldRefresh = false
         }
     }
@@ -627,7 +634,7 @@ fun HistorySubscription(
     }
 
 
-    val displayedSubscriptionsState = savedSubscriptionsHistory ?: subscriptionsHistoryState
+    val displayedSubscriptionsState = savedSubscriptionsHistory.takeIf { it is Result.Loading } ?: subscriptionsHistoryState
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (displayedSubscriptionsState) {

@@ -185,7 +185,7 @@ fun DetailLanggananScreen(
 
                     Spacer(modifier = Modifier.padding(16.dp))
 
-                    TextBold(text = title, sized = 20)
+                    TextBold(text = "${title} - ${period} Bulan", sized = 20)
 
                     Spacer(modifier = Modifier.padding(8.dp))
 

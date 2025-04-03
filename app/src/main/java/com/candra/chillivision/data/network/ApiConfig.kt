@@ -9,22 +9,31 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class ApiConfig {
     companion object {
-        private const val Base_URL = BuildConfig.BASE_URL
-        // private const val Base_URL_MODEL = BuildConfig.BASE_URL_MODEL
+        private const val BASE_URL = BuildConfig.BASE_URL
+        private const val BASE_URL_CHAT_AI = BuildConfig.BASE_URL_CHAT_AI
+        private const val BASE_URL_MODEL = BuildConfig.BASE_URL_MODEL
 
-        fun getAPIService(userPreferences: UserPreferences): ApiService {
+        private val retrofitInstances = ConcurrentHashMap<String, ApiService>()
+
+        fun getAPIService(userPreferences: UserPreferences, apiType: String = "default"): ApiService {
+            return retrofitInstances.getOrPut(apiType) {
+                createRetrofitInstance(userPreferences, apiType)
+            }
+        }
+
+        private fun createRetrofitInstance(userPreferences: UserPreferences, apiType: String): ApiService {
             val loggingInterceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
             val authInterceptor = Interceptor { chain ->
                 val req = chain.request()
 
-                // Ambil token terbaru dari Flow
                 val token = runBlocking {
-                    userPreferences.tokenFlow.first() // Selalu ambil token terbaru
+                    userPreferences.tokenFlow.first()
                 }
 
                 val requestHeaders = req.newBuilder()
@@ -35,15 +44,21 @@ class ApiConfig {
             }
 
             val client = OkHttpClient.Builder()
-                .connectTimeout(120, TimeUnit.SECONDS) // Naikkan dari 60 ke 120 detik
+                .connectTimeout(120, TimeUnit.SECONDS)
                 .readTimeout(120, TimeUnit.SECONDS)
                 .writeTimeout(120, TimeUnit.SECONDS)
                 .addInterceptor(loggingInterceptor)
-                .addInterceptor(authInterceptor) // Selalu gunakan token terbaru
+                .addInterceptor(authInterceptor)
                 .build()
 
+            val baseUrl = when (apiType) {
+                "chatAi" -> BASE_URL_CHAT_AI
+                "model" -> BASE_URL_MODEL
+                else -> BASE_URL
+            }
+
             val retrofit = Retrofit.Builder()
-                .baseUrl(Base_URL)
+                .baseUrl(baseUrl)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
@@ -51,5 +66,4 @@ class ApiConfig {
             return retrofit.create(ApiService::class.java)
         }
     }
-
 }

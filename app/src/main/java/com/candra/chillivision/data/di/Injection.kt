@@ -9,20 +9,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 object Injection {
-//    fun provideRepository(context: Context): ChilliVisionRepository {
-//        val pref = UserPreferences.getInstance(context.dataStore)
-//        val token = runBlocking {
-//            pref.getPreferences().first().token
-//        }
-//        val apiService = ApiConfig.getAPIService(token)
-//        return ChilliVisionRepository(pref, apiService)
-//    }
-
-    fun provideRepository(context: Context): ChilliVisionRepository {
+    fun provideRepository(context: Context, apiType: String = "default"): ChilliVisionRepository {
         val pref = UserPreferences.getInstance(context.dataStore)
 
-        // Gunakan StateFlow untuk mendapatkan token terbaru
-        val apiService = ApiConfig.getAPIService(pref)
+        // Pilih API service berdasarkan apiType
+        val apiService = ApiConfig.getAPIService(pref, apiType)
 
         return ChilliVisionRepository(pref, apiService)
     }

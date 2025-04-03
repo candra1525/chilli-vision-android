@@ -3,6 +3,7 @@ package com.candra.chillivision.data.repository
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
+import com.candra.chillivision.data.chat.ChatRequest
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.network.ApiService
 import com.candra.chillivision.data.preferences.UserPreferences
@@ -26,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -276,4 +278,17 @@ class ChilliVisionRepository constructor(
             }
         }
 
+    // Chat AI
+    suspend fun getChatResponse(msg: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = apiService.sendMessage(ChatRequest(msg))
+                Log.d("ChatAPI", "Response: ${response.response}")
+                response.response
+            } catch (e: Exception) {
+                Log.e("ChatAPI", "Error fetching response", e)
+                "Gagal mendapatkan respons dari server."
+            }
+        }
+    }
 }

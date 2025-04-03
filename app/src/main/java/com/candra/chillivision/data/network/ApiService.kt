@@ -1,5 +1,7 @@
 package com.candra.chillivision.data.network
 
+import com.candra.chillivision.data.chat.ChatRequest
+import com.candra.chillivision.data.chat.ChatResponse
 import com.candra.chillivision.data.response.CreateSubscriptionUserResponse
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDeleteResponse
@@ -19,6 +21,7 @@ import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllRe
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -137,6 +140,13 @@ interface ApiService {
     // Notification
     @GET("notification/all")
     suspend fun getAllNotification(): NotificationAllResponse
+
+
+    // Chat AI
+    @POST("chat")
+    suspend fun sendMessage(
+        @Body request : ChatRequest
+    ) : ChatResponse
 }
 
 // Create History

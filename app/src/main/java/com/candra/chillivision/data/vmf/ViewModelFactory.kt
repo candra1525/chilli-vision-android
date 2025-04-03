@@ -9,6 +9,7 @@ import com.candra.chillivision.ui.pages.history.HistoryScreenViewModel
 import com.candra.chillivision.ui.pages.history.detail_history.DetailHistoryScreenViewModel
 import com.candra.chillivision.ui.pages.home.HomeScreenViewModel
 import com.candra.chillivision.ui.pages.home.notification.NotificationScreenViewModel
+import com.candra.chillivision.ui.pages.home.tanyaAI.ChilliAIScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.LanggananScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.detail.DetailLanggananScreenViewModel
 import com.candra.chillivision.ui.pages.langganan.detail_active.DetailActiveLanggananScreenViewModel
@@ -19,6 +20,7 @@ import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandiViewModel
 import com.candra.chillivision.ui.pages.profile.ubah.UbahProfileViewModel
 import com.candra.chillivision.ui.pages.register.RegisterScreenViewModel
 import com.candra.chillivision.ui.pages.scan.analysis_result.AnalysisResultScreenViewModel
+import java.util.concurrent.ConcurrentHashMap
 
 class ViewModelFactory(private val repository: ChilliVisionRepository) :
     ViewModelProvider.NewInstanceFactory() {
@@ -92,23 +94,36 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
                 repository
             ) as T
 
+            modelClass.isAssignableFrom(ChilliAIScreenViewModel::class.java) -> ChilliAIScreenViewModel(
+                repository
+            ) as T
+
 
             else -> throw IllegalArgumentException("ViewModel Not Found" + modelClass.name)
         }
     }
 
     companion object {
-        @Volatile
-        private var INSTANCE: ViewModelFactory? = null
+//        @Volatile
+//        private var INSTANCE: ViewModelFactory? = null
+//
+//        @JvmStatic
+//        fun getInstance(context: Context, apiType: String = "default"): ViewModelFactory {
+//            if (INSTANCE == null) {
+//                synchronized(ViewModelFactory::class.java) {
+//                    INSTANCE = ViewModelFactory(Injection.provideRepository(context, apiType))
+//                }
+//            }
+//            return INSTANCE as ViewModelFactory
+//        }
+
+        private val instances = ConcurrentHashMap<String, ViewModelFactory>()
 
         @JvmStatic
-        fun getInstance(context: Context): ViewModelFactory {
-            if (INSTANCE == null) {
-                synchronized(ViewModelFactory::class.java) {
-                    INSTANCE = ViewModelFactory(Injection.provideRepository(context))
-                }
+        fun getInstance(context: Context, apiType: String = "default"): ViewModelFactory {
+            return instances.getOrPut(apiType) {
+                ViewModelFactory(Injection.provideRepository(context, apiType))
             }
-            return INSTANCE as ViewModelFactory
         }
     }
 

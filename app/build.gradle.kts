@@ -22,6 +22,18 @@ android {
             "\"https://chilli-vision-laravel.vercel.app/api/api/\""
         )
 
+        buildConfigField(
+            "String",
+            "BASE_URL_CHAT_AI",
+            "\"https://chilli-ai-chat-with-api-production.up.railway.app/\""
+        )
+
+        buildConfigField(
+            "String",
+            "BASE_URL_MODEL",
+            "\"https://chilli-ai-chat-with-api-production.up.railway.app/\""
+        )
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -86,17 +98,9 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.datastore)
     implementation(libs.swipe.to.refresh)
-//    implementation(libs.lottie)
     implementation(libs.sweet.alert)
     implementation(libs.nav.animation)
-
     implementation(libs.lottie.compose)
-
-//    implementation(libs.lottie.v662)
-
-//    implementation(libs.viewmodel.compose)
-//    implementation(libs.lifecycle.extensions)
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -10,13 +10,6 @@ data class ChatModel(
     ) {
         val isFromMe: Boolean
             get() = author.id == MY_ID
-
-//        companion object {
-//            val initConv = Message(
-//                text = "Hi there, how you doing?",
-//                author = Author.bot
-//            )
-//        }
     }
 
     data class Author(

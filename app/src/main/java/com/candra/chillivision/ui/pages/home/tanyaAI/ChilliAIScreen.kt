@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,28 +46,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.candra.chillivision.R
+import com.candra.chillivision.component.AnimatedLoadingChat
 import com.candra.chillivision.component.InitialAvatar
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.TextRegular
+import com.candra.chillivision.data.model.ChatModel
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GraySoft
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
 import kotlinx.coroutines.launch
-
-data class ChatMessage(val text: String, val isUser: Boolean)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,23 +84,14 @@ fun ChilliAIScreen(
         )
     )
 ) {
-
+    val isLoading = viewModel.isLoading.collectAsState()
     val userPreferences = viewModel.getPreferences().collectAsState(initial = null)
     val imageUser = userPreferences.value?.image
     val fullname = userPreferences.value?.fullname
 
     var message by remember { mutableStateOf(TextFieldValue()) }
-    var messages by remember {
-        mutableStateOf(
-            listOf(
-                ChatMessage("Halo! Ada yang bisa saya bantu?", false),
-                ChatMessage("Bagaimana cara mendeteksi penyakit cabai?", true),
-                ChatMessage("Anda bisa menggunakan model YOLO untuk itu!", false),
-                ChatMessage("Terima kasih!", true),
-                ChatMessage("Sama-sama! 😊", false)
-            )
-        )
-    }
+    val messages by viewModel.conversation.collectAsState()
+
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -121,7 +117,7 @@ fun ChilliAIScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-//                       viewModel.clearChat()
+                        viewModel.clearChat()
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -152,31 +148,33 @@ fun ChilliAIScreen(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 56.dp),
-                    placeholder = { TextRegular(text = "💡 Tanyakan sesuatu pada Chilli AI...") },
+                    placeholder = {
+                        TextRegular(
+                            text = "💡 Tanyakan sesuatu pada Chilli AI...",
+                            colors = BlackMode
+                        )
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = if (isSystemInDarkTheme()) WhiteSoft else GraySoft,
-                        unfocusedContainerColor = if (isSystemInDarkTheme()) WhiteSoft else GraySoft,
+                        disabledIndicatorColor = Color.Transparent,
+                        focusedContainerColor = GraySoft,
+                        unfocusedContainerColor = GraySoft,
                     ),
                     shape = RoundedCornerShape(16.dp),
                     textStyle = TextStyle(
-                        fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                        fontFamily = FontFamily(Font(R.font.quicksand_medium)),
+                        color = BlackMode
+                    ),
+
                     )
-                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 IconButton(
                     onClick = {
                         if (message.text.isNotBlank()) {
-                            messages = messages + ChatMessage(message.text, true)
-
-                            // Simulasi respons AI
-                            messages = messages + ChatMessage(
-                                "Saya sedang memproses: ${message.text}",
-                                false
-                            )
+                            viewModel.sendChat(message.text)
 
                             coroutineScope.launch {
                                 listState.animateScrollToItem(messages.size)
@@ -203,74 +201,155 @@ fun ChilliAIScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(start = 8.dp, end = 8.dp) // Jarak dari TopAppBar
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp)) // jarak dari TopAppBar
+        // cek apakah messages kosong
+        if (messages.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    AsyncImage(
+                        model = R.drawable.chilli_vision_logo,
+                        contentDescription = "Image Chat",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(32.dp))
+                            .graphicsLayer(alpha = 0.5f)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextRegular(
+                        text = "Yuk, mulai tanya dengan Chilli AI terkait penyakit tanaman pada cabai anda",
+                        sized = 14,
+                        modifier = Modifier
+                            .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                            .graphicsLayer(alpha = 0.5f),
+                        textAlign = TextAlign.Center
+                    )
+
+                    TextBold(
+                        text = "*Tidak disarankan untuk bertanya terkait hal yang bersifat sensitif",
+                        sized = 10,
+                        modifier = Modifier
+                            .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                            .graphicsLayer(alpha = 0.5f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-            items(messages) { msg ->
-                ChatBubble(
-                    message = msg,
-                    imageUser = imageUser.toString(),
-                    fullname = fullname.toString()
-                )
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(start = 8.dp, end = 8.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp)) // jarak dari TopAppBar
+                }
+                items(messages) { msg ->
+                    ChatBubble(
+                        message = msg,
+                        imageUser = imageUser.toString(),
+                        fullname = fullname.toString()
+                    )
+                }
+
+                item {
+                    if (isLoading.value) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ImageChat(model = R.drawable.chilli_vision_logo)
+                            AnimatedLoadingChat(modifier = Modifier.size(50.dp))
+                            TextBold(text = "Chilli AI sedang mengetik", sized = 12)
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun ChatBubble(message: ChatMessage, imageUser: String, fullname: String = null.toString()) {
-    val backgroundColor = if (message.isUser) Color(0xFFDCF8C6) else GraySoft
-    val textColor = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
-
+fun ChatBubble(message: ChatModel.Message, imageUser: String, fullname: String = null.toString()) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
+        horizontalArrangement = if (message.isFromMe) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Bottom
     ) {
-        if (!message.isUser) {
+        if (!message.isFromMe) {
             ImageChat(model = R.drawable.chilli_vision_logo)
             Spacer(modifier = Modifier.width(8.dp))
         }
-        Box(
-            modifier = Modifier
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 24f,
-                        topEnd = 24f,
-                        bottomStart = if (message.isUser) 24f else 0f,
-                        bottomEnd = if (message.isUser) 0f else 24f
-                    )
-                )
-                .background(
-                    color = backgroundColor,
-                )
-                .padding(8.dp)
 
-        ) {
-            TextRegular(
-                text = message.text,
-                colors = textColor
-            )
-        }
-        if (message.isUser) {
-            Spacer(modifier = Modifier.width(8.dp))
+        if (message.isFromMe) {
+            Box(
+                modifier = Modifier
+                    .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.82f)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 8.dp,
+                            topEnd = 8.dp,
+                            bottomStart = 8.dp,
+                            bottomEnd = 0.dp
+                        )
+                    )
+                    .background(Color(0xFFDCF8C6))
+                    .padding(8.dp)
+            ) {
+                TextRegular(
+                    text = message.text,
+                    colors = BlackMode,
+                    textAlign = TextAlign.Justify
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp)) // jarak kecil antara bubble dan avatar
+
             InitialAvatar(
                 fullname = fullname,
                 imageUrl = imageUser,
                 size = 25.dp,
                 fs = 12,
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.82f)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 8.dp,
+                            topEnd = 8.dp,
+                            bottomStart = 0.dp,
+                            bottomEnd = 8.dp
+                        )
+                    )
+                    .background(GraySoft)
+                    .padding(8.dp)
+            ) {
+                TextRegular(
+                    text = message.text,
+                    colors = BlackMode,
+                    textAlign = TextAlign.Justify
+                )
+            }
         }
     }
+
 }
 
 

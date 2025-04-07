@@ -31,3 +31,26 @@ fun AnimatedLoading(modifier: Modifier = Modifier) {
         modifier = modifier
     )
 }
+
+
+@Composable
+fun AnimatedLoadingChat(modifier: Modifier = Modifier) {
+    val animasiLoad by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(
+            R.raw.loading_chat
+        )
+    )
+
+    val animasiLoadProgress by animateLottieCompositionAsState(
+        animasiLoad,
+        iterations = LottieConstants.IterateForever,
+        isPlaying = true
+    )
+
+
+    LottieAnimation(
+        composition = animasiLoad,
+        progress = animasiLoadProgress,
+        modifier = modifier
+    )
+}

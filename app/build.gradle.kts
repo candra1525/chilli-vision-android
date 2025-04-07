@@ -25,7 +25,7 @@ android {
         buildConfigField(
             "String",
             "BASE_URL_CHAT_AI",
-            "\"https://chilli-ai-chat-with-api-production.up.railway.app/\""
+            "\"https://chilli-vision-chat-ai-api-vercel.vercel.app/\""
         )
 
         buildConfigField(

@@ -90,7 +90,6 @@ fun UbahProfile(
         mutableStateOf(false)
     }
 
-
     Column(
         modifier = modifier
             .verticalScroll(scrollState)

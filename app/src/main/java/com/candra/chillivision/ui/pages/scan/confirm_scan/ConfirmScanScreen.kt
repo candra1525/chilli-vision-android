@@ -1,5 +1,9 @@
 package com.candra.chillivision.ui.pages.scan.confirm_scan
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,14 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,50 +34,48 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonCustomColorWithIcon
 import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.compressImage
 import com.candra.chillivision.component.dashedBorder
+import com.candra.chillivision.component.uriToFile
+import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
+import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.PrimaryGreen
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 @Composable
-fun ConfirmScanScreen(modifier: Modifier = Modifier, navController: NavController) {
+fun ConfirmScanScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    viewModel: ConfirmScanScreenViewModel = viewModel(
+        factory = ViewModelFactory.getInstance(
+            context = LocalContext.current, apiType = "model"
+        )
+    )
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     var isLoading by remember { mutableStateOf(false) }
-    // Ambil Gambar dari Intent
-//    val navBackStackEntry = navController.currentBackStackEntry
-//    val imageUri = navBackStackEntry?.arguments?.getString("imageUri")
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val imageUri by remember {
         mutableStateOf(navController.currentBackStackEntry?.arguments?.getString("imageUri"))
     }
 
-    var isDirect by remember{ mutableStateOf(false) }
-
-    LaunchedEffect(isDirect) {
-        if (isDirect) {
-            delay(2000)
-            navController.navigate("analysisResult")
-            isDirect = false
-        }
-    }
-
-
     Column(
-        modifier = modifier
-            .fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
         if (!isLoading) {
             HeaderComponent("Konfirmasi Deteksi", modifier, navController)
@@ -90,15 +90,38 @@ fun ConfirmScanScreen(modifier: Modifier = Modifier, navController: NavControlle
         ) {
 
             if (!isLoading) {
-                Column(modifier = Modifier) {
+                Column {
                     ContentDetection(imageUri)
 
                     Spacer(modifier = Modifier.padding(16.dp))
 
                     ButtonCustomColorWithIcon(
                         onClick = {
-                            //                        navController.navigate("analysis")
-                            isLoading = true
+                            if (imageUri != null) {
+                                isLoading = true
+                                SendImageToDetect(
+                                    context = context,
+                                    imageUri = Uri.parse(imageUri),
+                                    viewModel = viewModel,
+                                    lifecycleOwner = lifecycleOwner
+                                ) { result ->
+                                    if (result is AnalisisResultResponse) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            key = "analysis_result",
+                                            value = result
+                                        )
+                                        navController.navigate("analysisResult")
+                                    }
+                                    isLoading = false
+                                }
+
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Gambar tidak ditemukan",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         },
                         text = "Deteksi",
                         color = PrimaryGreen,
@@ -115,14 +138,9 @@ fun ConfirmScanScreen(modifier: Modifier = Modifier, navController: NavControlle
                     Spacer(modifier = Modifier.height(8.dp))
                     TextBold(text = "Mohon Menunggu ...", sized = 14)
                 }
-
-                isDirect = true
-
             }
-
         }
     }
-
 }
 
 @Composable
@@ -135,10 +153,7 @@ fun ContentDetection(imageUri: String?, modifier: Modifier = Modifier) {
             .dashedBorder(2.dp, 8.dp, PrimaryGreen),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (imageUri != null) {
                 AsyncImage(
                     model = imageUri,
@@ -150,7 +165,6 @@ fun ContentDetection(imageUri: String?, modifier: Modifier = Modifier) {
                         .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
                 )
-
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.upload_cloud),
@@ -165,4 +179,55 @@ fun ContentDetection(imageUri: String?, modifier: Modifier = Modifier) {
     }
 }
 
+fun SendImageToDetect(
+    context: Context,
+    imageUri: Uri?,
+    viewModel: ConfirmScanScreenViewModel,
+    lifecycleOwner: LifecycleOwner,
+    onSuccessDetect: (AnalisisResultResponse?) -> Unit
+) {
+    val imageFile = imageUri?.let { uriToFile(it, context) }
+    if (imageFile != null) {
+        val compressedFile = compressImage(imageFile, 2048)
 
+        val mimeType = when (compressedFile.extension.lowercase()) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "image/jpeg"
+        }
+
+        val requestImageToFile = compressedFile.asRequestBody(mimeType.toMediaType())
+        val multipartBody = MultipartBody.Part.createFormData(
+            "file", compressedFile.name, requestImageToFile
+        )
+
+        viewModel.sendPrediction(multipartBody)
+            .observe(lifecycleOwner) { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        Log.d("SendImageToDetect", "Loading...")
+                    }
+
+                    is Result.Success -> {
+                        Log.d("SendImageToDetect", "Success: ${result.data}")
+                        onSuccessDetect(result.data as? AnalisisResultResponse)
+                    }
+
+                    is Result.Error -> {
+                        Log.e("SendImageToDetect", "Error: ${result}")
+                        Toast.makeText(
+                            context,
+                            "Gagal mendeteksi: ${result.errorMessage}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        onSuccessDetect(null)
+                    }
+
+                    else -> {
+                        Log.e("SendImageToDetect", "Unexpected state")
+                        onSuccessDetect(null)
+                    }
+                }
+            }
+    }
+}

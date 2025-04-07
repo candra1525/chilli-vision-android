@@ -20,6 +20,8 @@ import com.candra.chillivision.ui.pages.profile.ubah.UbahKataSandiViewModel
 import com.candra.chillivision.ui.pages.profile.ubah.UbahProfileViewModel
 import com.candra.chillivision.ui.pages.register.RegisterScreenViewModel
 import com.candra.chillivision.ui.pages.scan.analysis_result.AnalysisResultScreenViewModel
+import com.candra.chillivision.ui.pages.scan.ScanScreenViewModel
+import com.candra.chillivision.ui.pages.scan.confirm_scan.ConfirmScanScreenViewModel
 import java.util.concurrent.ConcurrentHashMap
 
 class ViewModelFactory(private val repository: ChilliVisionRepository) :
@@ -98,6 +100,13 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
                 repository
             ) as T
 
+            modelClass.isAssignableFrom(ScanScreenViewModel::class.java) -> ScanScreenViewModel(
+                repository
+            ) as T
+
+            modelClass.isAssignableFrom(ConfirmScanScreenViewModel::class.java) -> ConfirmScanScreenViewModel(
+                repository
+            ) as T
 
             else -> throw IllegalArgumentException("ViewModel Not Found" + modelClass.name)
         }

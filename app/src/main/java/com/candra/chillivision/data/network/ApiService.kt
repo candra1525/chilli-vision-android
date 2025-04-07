@@ -13,6 +13,10 @@ import com.candra.chillivision.data.response.RegisterResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
+import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
+import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryRequest
+import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryResponse
+import com.candra.chillivision.data.response.historyAnalysis.DetailHistoryResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.response.notification.NotificationAllResponse
 import com.candra.chillivision.data.response.subscriptions.ActiveSubscrpitionUserResponse
@@ -108,11 +112,24 @@ interface ApiService {
         @Path("idUser") idUser: String
     ): HistoryAnalysisResponse
 
+    // Create History
+    @POST("history/create")
+    suspend fun createHistory(
+        @Body request: CreateHistoryRequest
+    ): CreateHistoryResponse
+
     //  Delete History
     @DELETE("history/delete/{id}")
     suspend fun deleteHistory(
         @Path("id") id: String
     ): HistoryDeleteResponse
+
+    //  Detail History
+    @GET("history/detail/{id}")
+    suspend fun getDetailHistory(
+        @Path("id") id: String
+    ): DetailHistoryResponse
+
 
     // History Subscription
     // Get All History Subscription from User
@@ -141,12 +158,17 @@ interface ApiService {
     @GET("notification/all")
     suspend fun getAllNotification(): NotificationAllResponse
 
-
     // Chat AI
     @POST("chat")
     suspend fun sendMessage(
         @Body request : ChatRequest
     ) : ChatResponse
+
+    @Multipart
+    @POST("predict")
+    suspend fun sendPredict(
+        @Part file: MultipartBody.Part,
+    ) : AnalisisResultResponse
 }
 
 // Create History

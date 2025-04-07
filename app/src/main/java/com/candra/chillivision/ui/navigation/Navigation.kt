@@ -194,21 +194,13 @@ fun Navigation(modifier: Modifier = Modifier) {
 
             composable(Screen.DetailHistory.route) { backStackEntry ->
                 val idHistory = backStackEntry.arguments?.getString("idHistory")
-                val title = backStackEntry.arguments?.getString("title")
-                val description = backStackEntry.arguments?.getString("description")
-                val createdAt = backStackEntry.arguments?.getString("createdAt")
-                val urlImage = backStackEntry.arguments?.getString("urlImage")?.let {
-                    URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
-                }
-                if (idHistory != null && title != null && description != null && createdAt != null && urlImage != null) {
+
+                if (idHistory != null) {
                     DetailHistoryScreen(
                         modifier = modifier,
                         navController = navController,
                         idHistory = idHistory,
-                        title = title,
-                        description = description,
-                        createdAt = createdAt,
-                        urlImage = urlImage,
+
                     )
                 }
             }

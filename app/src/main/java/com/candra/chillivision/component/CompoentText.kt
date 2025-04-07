@@ -36,6 +36,8 @@ fun TextBold(
     )
 }
 
+
+
 @Composable
 fun TextRegular(
     text: String,

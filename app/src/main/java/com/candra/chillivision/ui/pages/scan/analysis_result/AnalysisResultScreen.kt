@@ -1,20 +1,12 @@
 package com.candra.chillivision.ui.pages.scan.analysis_result
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,18 +20,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.candra.chillivision.R
-import com.candra.chillivision.component.AnimatedLoading
-import com.candra.chillivision.component.HeaderComponent
-import com.candra.chillivision.component.SweetAlertComponent
-import com.candra.chillivision.component.TextBold
-import com.candra.chillivision.component.TextRegular
+import com.candra.chillivision.component.*
+import com.candra.chillivision.data.common.Result
+import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
+import com.candra.chillivision.data.response.analysisResult.DetectionsItem
+import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryRequest
+import com.candra.chillivision.data.response.historyAnalysis.HistoryDetail
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.PrimaryGreen
-import com.candra.chillivision.ui.theme.Red
 
 @Composable
 fun AnalysisResultScreen(
@@ -49,52 +43,90 @@ fun AnalysisResultScreen(
         factory = ViewModelFactory.getInstance(LocalContext.current)
     )
 ) {
+    val result = navController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<AnalisisResultResponse>("analysis_result")
+
+    if (result == null) {
+        LaunchedEffect(Unit) {
+            navController.navigate(Screen.Error.route)
+        }
+        return
+    }
+
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    var isLoading by remember { mutableStateOf(false) }
-    val url =
-        "https://plus.unsplash.com/premium_photo-1676637656166-cb7b3a43b81a?q=80&w=2664&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        HeaderComponent(
-            text = "Hasil Analisis",
-            modifier = modifier,
-            navController = navController,
-            icon = ImageVector.vectorResource(id = R.drawable.outline_save_alt_24),
-            iconColor = PrimaryGreen,
-            fontSized = 18,
-            onIconClick = {
-                SweetAlertComponent(
-                    context = context,
-                    title = "Berhasil",
-                    contentText = "Hasil analisis berhasil disimpan pada riwayat",
-                    type = "success",
-                    confirmYes = {
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
 
+    val userPreferences = viewModel.getPreferences().collectAsState(initial = null)
+    val userId = userPreferences.value?.id
+
+    if (isLoading) {
+        Loading()
+    } else {
+        Column(modifier = modifier.fillMaxWidth()) {
+            HeaderComponent(
+                text = "Hasil Analisis",
+                modifier = modifier,
+                navController = navController,
+                icon = ImageVector.vectorResource(id = R.drawable.outline_save_alt_24),
+                iconColor = PrimaryGreen,
+                fontSized = 18,
+                onIconClick = {
+                    viewModel.createHistory(
+                        request = CreateHistoryRequest(
+                            image = result.imageUrl ?: "",
+                            detection_time = result.detectionTime ?: "",
+                            user_id = userId ?: "",
+                            unique_name_disease = result.uniqueNameDisease ?: "",
+                            history_details = result.detections?.map { detection ->
+                                HistoryDetail(
+                                    name_disease = detection?.diseaseInfo?.namaPenyakit ?: "",
+                                    another_name_disease = detection?.diseaseInfo?.namaLain ?: "",
+                                    symptom = detection?.diseaseInfo?.gejala ?: "",
+                                    reason = detection?.diseaseInfo?.penyebab ?: "",
+                                    preventive_meansure = detection?.diseaseInfo?.tindakanPencegahan
+                                        ?: "",
+                                    source = detection?.diseaseInfo?.sumber ?: "",
+                                    confidence_score = detection?.confidence ?: ""
+                                )
+                            } ?: emptyList()
+                        )
+                    ).observe(context as LifecycleOwner) { result ->
+                        when (result) {
+                            is Result.Loading -> {
+                                isLoading = true
+                            }
+
+                            is Result.Success -> {
+                                SweetAlertComponent(
+                                    context = context,
+                                    title = "Berhasil",
+                                    contentText = "Hasil analisis berhasil disimpan pada riwayat",
+                                    type = "success",
+                                    confirmYes = { }
+                                )
+                                isLoading = false
+                            }
+
+                            is Result.Error -> {
+                                SweetAlertComponent(
+                                    context = context,
+                                    title = "Gagal",
+                                    contentText = result.errorMessage,
+                                    type = "error",
+                                    confirmYes = { }
+                                )
+                                isLoading = false
+                            }
+                        }
                     }
-                )
-            },
-        )
+                },
+            )
 
-
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AnimatedLoading(modifier = Modifier.size(120.dp))
-                    TextBold(
-                        text = "Sedang memuat...",
-                        sized = 14,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        } else {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -105,26 +137,52 @@ fun AnalysisResultScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(32.dp, 0.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Content
-                    ImageAnalysis(linkImage = url)
+                    // Gambar analisis
+                    result.imageUrl?.let { ImageAnalysis(linkImage = it) }
+
                     Spacer(modifier = Modifier.padding(8.dp))
                     TextBold(
-                        text = "Title Analysis",
-                        sized = 24,
+                        text = "Jenis Penyakit Keseluruhan",
                         colors = PrimaryGreen,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        sized = 18,
+                        textAlign = TextAlign.Start
                     )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    result.uniqueNameDisease?.let {
+                        TextRegular(
+                            text = it,
+                            sized = 16,
+                            textAlign = TextAlign.Justify,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // Waktu deteksi global (jika ada)
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    TextBold(
+                        text = "Waktu Deteksi",
+                        colors = PrimaryGreen,
+                        sized = 18,
+                        textAlign = TextAlign.Start
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    result.detectionTime?.let {
+                        TextRegular(
+                            text = it,
+                            sized = 16,
+                            textAlign = TextAlign.Justify,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
                     Spacer(modifier = Modifier.padding(8.dp))
+                    // Loop hasil deteksi penyakit
+                    result.detections?.forEachIndexed { index, detection ->
+                        DetectionItemView(index = index, detection = detection)
+                    }
 
-                    TextRegular(
-                        text = "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Provident delectus iusto sint quidem sit, dolores exercitationem aspernatur maxime eius doloribus quam doloremque, libero autem itaque laudantium iste enim unde? Qui quas itaque impedit error in consequatur obcaecati corrupti, ad atque at distinctio laborum magni non totam, eligendi iure quod accusamus numquam. Nostrum, consequuntur. Fugit ducimus odio est, soluta iure tempore commodi aspernatur minima veniam, porro animi perferendis, tempora nihil provident exercitationem? Fugit excepturi quod, tenetur molestiae eligendi ipsam! Itaque voluptatum laboriosam, esse hic quam maxime repudiandae odit atque adipisci, nulla ipsa repellat maiores doloremque quod fugiat, molestias amet pariatur ad laudantium reiciendis animi explicabo totam necessitatibus. Repudiandae, reprehenderit. Fuga tenetur doloribus qui architecto rem quam explicabo, vero, voluptates dolore eaque sit necessitatibus. Aperiam laudantium cum cumque similique, veritatis dignissimos incidunt explicabo culpa, accusantium quidem nobis. Voluptate nisi magnam eaque, nemo, eveniet quia accusamus omnis quis mollitia ipsa cum. Culpa aliquid sunt, nesciunt debitis tempore iste veniam necessitatibus atque ea? Officia in dicta aspernatur pariatur ullam et mollitia! Optio quo blanditiis, sit eligendi modi alias reiciendis, ipsam, dolores eaque aut ullam explicabo fugiat in obcaecati fuga distinctio tempore veritatis. Maiores ratione esse voluptatum labore est neque voluptas, facere reiciendis sequi velit.",
-                        textAlign = TextAlign.Justify,
-                        sized = 16
-                    )
+
                 }
             }
         }
@@ -134,12 +192,97 @@ fun AnalysisResultScreen(
 }
 
 @Composable
-fun ImageAnalysis(modifier: Modifier = Modifier, linkImage: String = null.toString()) {
+fun DetectionItemView(index: Int, detection: DetectionsItem?) {
+    val info = detection?.diseaseInfo
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        info?.namaPenyakit?.let { penyakit ->
+            TextBold(
+                text = "$penyakit (${detection.confidence})",
+                sized = 18,
+                colors = PrimaryGreen,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        info?.namaLain?.let {
+            TextRegular(
+                text = "($it)",
+                sized = 16,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.padding(8.dp))
+
+    TextBold(text = "Gejala", colors = PrimaryGreen, sized = 18, textAlign = TextAlign.Start)
+    Spacer(modifier = Modifier.padding(4.dp))
+    info?.gejala?.let {
+        TextRegular(
+            text = it,
+            sized = 16,
+            textAlign = TextAlign.Justify,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    Spacer(modifier = Modifier.padding(8.dp))
+
+    TextBold(text = "Penyebab", colors = PrimaryGreen, sized = 18, textAlign = TextAlign.Start)
+    Spacer(modifier = Modifier.padding(4.dp))
+    info?.penyebab?.let {
+        TextRegular(
+            text = it,
+            sized = 16,
+            textAlign = TextAlign.Justify,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    Spacer(modifier = Modifier.padding(8.dp))
+
+    TextBold(
+        text = "Tindakan Pencegahan",
+        colors = PrimaryGreen,
+        sized = 18,
+        textAlign = TextAlign.Start
+    )
+    Spacer(modifier = Modifier.padding(4.dp))
+    info?.tindakanPencegahan?.let {
+        TextRegular(
+            text = it,
+            sized = 16,
+            textAlign = TextAlign.Justify,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    Spacer(modifier = Modifier.padding(8.dp))
+
+    TextBold(text = "Sumber", colors = PrimaryGreen, sized = 18, textAlign = TextAlign.Start)
+    Spacer(modifier = Modifier.padding(4.dp))
+    info?.sumber?.let {
+        TextRegular(
+            text = it,
+            sized = 16,
+            textAlign = TextAlign.Justify,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    Spacer(modifier = Modifier.padding(16.dp))
+}
+
+@Composable
+fun ImageAnalysis(modifier: Modifier = Modifier, linkImage: String = "") {
     AsyncImage(
         model = linkImage,
-        contentDescription = "Subscription Image",
+        contentDescription = "Image Hasil Analisis",
         contentScale = ContentScale.Crop,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .clip(RoundedCornerShape(8.dp))

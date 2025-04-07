@@ -94,12 +94,9 @@ fun ChilliAIScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                ,
+                    .wrapContentHeight(),
             )
     }
-
-
 }
 
 

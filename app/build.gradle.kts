@@ -31,7 +31,13 @@ android {
         buildConfigField(
             "String",
             "BASE_URL_MODEL",
-            "\"https://chilli-ai-chat-with-api-production.up.railway.app/\""
+            "\"https://hq816h0p-5000.asse.devtunnels.ms/\""
+        )
+
+        buildConfigField(
+            "String",
+            "BASE_URL_MODEL_NGROK",
+            "\"https://6899-114-10-99-66.ngrok-free.app/\""
         )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -72,7 +78,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

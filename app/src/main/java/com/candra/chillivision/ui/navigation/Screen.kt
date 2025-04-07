@@ -72,7 +72,7 @@ sealed class Screen(val route: String) {
 
     // Detail History
     data object DetailHistory :
-        Screen("detailHistory/{idHistory}/{title}/{description}/{createdAt}/{urlImage}")
+        Screen("detailHistory/{idHistory}")
 
     // Error
     data object Error : Screen("error")

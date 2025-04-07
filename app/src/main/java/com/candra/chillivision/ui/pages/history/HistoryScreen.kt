@@ -184,19 +184,21 @@ private fun HistoryAnalysisContent(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(history) { historyAnalysis ->
-                                HistoryCard(
-                                    viewModel = viewModel,
-                                    historyAnalysis = historyAnalysis,
-                                    navController = navController,
-                                    context = context,
-                                    onSuccess = {
-                                        shouldRefresh = true
-                                        isDeleting = false // Reset setelah delete sukses
-                                    },
-                                    onLoadingDelete = {
-                                        isDeleting = true
-                                    }
-                                )
+                                if (historyAnalysis != null) {
+                                    HistoryCard(
+                                        viewModel = viewModel,
+                                        historyAnalysis = historyAnalysis,
+                                        navController = navController,
+                                        context = context,
+                                        onSuccess = {
+                                            shouldRefresh = true
+                                            isDeleting = false // Reset setelah delete sukses
+                                        },
+                                        onLoadingDelete = {
+                                            isDeleting = true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -319,7 +321,7 @@ private fun HistoryCard(
                         .weight(1f)
                 ) {
                     TextBold(
-                        text = historyAnalysis.title ?: "",
+                        text = historyAnalysis.uniqueNameDisease ?: "",
                         colors = PrimaryGreen,
                         sized = 14,
                         textAlign = TextAlign.Start,
@@ -327,7 +329,7 @@ private fun HistoryCard(
                     )
 
                     Text(
-                        text = historyAnalysis.description ?: "",
+                        text = historyAnalysis.detectionTime ?: "",
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyMedium.copy(
@@ -339,7 +341,7 @@ private fun HistoryCard(
                     )
                 }
                 AsyncImage(
-                    model = historyAnalysis.urlImage ?: "",
+                    model = historyAnalysis.image ?: "",
                     contentDescription = "Subscription Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -377,21 +379,6 @@ private fun HistoryCard(
                                 .replace(
                                     "{idHistory}",
                                     historyAnalysis.id.toString()
-                                ).replace(
-                                    "{title}",
-                                    historyAnalysis.title ?: ""
-                                ).replace(
-                                    "{description}",
-                                    historyAnalysis.description ?: ""
-                                ).replace(
-                                    "{createdAt}",
-                                    historyAnalysis.createdAt ?: ""
-                                ).replace(
-                                    "{urlImage}",
-                                    URLEncoder.encode(
-                                        historyAnalysis.urlImage ?: "",
-                                        StandardCharsets.UTF_8.toString()
-                                    )
                                 )
                         )
                     },

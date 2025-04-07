@@ -16,6 +16,10 @@ import com.candra.chillivision.data.response.RegisterResponse
 import com.candra.chillivision.data.response.UpdateAccountUserResponse
 import com.candra.chillivision.data.response.UpdatePasswordUserResponse
 import com.candra.chillivision.data.response.UpdatePhotoAccountUserResponse
+import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
+import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryRequest
+import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryResponse
+import com.candra.chillivision.data.response.historyAnalysis.DetailHistoryResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDeleteResponse
 import com.candra.chillivision.data.response.notification.NotificationAllResponse
@@ -255,6 +259,18 @@ class ChilliVisionRepository constructor(
         }
     }
 
+    // Get Detail History
+    fun getDetailHistory(idHistory: String): Flow<Result<DetailHistoryResponse>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getDetailHistory(idHistory)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+
     // Notification
     fun getAllNotification(): Flow<Result<NotificationAllResponse>> = flow {
         emit(Result.Loading)
@@ -289,6 +305,32 @@ class ChilliVisionRepository constructor(
                 Log.e("ChatAPI", "Error fetching response", e)
                 "Gagal mendapatkan respons dari server."
             }
+        }
+    }
+
+    // Prediksi
+    fun sendPrediction(
+        file : MultipartBody.Part,
+    ) : LiveData<Result<AnalisisResultResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val response = apiService.sendPredict(file)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }
+
+    // Create History
+    fun createHistory(
+        request: CreateHistoryRequest
+    ): LiveData<Result<CreateHistoryResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val response = apiService.createHistory(request)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
         }
     }
 }

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.candra.chillivision.component.TextRegular
 import com.candra.chillivision.component.rememberImeState
 import com.candra.chillivision.data.model.ChatModel
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GraySoft
 import com.candra.chillivision.ui.theme.GreenChat
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -132,7 +133,7 @@ fun ChatItem(message: ChatModel.Message) {
                 .background(color = if (message.isFromMe) GreenChat else GraySoft)
                 .padding(16.dp)
         ) {
-            TextRegular(text = message.text, textAlign = TextAlign.Justify, sized = 14)
+            TextRegular(text = message.text, textAlign = TextAlign.Justify, sized = 14, colors = BlackMode)
         }
     }
 }
@@ -162,7 +163,7 @@ fun ChatBox(
                 cursorColor = PrimaryGreen,
             ),
             placeholder = {
-                TextRegular(text = "Ketik sesuatu disini...", sized = 14)
+                TextRegular(text = "Ketik sesuatu disini...", sized = 14, colors = BlackMode)
             }
         )
         IconButton(

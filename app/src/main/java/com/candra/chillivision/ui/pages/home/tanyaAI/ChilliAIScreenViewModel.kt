@@ -1,15 +1,11 @@
 package com.candra.chillivision.ui.pages.home.tanyaAI
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.candra.chillivision.data.chat.ChatRequest
 import com.candra.chillivision.data.model.ChatModel
 import com.candra.chillivision.data.repository.ChilliVisionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import com.candra.chillivision.data.common.Result
 import kotlinx.coroutines.launch
 
 class ChilliAIScreenViewModel(private val repository: ChilliVisionRepository) : ViewModel() {
@@ -30,12 +26,31 @@ class ChilliAIScreenViewModel(private val repository: ChilliVisionRepository) : 
 
             try {
                 val response = repository.getChatResponse(msg)
-                _conversation.emit(_conversation.value + ChatModel.Message(response, ChatModel.Author.bot))
+                _conversation.emit(
+                    _conversation.value + ChatModel.Message(
+                        response,
+                        ChatModel.Author.bot
+                    )
+                )
             } catch (e: Exception) {
-                _conversation.emit(_conversation.value + ChatModel.Message("Error: ${e.message}", ChatModel.Author.bot))
+                _conversation.emit(
+                    _conversation.value + ChatModel.Message(
+                        "Error: ${e.message}",
+                        ChatModel.Author.bot
+                    )
+                )
             } finally {
                 _isLoading.emit(false) // ⬅️ Selesai loading
             }
         }
     }
+
+    fun clearChat() {
+        viewModelScope.launch {
+            _conversation.emit(emptyList())
+        }
+    }
+
+    fun getPreferences() = repository.getPreferences()
+
 }

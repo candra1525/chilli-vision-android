@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -24,9 +25,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,9 +73,8 @@ import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HistoryScreen(
@@ -83,14 +86,45 @@ fun HistoryScreen(
         )
     )
 ) {
-    Column(
-        modifier = modifier
-            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp),
-    ) {
-        TitleHistory()
-        Spacer(modifier = Modifier.height(16.dp))
-        HistoryContent(viewModel = viewModel, navController = navController)
+//    Column(
+//        modifier = modifier
+//            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp),
+//    ) {
+//        TitleHistory()
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//    }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    TextBold(
+                        "Riwayat",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {},
+                actions = {},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                )
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+                .padding(16.dp, 0.dp)
+        ) {
+            HistoryContent(viewModel = viewModel, navController = navController)
+        }
     }
+
 }
 
 
@@ -181,7 +215,7 @@ private fun HistoryAnalysisContent(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(0.dp, 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(history) { historyAnalysis ->
                                 if (historyAnalysis != null) {
@@ -301,13 +335,22 @@ private fun HistoryCard(
                 detectTapGestures(
                     onLongPress = { showDialog = true }
                 )
+            }
+            .clickable {
+                navController.navigate(
+                    route = Screen.DetailHistory.route
+                        .replace(
+                            "{idHistory}",
+                            historyAnalysis.id.toString()
+                        )
+                )
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp)
+                .padding(16.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -315,7 +358,6 @@ private fun HistoryCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -339,6 +381,18 @@ private fun HistoryCard(
                             fontFamily = FontFamily(Font(R.font.quicksand_regular)),
                         ),
                     )
+                    historyAnalysis.createdAt?.let {
+                        Text(
+                            modifier = Modifier,
+                            text = convertIsoToDateTime(it),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                textAlign = TextAlign.Start,
+                                fontSize = 10.sp,
+                                color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                                fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                            ),
+                        )
+                    }
                 }
                 AsyncImage(
                     model = historyAnalysis.image ?: "",
@@ -349,44 +403,6 @@ private fun HistoryCard(
                         .height(75.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .padding(8.dp)
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(0.dp, 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                historyAnalysis.createdAt?.let {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = convertIsoToDateTime(it),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            textAlign = TextAlign.Start,
-                            fontSize = 10.sp,
-                            color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
-                            fontFamily = FontFamily(Font(R.font.quicksand_regular)),
-                        ),
-                    )
-                }
-
-                ButtonGreen(
-                    onClick = {
-                        navController.navigate(
-                            route = Screen.DetailHistory.route
-                                .replace(
-                                    "{idHistory}",
-                                    historyAnalysis.id.toString()
-                                )
-                        )
-                    },
-                    text = "Lihat",
-                    isLoading = false,
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(30.dp)
                 )
             }
         }

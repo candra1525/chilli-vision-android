@@ -20,11 +20,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +54,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
-import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.Loading
 import com.candra.chillivision.component.NotFound
 import com.candra.chillivision.component.TextBold
@@ -84,76 +90,102 @@ fun NotificationScreen(
         }
     }
 
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextBold(
+                        "Notifikasi",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
 
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        HeaderComponent("Notifikasi", modifier, navController)
+                modifier = Modifier.shadow(1.dp), // Shadow manual
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                )
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(innerPadding)) {
+            if (shouldRefresh) {
+                Loading()
+            } else {
+                when (notificationState) {
+                    is Result.Loading -> {
+                        Loading()
+                    }
 
-        if (shouldRefresh) {
-            Loading()
-        } else {
-            when (notificationState) {
-                is Result.Loading -> {
-                    Loading()
-                }
-
-                is Result.Success -> {
-                    val notif =
-                        (notificationState as Result.Success).data.data ?: emptyList()
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .imePadding()
-                    ) {
-                        Column(
+                    is Result.Success -> {
+                        val notif =
+                            (notificationState as Result.Success).data.data ?: emptyList()
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp, 0.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .fillMaxSize()
+                                .imePadding()
                         ) {
-                            PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
-                                shouldRefresh = true
-                            }) {
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(0.dp, 8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    items(notif) { notification ->
-                                        NotificationItem(
-                                            notification = notification,
-                                            navController = navController
-                                        )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp, 0.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
+                                    shouldRefresh = true
+                                }) {
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentPadding = PaddingValues(0.dp, 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        items(notif) { notification ->
+                                            NotificationItem(
+                                                notification = notification,
+                                                navController = navController
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                is Result.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                    is Result.Error -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            NotFound(modifier = Modifier.size(200.dp))
-                            TextBold(
-                                text = "Tidak ada notifikasi saat ini 😉",
-                                sized = 14,
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                NotFound(modifier = Modifier.size(200.dp))
+                                TextBold(
+                                    text = "Tidak ada notifikasi saat ini 😉",
+                                    sized = 14,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

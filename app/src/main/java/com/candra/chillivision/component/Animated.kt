@@ -14,21 +14,22 @@ import com.candra.chillivision.R
 fun AnimatedLoading(modifier: Modifier = Modifier) {
     val animasiLoad by rememberLottieComposition(
         LottieCompositionSpec.RawRes(
-            R.raw.loading_animation_for_analysis
+            R.raw.loading_2
         )
     )
 
     val animasiLoadProgress by animateLottieCompositionAsState(
         animasiLoad,
         iterations = LottieConstants.IterateForever,
-        isPlaying = true
+        isPlaying = true,
+        speed = 1.5f
     )
 
 
     LottieAnimation(
         composition = animasiLoad,
         progress = animasiLoadProgress,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 

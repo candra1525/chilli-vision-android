@@ -22,13 +22,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -73,6 +81,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UbahProfile(
     modifier: Modifier = Modifier, navController: NavController,
@@ -84,73 +93,56 @@ fun UbahProfile(
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
 
     var isChanged by remember {
         mutableStateOf(false)
     }
 
-    Column(
-        modifier = modifier
-            .verticalScroll(scrollState)
-            .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
-    ) {
-        HeaderUbahProfile(modifier, navController, isChanged)
-
-        ContentUbahProfile(
-            modifier = modifier,
-            viewModel = viewModel,
-            context = context,
-            navController = navController,
-            onChanged = { isChanged = it }
-        )
-
-    }
-}
-
-@Composable
-private fun HeaderUbahProfile(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    isChanged: Boolean
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.back_arrow),
-            contentDescription = "back header ${R.string.app_name}",
-            modifier = Modifier
-                .size(24.dp)
-                .clickable {
-                    if (isChanged) {
-                        SweetAlertComponent(
-                            context = navController.context,
-                            title = "Peringatan",
-                            contentText = "Apakah anda yakin ingin keluar? Perubahan tidak akan disimpan.",
-                            type = "perhatian",
-                            isCancel = true,
-                            confirmYes = { navController.popBackStack() }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextBold(
+                        "Profil",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
                         )
-                    } else {
-                        navController.popBackStack()
                     }
                 },
-        )
 
-        Text(
-            text = "Ubah Profil", style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 20.sp,
-                fontFamily = FontFamily(Font(R.font.quicksand_bold)),
-                color = PrimaryGreen,
-                textAlign = TextAlign.Center
-            ), modifier = Modifier
+                modifier = Modifier.shadow(1.dp), // Shadow manual
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                )
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
                 .fillMaxWidth()
-        )
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            ContentUbahProfile(
+                modifier = modifier,
+                viewModel = viewModel,
+                context = context,
+                navController = navController,
+                onChanged = { isChanged = it }
+            )
+        }
     }
 }
-
 
 @Composable
 private fun ContentUbahProfile(

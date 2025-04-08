@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -42,7 +51,6 @@ import coil.compose.AsyncImage
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonCustomColorWithIcon
-import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.compressImage
 import com.candra.chillivision.component.dashedBorder
@@ -50,11 +58,14 @@ import com.candra.chillivision.component.uriToFile
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import com.candra.chillivision.ui.theme.WhiteSoft
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScanScreen(
     modifier: Modifier = Modifier,
@@ -74,73 +85,115 @@ fun ConfirmScanScreen(
         mutableStateOf(navController.currentBackStackEntry?.arguments?.getString("imageUri"))
     }
 
-    Column(
-        modifier = modifier.fillMaxSize()
-    ) {
-        if (!isLoading) {
-            HeaderComponent("Konfirmasi Deteksi", modifier, navController)
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .imePadding(),
-            contentAlignment = Alignment.Center
-        ) {
-
-            if (!isLoading) {
-                Column {
-                    ContentDetection(imageUri)
-
-                    Spacer(modifier = Modifier.padding(16.dp))
-
-                    ButtonCustomColorWithIcon(
-                        onClick = {
-                            if (imageUri != null) {
-                                isLoading = true
-                                SendImageToDetect(
-                                    context = context,
-                                    imageUri = Uri.parse(imageUri),
-                                    viewModel = viewModel,
-                                    lifecycleOwner = lifecycleOwner
-                                ) { result ->
-                                    if (result is AnalisisResultResponse) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                                            key = "analysis_result",
-                                            value = result
-                                        )
-                                        navController.navigate("analysisResult")
-                                    }
-                                    isLoading = false
-                                }
-
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Gambar tidak ditemukan",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        },
-                        text = "Deteksi",
-                        color = PrimaryGreen,
-                        icon = Icons.Filled.Search,
-                        modifier = Modifier.padding(32.dp, 0.dp)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    TextBold(
+                        "Konfirmasi Deteksi",
+                        colors = PrimaryGreen,
+                        sized = 18
                     )
-                }
-            }
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
+                actions = {},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                ),
+                modifier = Modifier.shadow(1.dp)
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+                .padding(16.dp, 0.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .imePadding(),
+                contentAlignment = Alignment.Center
+            ) {
 
-            if (isLoading) {
-                Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-                    AnimatedLoading(modifier = Modifier.size(150.dp))
-                    TextBold(text = "Gambar sedang di deteksi", sized = 14)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextBold(text = "Mohon Menunggu ...", sized = 14)
+                if (!isLoading) {
+                    Column {
+                        ContentDetection(imageUri)
+
+                        Spacer(modifier = Modifier.padding(16.dp))
+
+                        ButtonCustomColorWithIcon(
+                            onClick = {
+                                if (imageUri != null) {
+                                    isLoading = true
+                                    SendImageToDetect(
+                                        context = context,
+                                        imageUri = Uri.parse(imageUri),
+                                        viewModel = viewModel,
+                                        lifecycleOwner = lifecycleOwner
+                                    ) { result ->
+                                        if (result is AnalisisResultResponse) {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                key = "analysis_result",
+                                                value = result
+                                            )
+                                            navController.navigate("analysisResult")
+                                        }
+                                        isLoading = false
+                                    }
+
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Gambar tidak ditemukan",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            text = "Deteksi",
+                            color = PrimaryGreen,
+                            icon = Icons.Filled.Search,
+                            modifier = Modifier.padding(0.dp, 0.dp)
+                        )
+                    }
+                }
+
+                if (isLoading) {
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AnimatedLoading(modifier = Modifier.size(150.dp))
+                        TextBold(text = "Gambar sedang di deteksi", sized = 14)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextBold(text = "Mohon Menunggu ...", sized = 14)
+                    }
                 }
             }
         }
     }
+
+//    Column(
+//        modifier = modifier.fillMaxSize()
+//    ) {
+//        if (!isLoading) {
+//            HeaderComponent("Konfirmasi Deteksi", modifier, navController)
+//        }
+//
+//
+//    }
 }
 
 @Composable
@@ -149,7 +202,7 @@ fun ContentDetection(imageUri: String?, modifier: Modifier = Modifier) {
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .padding(32.dp, 0.dp)
+            .padding(0.dp, 0.dp)
             .dashedBorder(2.dp, 8.dp, PrimaryGreen),
         contentAlignment = Alignment.Center
     ) {

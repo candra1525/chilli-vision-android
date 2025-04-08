@@ -86,15 +86,6 @@ fun HistoryScreen(
         )
     )
 ) {
-//    Column(
-//        modifier = modifier
-//            .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp),
-//    ) {
-//        TitleHistory()
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//    }
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -138,31 +129,10 @@ private fun TitleHistory() {
 private fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavController) {
     val context = LocalContext.current
     val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
-
-    var savedHistoryAnalysis by rememberSaveable {
-        mutableStateOf<Result<HistoryAnalysisResponse>?>(
-            null
-        )
-    }
-
-    var prevIdUser by rememberSaveable { mutableStateOf("") } // Simpan nilai agar tidak reset saat rotasi
-
     val idUser = userData.id
-
-    LaunchedEffect(idUser) {
-        if (idUser.isNotEmpty() && idUser != prevIdUser) {
-            viewModel.fetchHistoryAnalisis(idUser)
-            prevIdUser = idUser // Perbarui ID user sebelumnya
-        }
-    }
-
     HistoryAnalysisContent(
         viewModel = viewModel,
-        savedHistoryAnalysis = savedHistoryAnalysis,
         idUser = idUser,
-        onSavedHistoryAnalysis = {
-            savedHistoryAnalysis = it
-        },
         navController = navController,
         context = context
     )
@@ -174,9 +144,7 @@ private fun HistoryContent(viewModel: HistoryScreenViewModel, navController: Nav
 @Composable
 private fun HistoryAnalysisContent(
     viewModel: HistoryScreenViewModel,
-    savedHistoryAnalysis: Result<HistoryAnalysisResponse>?,
     idUser: String,
-    onSavedHistoryAnalysis: (Result<HistoryAnalysisResponse>) -> Unit,
     navController: NavController,
     context: Context
 ) {
@@ -184,17 +152,11 @@ private fun HistoryAnalysisContent(
     var shouldRefresh by remember { mutableStateOf(false) }
     var isDeleting by remember { mutableStateOf(false) }
 
-    LaunchedEffect(idUser) {
-        if (idUser.isNotEmpty() && historyAnalysisState !is Result.Success) {
+    LaunchedEffect(idUser, shouldRefresh) {
+        if (idUser.isNotEmpty() && (shouldRefresh || historyAnalysisState !is Result.Success)) {
+            Log.d("HistoryScreen", "Fetching data...")
             viewModel.fetchHistoryAnalisis(idUser)
-        }
-    }
-
-    LaunchedEffect(shouldRefresh) {
-        if (idUser.isNotEmpty()) {
-            Log.d("HistoryScreen", "Refreshing data...")
-            viewModel.fetchHistoryAnalisis(idUser)
-            shouldRefresh = false // Reset setelah refresh
+            shouldRefresh = false
         }
     }
 

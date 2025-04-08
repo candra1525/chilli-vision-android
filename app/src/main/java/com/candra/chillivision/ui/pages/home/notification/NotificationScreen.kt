@@ -119,9 +119,11 @@ fun NotificationScreen(
         },
         containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(innerPadding)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+        ) {
             if (shouldRefresh) {
                 Loading()
             } else {
@@ -141,7 +143,7 @@ fun NotificationScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(32.dp, 0.dp),
+                                    .padding(16.dp, 0.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {

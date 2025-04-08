@@ -15,12 +15,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -53,6 +61,7 @@ import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UbahKataSandi(
     modifier: Modifier = Modifier,
@@ -67,41 +76,45 @@ fun UbahKataSandi(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    Column(
-        modifier = modifier
-            .verticalScroll(scrollState)
-            .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
-    ) {
-        HeaderUbahKataSandi(modifier, navController)
-        ContentUbahKataSandi(modifier = modifier, viewModel = viewModel, context = context)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextBold(
+                        "Kata Sandi",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
 
-    }
-}
-
-@Composable
-private fun HeaderUbahKataSandi(modifier: Modifier = Modifier, navController: NavController) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.back_arrow),
-            contentDescription = "back header ${R.string.app_name}",
+                modifier = Modifier.shadow(1.dp), // Shadow manual
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                )
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .size(24.dp)
-                .clickable { navController.popBackStack() },
-        )
-
-        Text(
-            text = "Ubah Kata Sandi", style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 20.sp,
-                fontFamily = FontFamily(Font(R.font.quicksand_bold)),
-                color = PrimaryGreen,
-                textAlign = TextAlign.Center
-            ), modifier = Modifier
                 .fillMaxWidth()
-        )
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            ContentUbahKataSandi(modifier = modifier, viewModel = viewModel, context = context)
+        }
     }
+
 }
 
 

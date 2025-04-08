@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.repository.ChilliVisionRepository
 import com.candra.chillivision.data.response.historyAnalysis.DetailHistoryResponse
-import com.candra.chillivision.data.response.notification.NotificationAllResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,13 +18,19 @@ class DetailHistoryScreenViewModel(private val repository: ChilliVisionRepositor
     )
     val detailHistory: StateFlow<Result<DetailHistoryResponse>> = _detailHistory.asStateFlow()
 
+    private val _isLoad = MutableStateFlow<Boolean>(false)
+    val isLoad: StateFlow<Boolean> = _isLoad.asStateFlow()
+
     fun fetchDetailHistory(idHistory: String) {
         viewModelScope.launch {
+            _isLoad.value = true
             repository.getDetailHistory(idHistory = idHistory)
                 .collect { result ->
                     _detailHistory.value = result
                 }
+            _isLoad.value = false
         }
+
     }
 
 }

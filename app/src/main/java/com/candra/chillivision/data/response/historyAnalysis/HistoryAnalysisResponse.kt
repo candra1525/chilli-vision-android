@@ -32,9 +32,6 @@ data class HistoryDetailItem(
 	@field:SerializedName("preventive_measure")
 	val preventiveMeasure: String? = null,
 
-	@field:SerializedName("confidence_score")
-	val confidenceScore: String? = null,
-
 	@field:SerializedName("name_disease")
 	val nameDisease: String? = null,
 

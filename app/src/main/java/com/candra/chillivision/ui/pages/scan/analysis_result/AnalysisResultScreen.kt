@@ -49,6 +49,7 @@ import com.candra.chillivision.component.TextRegular
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
 import com.candra.chillivision.data.response.analysisResult.DetectionsItem
+import com.candra.chillivision.data.response.analysisResult.DetectionsSummaryItem
 import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryRequest
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDetail
 import com.candra.chillivision.data.vmf.ViewModelFactory
@@ -95,7 +96,7 @@ fun AnalysisResultScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         TextBold(
-                            "Detail Riwayat",
+                            "Hasil Deteksi",
                             colors = PrimaryGreen,
                             sized = 18
                         )
@@ -117,7 +118,7 @@ fun AnalysisResultScreen(
                                     detection_time = result.detectionTime ?: "",
                                     user_id = userId ?: "",
                                     unique_name_disease = result.uniqueNameDisease ?: "",
-                                    history_details = result.detections?.map { detection ->
+                                    history_details = result.detectionsSummary?.map { detection ->
                                         HistoryDetail(
                                             name_disease = detection?.diseaseInfo?.namaPenyakit
                                                 ?: "",
@@ -127,8 +128,7 @@ fun AnalysisResultScreen(
                                             reason = detection?.diseaseInfo?.penyebab ?: "",
                                             preventive_meansure = detection?.diseaseInfo?.tindakanPencegahan
                                                 ?: "",
-                                            source = detection?.diseaseInfo?.sumber ?: "",
-                                            confidence_score = detection?.confidence ?: ""
+                                            source = detection?.diseaseInfo?.sumber ?: ""
                                         )
                                     } ?: emptyList()
                                 )
@@ -204,7 +204,7 @@ fun AnalysisResultScreen(
 
                         Spacer(modifier = Modifier.padding(8.dp))
                         TextBold(
-                            text = "Jenis Penyakit Keseluruhan",
+                            text = "Hasil Analisis Deteksi",
                             colors = PrimaryGreen,
                             sized = 18,
                             textAlign = TextAlign.Start
@@ -239,7 +239,7 @@ fun AnalysisResultScreen(
 
                         Spacer(modifier = Modifier.padding(8.dp))
                         // Loop hasil deteksi penyakit
-                        result.detections?.forEachIndexed { index, detection ->
+                        result.detectionsSummary?.forEachIndexed { index, detection ->
                             DetectionItemView(index = index, detection = detection)
                         }
                     }
@@ -250,13 +250,13 @@ fun AnalysisResultScreen(
 }
 
 @Composable
-fun DetectionItemView(index: Int, detection: DetectionsItem?) {
+fun DetectionItemView(index: Int, detection: DetectionsSummaryItem?) {
     val info = detection?.diseaseInfo
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         info?.namaPenyakit?.let { penyakit ->
             TextBold(
-                text = "$penyakit (${detection.confidence})",
+                text = penyakit,
                 sized = 18,
                 colors = PrimaryGreen,
                 textAlign = TextAlign.Center,

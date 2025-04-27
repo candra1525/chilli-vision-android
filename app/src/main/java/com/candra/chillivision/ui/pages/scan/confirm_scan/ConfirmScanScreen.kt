@@ -184,16 +184,6 @@ fun ConfirmScanScreen(
             }
         }
     }
-
-//    Column(
-//        modifier = modifier.fillMaxSize()
-//    ) {
-//        if (!isLoading) {
-//            HeaderComponent("Konfirmasi Deteksi", modifier, navController)
-//        }
-//
-//
-//    }
 }
 
 @Composable

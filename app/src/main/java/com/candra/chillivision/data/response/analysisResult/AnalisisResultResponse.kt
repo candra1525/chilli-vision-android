@@ -7,14 +7,17 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class AnalisisResultResponse(
 
+	@field:SerializedName("detections_summary")
+	val detectionsSummary: List<DetectionsSummaryItem?>? = null,
+
+	@field:SerializedName("unique_name_disease")
+	val uniqueNameDisease: String? = null,
+
 	@field:SerializedName("image_url")
 	val imageUrl: String? = null,
 
 	@field:SerializedName("detection_time")
 	val detectionTime: String? = null,
-
-	@field:SerializedName("unique_name_disease")
-	val uniqueNameDisease: String? = null,
 
 	@field:SerializedName("message")
 	val message: String? = null,
@@ -34,6 +37,16 @@ data class DetectionsItem(
 
 	@field:SerializedName("confidence")
 	val confidence: String? = null,
+
+	@field:SerializedName("label")
+	val label: String? = null
+) : Parcelable
+
+@Parcelize
+data class DetectionsSummaryItem(
+
+	@field:SerializedName("disease_info")
+	val diseaseInfo: DiseaseInfo? = null,
 
 	@field:SerializedName("label")
 	val label: String? = null

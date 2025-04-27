@@ -15,5 +15,4 @@ data class HistoryDetail(
     val reason: String,
     val preventive_meansure: String,
     val source: String,
-    val confidence_score: String
 )

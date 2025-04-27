@@ -239,7 +239,7 @@ fun DetailHistoryScreen(
 
                                 Spacer(modifier = Modifier.padding(8.dp))
                                 TextBold(
-                                    text = "Jenis Penyakit Keseluruhan",
+                                    text = "Hasil Analisis Deteksi",
                                     colors = PrimaryGreen,
                                     sized = 18,
                                     textAlign = TextAlign.Start
@@ -326,24 +326,6 @@ fun DetailHistoryScreen(
         }
 
     }
-
-//    Column(
-//        modifier = modifier.fillMaxWidth()
-//    ) {
-//        HeaderComponent(
-//            text = "Detail Riwayat",
-//            modifier = modifier,
-//            navController = navController,
-//            icon = Icons.Filled.Delete,
-//            iconColor = Red,
-//            fontSized = 18,
-//            onIconClick = {
-//
-//            },
-//        )
-//
-//
-//    }
 }
 
 
@@ -353,7 +335,7 @@ fun DetectionItemView(index: Int, info: HistoryDetailItem?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         info?.nameDisease?.let { penyakit ->
             TextBold(
-                text = "$penyakit (${info.confidenceScore})",
+                text = penyakit,
                 sized = 18,
                 colors = PrimaryGreen,
                 textAlign = TextAlign.Center,

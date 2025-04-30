@@ -1,5 +1,6 @@
 package com.candra.chillivision.ui.pages.home.tanyaAI
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -62,15 +63,19 @@ import coil.compose.AsyncImage
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoadingChat
 import com.candra.chillivision.component.InitialAvatar
+import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.TextRegular
 import com.candra.chillivision.data.model.ChatModel
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_REGULAR
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.GraySoft
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,195 +90,248 @@ fun ChilliAIScreen(
     )
 ) {
     val isLoading = viewModel.isLoading.collectAsState()
-    val userPreferences = viewModel.getPreferences().collectAsState(initial = null)
-    val imageUser = userPreferences.value?.image
-    val fullname = userPreferences.value?.fullname
+    val userPreferences by viewModel.getPreferences()
+        .collectAsState(initial = null)
+
+    val context = LocalContext.current
+
+    val imageUser = userPreferences?.image
+    val fullname = userPreferences?.fullname
 
     var message by remember { mutableStateOf(TextFieldValue()) }
     val messages by viewModel.conversation.collectAsState()
 
-
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    TextBold(
-                        "Chilli AI",
-                        colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
-                        sized = 20
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        viewModel.clearChat()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Reset",
-                            tint = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
-                        )
-                    }
-                },
-                modifier = Modifier.shadow(1.dp), // Shadow manual
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
-                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
-                )
-            )
-        },
-        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
-        bottomBar = {
-            Row(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .imePadding()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextField(
-                    value = message,
-                    onValueChange = { message = it },
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 56.dp),
-                    placeholder = {
-                        TextRegular(
-                            text = "💡 Tanyakan sesuatu pada Chilli AI...",
-                            colors = BlackMode
-                        )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        focusedContainerColor = GraySoft,
-                        unfocusedContainerColor = GraySoft,
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    textStyle = TextStyle(
-                        fontFamily = FontFamily(Font(R.font.quicksand_medium)),
-                        color = BlackMode
-                    ),
+    val countUsageAI by viewModel.countUsageAI.collectAsState()
 
-                    )
+    when {
+        userPreferences == null -> {
+            // Jika data belum dimuat, jangan menampilkan apapun
+            return
+        }
 
-                Spacer(modifier = Modifier.width(8.dp))
+        userPreferences?.subscriptionName.isNullOrEmpty() -> {
+            return
+        }
 
-                IconButton(
-                    onClick = {
-                        if (message.text.isNotBlank()) {
-                            viewModel.sendChat(message.text)
-
-                            coroutineScope.launch {
-                                listState.animateScrollToItem(messages.size)
+        else -> {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            TextBold(
+                                "Chilli AI",
+                                colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                                sized = 20
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
+                                )
                             }
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                viewModel.clearChat()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Reset",
+                                    tint = if (isSystemInDarkTheme()) WhiteSoft else BlackMode
+                                )
+                            }
+                        },
+                        modifier = Modifier.shadow(1.dp), // Shadow manual
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                            scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                        )
+                    )
+                },
+                containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                bottomBar = {
+                    Row(
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .imePadding()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = message,
+                            onValueChange = { message = it },
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = 56.dp),
+                            placeholder = {
+                                TextRegular(
+                                    text = "💡 Tanyakan sesuatu pada Chilli AI...",
+                                    colors = BlackMode
+                                )
+                            },
+                            colors = TextFieldDefaults.colors(
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                focusedContainerColor = GraySoft,
+                                unfocusedContainerColor = GraySoft,
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            textStyle = TextStyle(
+                                fontFamily = FontFamily(Font(R.font.quicksand_medium)),
+                                color = BlackMode
+                            ),
 
-                            message = TextFieldValue()
+                            )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        IconButton(
+                            onClick = {
+                                when (userPreferences?.subscriptionName) {
+                                    "Gratis" -> {
+                                        SweetAlertComponent(context = context,
+                                            title = "Peringatan!",
+                                            contentText = "Saat ini anda menggunakan paket gratis 🥲, silahkan upgrade ke paket berbayar untuk menggunakan layanan ini 😉",
+                                            type = "warning",
+                                            isCancel = true,
+                                        )
+                                        return@IconButton
+                                    }
+                                    "Paket Reguler" -> {
+                                        if (countUsageAI > SUBSCRIPTION_MAX_USAGE_AI_REGULAR) {
+                                            SweetAlertComponent(context = context,
+                                                title = "Peringatan!",
+                                                contentText = "Saat ini anda sudah mencapai batas penggunaan harian yaitu ${SUBSCRIPTION_MAX_USAGE_AI_REGULAR}x tanya AI, silahkan upgrade ke paket lebih tinggi atau gunakan lagi besok 😉",
+                                                type = "warning",
+                                                isCancel = true,
+                                            )
+                                            return@IconButton
+                                        }
+                                    }
+                                    "Paket Premium" -> {
+                                        if (countUsageAI > SUBSCRIPTION_MAX_USAGE_AI_PREMIUM) {
+                                            SweetAlertComponent(context = context,
+                                                title = "Peringatan!",
+                                                contentText = "Saat ini anda sudah mencapai batas penggunaan harian yaitu ${SUBSCRIPTION_MAX_USAGE_AI_PREMIUM}x tanya AI, silahkan gunakan lagi besok 😉",
+                                                type = "warning",
+                                                isCancel = true,
+                                            )
+                                            return@IconButton
+                                        }
+                                    }
+                                }
+
+                                // Cek berapa penggunaan
+//                                Toast.makeText(context, "Penggunaan AI: $countUsageAI", Toast.LENGTH_SHORT).show()
+
+                                if (message.text.isNotBlank()) {
+                                    viewModel.sendChat(message.text)
+
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(messages.size)
+                                    }
+
+                                    message = TextFieldValue()
+                                }
+                            },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(color = PrimaryGreen)
+                                .align(Alignment.CenterVertically)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Send,
+                                contentDescription = "Send",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp)
+                            )
                         }
-                    },
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(color = PrimaryGreen)
-                        .align(Alignment.CenterVertically)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Send,
-                        contentDescription = "Send",
+                    }
+                }
+            ) { innerPadding ->
+                // Cek apakah messages kosong
+                if (messages.isEmpty()) {
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(8.dp)
-                    )
-                }
-
-
-            }
-        }
-    ) { innerPadding ->
-        // cek apakah messages kosong
-        if (messages.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    AsyncImage(
-                        model = R.drawable.chilli_vision_logo,
-                        contentDescription = "Image Chat",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(32.dp))
-                            .graphicsLayer(alpha = 0.5f)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    TextRegular(
-                        text = "Yuk, mulai tanya dengan Chilli AI terkait penyakit tanaman pada cabai anda",
-                        sized = 14,
-                        modifier = Modifier
-                            .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
-                            .graphicsLayer(alpha = 0.5f),
-                        textAlign = TextAlign.Center
-                    )
-
-                    TextBold(
-                        text = "*Tidak disarankan untuk bertanya terkait hal yang bersifat sensitif",
-                        sized = 10,
-                        modifier = Modifier
-                            .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
-                            .graphicsLayer(alpha = 0.5f),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(start = 8.dp, end = 8.dp)
-            ) {
-                item {
-                    Spacer(modifier = Modifier.height(16.dp)) // jarak dari TopAppBar
-                }
-                items(messages) { msg ->
-                    ChatBubble(
-                        message = msg,
-                        imageUser = imageUser.toString(),
-                        fullname = fullname.toString()
-                    )
-                }
-
-                item {
-                    if (isLoading.value) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            .padding(innerPadding)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            ImageChat(model = R.drawable.chilli_vision_logo)
-                            AnimatedLoadingChat(modifier = Modifier.size(50.dp))
-                            TextBold(text = "Chilli AI sedang mengetik", sized = 12)
+                            AsyncImage(
+                                model = R.drawable.chilli_vision_logo,
+                                contentDescription = "Image Chat",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(RoundedCornerShape(32.dp))
+                                    .graphicsLayer(alpha = 0.5f)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            TextRegular(
+                                text = "Yuk, mulai tanya dengan Chilli AI terkait penyakit tanaman pada cabai anda",
+                                sized = 14,
+                                modifier = Modifier
+                                    .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                                    .graphicsLayer(alpha = 0.5f),
+                                textAlign = TextAlign.Center
+                            )
+
+                            TextBold(
+                                text = "*Tidak disarankan untuk bertanya terkait hal yang bersifat sensitif",
+                                sized = 10,
+                                modifier = Modifier
+                                    .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                                    .graphicsLayer(alpha = 0.5f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(start = 8.dp, end = 8.dp)
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp)) // jarak dari TopAppBar
+                        }
+                        items(messages) { msg ->
+                            ChatBubble(
+                                message = msg,
+                                imageUser = imageUser.toString(),
+                                fullname = fullname.toString()
+                            )
+                        }
+
+                        item {
+                            if (isLoading.value) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    ImageChat(model = R.drawable.chilli_vision_logo)
+                                    AnimatedLoadingChat(modifier = Modifier.size(50.dp))
+                                    TextBold(text = "Chilli AI sedang mengetik", sized = 12)
+                                }
+                            }
                         }
                     }
                 }

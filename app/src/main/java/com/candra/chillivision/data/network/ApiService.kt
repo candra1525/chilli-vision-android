@@ -2,6 +2,7 @@ package com.candra.chillivision.data.network
 
 import com.candra.chillivision.data.chat.ChatRequest
 import com.candra.chillivision.data.chat.ChatResponse
+import com.candra.chillivision.data.response.CountHistoryUserResponse
 import com.candra.chillivision.data.response.CreateSubscriptionUserResponse
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDeleteResponse
@@ -130,6 +131,12 @@ interface ApiService {
     suspend fun getDetailHistory(
         @Path("id") id: String
     ): DetailHistoryResponse
+
+    // Count History User
+        @GET("history/count/{idUser}")
+    suspend fun getCountHistoryUser(
+        @Path("idUser") idUser: String
+    ): CountHistoryUserResponse
 
 
     // History Subscription

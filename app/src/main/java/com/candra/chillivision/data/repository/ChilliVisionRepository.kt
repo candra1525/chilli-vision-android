@@ -7,6 +7,7 @@ import com.candra.chillivision.data.chat.ChatRequest
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.network.ApiService
 import com.candra.chillivision.data.preferences.UserPreferences
+import com.candra.chillivision.data.response.CountHistoryUserResponse
 import com.candra.chillivision.data.response.DeletePhotoProfileResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionActiveResponse
 import com.candra.chillivision.data.response.ListHistorySubscriptionResponse
@@ -42,7 +43,12 @@ class ChilliVisionRepository constructor(
 ) {
     // Preferences
     suspend fun savePreferences(
-        token: String, id: String, fullname: String, no_handphone: String, image: String, subscriptionName: String
+        token: String,
+        id: String,
+        fullname: String,
+        no_handphone: String,
+        image: String,
+        subscriptionName: String
     ) = preferences.savePreferences(token, id, fullname, no_handphone, image, subscriptionName)
 
     suspend fun clearPreferences() = preferences.clearPreferences()
@@ -52,7 +58,8 @@ class ChilliVisionRepository constructor(
     suspend fun setUsageDate(date: String) = preferences.setUsageDate(date)
     suspend fun setCountUsageAI(count: String) = preferences.setCountUsageAI(count)
     suspend fun setCountUsageDetect(count: String) = preferences.setCountUsageDetect(count)
-    suspend fun setSubscriptionName(subscriptionName: String) = preferences.setSubscriptionName(subscriptionName)
+    suspend fun setSubscriptionName(subscriptionName: String) =
+        preferences.setSubscriptionName(subscriptionName)
 
     fun getUsageDate() = preferences.getUsageDate()
     fun getCountUsageAI() = preferences.getCountUsageAI()
@@ -60,8 +67,8 @@ class ChilliVisionRepository constructor(
 
     // Check Subscription Active
     fun updateStatusSubscriptionUser(
-        status : String,
-        idSubscription : String
+        status: String,
+        idSubscription: String
     ): LiveData<Result<UpdateStatusSubscriptionUserResponse>> = liveData {
         emit(Result.Loading)
         try {
@@ -298,6 +305,16 @@ class ChilliVisionRepository constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    fun getCountHistoryUser(idUser: String): Flow<Result<CountHistoryUserResponse>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getCountHistoryUser(idUser)
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }.flowOn(Dispatchers.IO)
+
 
     // Notification
     fun getAllNotification(): Flow<Result<NotificationAllResponse>> = flow {
@@ -338,8 +355,8 @@ class ChilliVisionRepository constructor(
 
     // Prediksi
     fun sendPrediction(
-        file : MultipartBody.Part,
-    ) : LiveData<Result<AnalisisResultResponse>> = liveData {
+        file: MultipartBody.Part,
+    ): LiveData<Result<AnalisisResultResponse>> = liveData {
         emit(Result.Loading)
         try {
             val response = apiService.sendPredict(file)

@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonCustomColorWithIcon
 import com.candra.chillivision.component.MenuScan
+import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.compressImage
 import com.candra.chillivision.component.createImageUri
@@ -65,6 +67,9 @@ import com.candra.chillivision.component.uriToFile
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_DETECT_FREE
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
@@ -90,6 +95,9 @@ fun ConfirmScanScreen(
     var isLoading by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val countUsageDetect by viewModel.countUsageDetect.collectAsState()
+    val userPreferences by viewModel.getPreferences()
+        .collectAsState(initial = null)
 
     // Simpan URI agar tidak hilang saat izin diminta
     var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -228,6 +236,51 @@ fun ConfirmScanScreen(
 
                 ButtonCustomColorWithIcon(
                     onClick = {
+                        when (userPreferences?.subscriptionName) {
+                            "Gratis" -> {
+                                if (countUsageDetect > SUBSCRIPTION_MAX_USAGE_DETECT_FREE) {
+                                    SweetAlertComponent(
+                                        context = context,
+                                        title = "Peringatan!",
+                                        contentText = "Saat ini anda menggunakan paket gratis 🥲, silahkan upgrade ke paket berbayar untuk menggunakan layanan ini 😉",
+                                        type = "warning",
+                                        isCancel = true,
+                                    )
+                                    return@ButtonCustomColorWithIcon
+                                }
+                            }
+
+                            "Paket Reguler" -> {
+                                if (countUsageDetect > SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR) {
+                                    SweetAlertComponent(
+                                        context = context,
+                                        title = "Peringatan!",
+                                        contentText = "Saat ini anda sudah mencapai batas penggunaan harian yaitu ${SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR}x untuk deteksi, silahkan upgrade ke paket lebih tinggi atau gunakan lagi besok 😉",
+                                        type = "warning",
+                                        isCancel = true,
+                                    )
+                                    return@ButtonCustomColorWithIcon
+                                }
+                            }
+
+                            "Paket Premium" -> {
+                                if (countUsageDetect > SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM) {
+                                    SweetAlertComponent(
+                                        context = context,
+                                        title = "Peringatan!",
+                                        contentText = "Saat ini anda sudah mencapai batas penggunaan harian yaitu ${SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM}x untuk deteksi, silahkan gunakan lagi besok 😉",
+                                        type = "warning",
+                                        isCancel = true,
+                                    )
+                                    return@ButtonCustomColorWithIcon
+                                }
+                            }
+                        }
+
+                        // Cek berapa penggunaan
+                        Toast.makeText(context, "Penggunaan DETECT: $countUsageDetect", Toast.LENGTH_SHORT).show()
+
+
                         if (imageUri != null) {
                             isLoading = true
                             SendImageToDetect(
@@ -346,6 +399,8 @@ fun SendImageToDetect(
                     is Result.Success -> {
                         Log.d("SendImageToDetect", "Success: ${result.data}")
                         onSuccessDetect(result.data as? AnalisisResultResponse)
+
+                        viewModel.incrementCountUsageDetect()
                     }
 
                     is Result.Error -> {

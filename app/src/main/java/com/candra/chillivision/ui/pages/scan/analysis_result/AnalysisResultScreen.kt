@@ -65,6 +65,10 @@ import com.candra.chillivision.data.response.analysisResult.DetectionsSummaryIte
 import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryRequest
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDetail
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.service.MAX_SAVE_HISTORY_PREMIUM
+import com.candra.chillivision.service.MAX_SAVE_HISTORY_REGULAR
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_REGULAR
 import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -103,8 +107,16 @@ fun AnalysisResultScreen(
         mutableStateOf(false)
     }
 
-    val userPreferences = viewModel.getPreferences().collectAsState(initial = null)
-    val userId = userPreferences.value?.id
+    val userPreferences by viewModel.getPreferences()
+        .collectAsState(initial = null)
+
+    val userId = userPreferences?.id
+
+    if (userId != null) {
+        viewModel.getCountHistoryUser(userId)
+    }
+
+    val countHistoryUser by viewModel.countHistoryUser.collectAsState()
 
     // Simpan URI agar tidak hilang saat izin diminta
     var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -295,6 +307,40 @@ fun AnalysisResultScreen(
                         desc = "Gambar akan disimpan pada riwayat anda.",
                         modifier = Modifier.fillMaxWidth(),  // Memberikan 50% lebar
                         onClick = {
+                            when (userPreferences?.subscriptionName) {
+                                "Gratis" -> {
+                                    SweetAlertComponent(context = context,
+                                        title = "Peringatan!",
+                                        contentText = "Saat ini anda menggunakan paket gratis 🥲, silahkan upgrade ke paket berbayar untuk menggunakan layanan ini 😉",
+                                        type = "warning",
+                                        isCancel = true,
+                                    )
+                                    return@MenuScan
+                                }
+                                "Paket Reguler" -> {
+                                    if (countHistoryUser > MAX_SAVE_HISTORY_REGULAR) {
+                                        SweetAlertComponent(context = context,
+                                            title = "Peringatan!",
+                                            contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_REGULAR}x tanya AI, silahkan upgrade ke paket lebih tinggi atau hapus riwayat yang tidak diperlukan dahulu 😉",
+                                            type = "warning",
+                                            isCancel = true,
+                                        )
+                                        return@MenuScan
+                                    }
+                                }
+                                "Paket Premium" -> {
+                                    if (countHistoryUser > MAX_SAVE_HISTORY_PREMIUM) {
+                                        SweetAlertComponent(context = context,
+                                            title = "Peringatan!",
+                                            contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_PREMIUM}x , silahkan hapus riwayat yang tidak diperlukan dahulu 😉",
+                                            type = "warning",
+                                            isCancel = true,
+                                        )
+                                        return@MenuScan
+                                    }
+                                }
+                            }
+
                             viewModel.createHistory(
                                 request = CreateHistoryRequest(
                                     image = result.imageUrl ?: "",
@@ -345,7 +391,6 @@ fun AnalysisResultScreen(
                                     }
                                 }
                             }
-
                         }
                     )
                 }

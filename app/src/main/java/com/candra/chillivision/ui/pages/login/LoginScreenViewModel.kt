@@ -13,10 +13,13 @@ class LoginScreenViewModel(private val repository: ChilliVisionRepository) : Vie
         id: String,
         fullname: String,
         noHandphone: String,
-        image: String
+        image: String,
+        subscriptionName : String,
+        onSaved : () -> Unit = {}
     ) {
         viewModelScope.launch {
-            repository.savePreferences(token, id, fullname, noHandphone, image)
+            repository.savePreferences(token, id, fullname, noHandphone, image, subscriptionName)
+            onSaved() // callback setelah save selesai
         }
     }
 }

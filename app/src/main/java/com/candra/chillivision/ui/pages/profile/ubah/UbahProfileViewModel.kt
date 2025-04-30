@@ -20,6 +20,7 @@ class UbahProfileViewModel(private val repository: ChilliVisionRepository) : Vie
         id: String,
         fullname: String,
         no_handphone: String,
-        image: String
-    ) = repository.savePreferences(token, id, fullname, no_handphone, image)
+        image: String,
+        subscriptionName : String
+    ) = repository.savePreferences(token, id, fullname, no_handphone, image, subscriptionName)
 }

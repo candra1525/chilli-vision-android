@@ -59,60 +59,6 @@ import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 
-//@Composable
-//fun HomeScreen(
-//    modifier: Modifier = Modifier,
-//    navController: NavController,
-//    viewModel: HomeScreenViewModel = viewModel(
-//        factory = ViewModelFactory.getInstance(
-//            LocalContext.current)
-//    )
-//) {
-//    val context = LocalContext.current
-//    val isDarkTheme = isSystemInDarkTheme()
-//    val scrollState = rememberScrollState()
-//
-//    val userPreferences by viewModel.getPreferences().collectAsState(initial = null)
-//
-//    when {
-//        userPreferences == null -> {
-//            Box(
-//                modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Column (
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                ){
-//                    AnimatedLoading(modifier = Modifier.width(100.dp))
-//                    TextBold(text = "Memuat Data...", sized = 12, colors = PrimaryGreen)
-//                }
-//            }
-//        }
-//
-//        userPreferences!!.token.isEmpty() -> {
-//            LaunchedEffect(Unit) {
-//                navController.navigate("welcome") {
-//                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
-//                }
-//            }
-//        }
-//
-//        else -> {
-//            Column(
-//                modifier = modifier
-//                    .verticalScroll(scrollState)
-//                    .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
-//            ) {
-//                HeaderHomeScreen(isDarkTheme, userPreferences!!.fullname, userPreferences!!.image, navController)
-//                QuickAccess(isDarkTheme, navController, context)
-//                TanyaAI(isDarkTheme, navController)
-//                VideoTutorial(isDarkTheme, context)
-//            }
-//        }
-//    }
-//}
-
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -151,7 +97,7 @@ fun HomeScreen(
             Column(
                 modifier = modifier
                     .verticalScroll(scrollState)
-                    .padding(start = 32.dp, end = 32.dp, bottom = 90.dp),
+                    .padding(start = 16.dp, end = 16.dp, bottom = 90.dp),
             ) {
                 HeaderHomeScreen(
                     isDarkTheme,

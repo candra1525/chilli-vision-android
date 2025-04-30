@@ -17,11 +17,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -60,8 +69,8 @@ import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
-import kotlinx.coroutines.runBlocking
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
@@ -75,18 +84,41 @@ fun LoginScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .imePadding()
-    ) {
-        Column(modifier = modifier) {
-            // Header
-            HeaderComponentLoginRegister(context, modifier, navController)
-            // Title
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    TextBold(
+                        "Masuk Akun",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
+                actions = {},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                ),
+                modifier = Modifier.shadow(1.dp)
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+        ) {
             TitleLogin(modifier)
-            // Form
             FormLogin(modifier, viewModel, navController, context)
             // Catatan
             Catatan(modifier = modifier, navController = navController)
@@ -99,9 +131,7 @@ fun TitleLogin(modifier: Modifier = Modifier) {
     Spacer(modifier = Modifier.height(16.dp))
     Column(modifier = Modifier.padding(horizontal = 32.dp)) {
         Text(
-            text = "Masuk",
-            modifier = Modifier,
-            style = MaterialTheme.typography.bodyMedium.copy(
+            text = "Masuk", modifier = Modifier, style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 25.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                 textAlign = TextAlign.Center
@@ -205,8 +235,7 @@ fun FormLogin(
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = textPassword,
+        OutlinedTextField(value = textPassword,
             onValueChange = {
                 textPassword = it
             },
@@ -343,25 +372,21 @@ private fun Catatan(modifier: Modifier = Modifier, navController: NavController)
         }
 
 
-        ClickableText(
-            text = annotatedString,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 10.sp,
-                fontFamily = FontFamily(Font(R.font.quicksand_medium)),
-                textAlign = TextAlign.Justify
-            ),
-            onClick = { offset ->
-                annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset)
-                    .firstOrNull()?.let {
-                        navController.navigate("terms") // Ganti dengan route yang sesuai
-                    }
+        ClickableText(text = annotatedString, style = MaterialTheme.typography.bodyMedium.copy(
+            fontSize = 10.sp,
+            fontFamily = FontFamily(Font(R.font.quicksand_medium)),
+            textAlign = TextAlign.Justify
+        ), onClick = { offset ->
+            annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset)
+                .firstOrNull()?.let {
+                    navController.navigate("terms") // Ganti dengan route yang sesuai
+                }
 
-                annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset)
-                    .firstOrNull()?.let {
-                        navController.navigate("privacy") // Ganti dengan route yang sesuai
-                    }
-            }
-        )
+            annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                .firstOrNull()?.let {
+                    navController.navigate("privacy") // Ganti dengan route yang sesuai
+                }
+        })
     }
 }
 
@@ -406,29 +431,28 @@ private fun login(
                 }
 
                 is Result.Success -> {
-                    onLoadingStateChanged(false)
+                    viewModel.savePreferences(
+                        token = result.data.data?.token.toString(),
+                        id = result.data.data?.id.toString(),
+                        fullname = result.data.data?.fullname.toString(),
+                        noHandphone = result.data.data?.noHandphone.toString(),
+                        image = if (result.data.data?.imageUrl.toString() == null || result.data.data?.imageUrl.toString() == "null") "" else result.data.data?.imageUrl.toString(),
+                        subscriptionName = result.data.data?.historySubscriptions?.subscriptions?.title ?: "free"
+                    ) {
+                        onLoadingStateChanged(false)
 
-                    runBlocking {
-                        viewModel.savePreferences(
-                            token = result.data.data?.token.toString(),
-                            id = result.data.data?.id.toString(),
-                            fullname = result.data.data?.fullname.toString(),
-                            noHandphone = result.data.data?.noHandphone.toString(),
-                            image = if (result.data.data?.imageUrl.toString() == null || result.data.data?.imageUrl.toString() == "null") "" else result.data.data?.imageUrl.toString()
+                        Log.d("Token Berhasil Disimpan", "login: ${result.data.data}")
+
+                        val fullname = result.data.data?.fullname.orEmpty()
+                        SweetAlertComponent(
+                            lifecycleOwner as Context,
+                            "Berhasil",
+                            "Hai, ${fullname}, Anda berhasil Masuk",
+                            "success"
                         )
-                    }
-
-                    Log.d("Token Berhasil Disimpan", "login: ${result.data.data}")
-
-                    val fullname = result.data.data?.fullname.orEmpty()
-                    SweetAlertComponent(
-                        lifecycleOwner as Context,
-                        "Berhasil",
-                        "Hai, ${fullname}, Anda berhasil Masuk",
-                        "success"
-                    )
-                    navController.navigate("home") {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        navController.navigate("home") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        }
                     }
                 }
 

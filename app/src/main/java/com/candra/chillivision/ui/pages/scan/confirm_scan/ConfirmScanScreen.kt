@@ -4,18 +4,21 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,9 +55,12 @@ import coil.compose.AsyncImage
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonCustomColorWithIcon
+import com.candra.chillivision.component.MenuScan
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.compressImage
+import com.candra.chillivision.component.createImageUri
 import com.candra.chillivision.component.dashedBorder
+import com.candra.chillivision.component.handleCameraPermission
 import com.candra.chillivision.component.uriToFile
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
@@ -61,6 +68,8 @@ import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
+import net.engawapg.lib.zoomable.rememberZoomState
+import net.engawapg.lib.zoomable.zoomable
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -81,9 +90,43 @@ fun ConfirmScanScreen(
     var isLoading by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val imageUri by remember {
-        mutableStateOf(navController.currentBackStackEntry?.arguments?.getString("imageUri"))
+
+    // Simpan URI agar tidak hilang saat izin diminta
+    var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    val initialImageUri = navController.currentBackStackEntry?.arguments?.getString("imageUri")
+    var imageUri by remember { mutableStateOf(initialImageUri?.let { Uri.parse(it) }) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            Toast.makeText(context, "Gambar Berhasil Diambil!", Toast.LENGTH_SHORT).show()
+            capturedImageUri?.let { uri ->
+                imageUri = uri  // Update imageUri saat berhasil capture
+            }
+        }
     }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it  // Update imageUri saat berhasil pilih dari galeri
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
+            capturedImageUri?.let { cameraLauncher.launch(it) }
+        } else {
+            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -96,7 +139,11 @@ fun ConfirmScanScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        imageUri = null
+                        capturedImageUri = null
+                        navController.popBackStack()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
@@ -114,72 +161,117 @@ fun ConfirmScanScreen(
         },
         containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
-                .padding(16.dp, 0.dp)
-        ) {
-            Box(
+
+        if (!isLoading) {
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .padding(innerPadding)
                     .verticalScroll(scrollState)
-                    .imePadding(),
-                contentAlignment = Alignment.Center
+                    .padding(16.dp, 0.dp)
             ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TextBold(text = "Ambil Gambar Ulang")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    // Memberikan weight agar setiap MenuScan memiliki 50% lebar
+                    MenuScan(
+                        isDarkTheme = isSystemInDarkTheme(),
+                        icon = R.drawable.potret_langsung,
+                        title = "Potret Langsung",
+                        desc = "Ambil kembali gambar secara langsung.",
+                        modifier = Modifier.weight(1f),  // Memberikan 50% lebar
+                        onClick = {
+                            val newUri = createImageUri(context)
+                            capturedImageUri = newUri
+                            handleCameraPermission(
+                                context,
+                                permissionLauncher,
+                                cameraLauncher,
+                                newUri
+                            )
+                        }
+                    )
 
-                if (!isLoading) {
-                    Column {
-                        ContentDetection(imageUri)
+                    Spacer(modifier = Modifier.width(16.dp))  // Jarak antar menu
 
-                        Spacer(modifier = Modifier.padding(16.dp))
-
-                        ButtonCustomColorWithIcon(
-                            onClick = {
-                                if (imageUri != null) {
-                                    isLoading = true
-                                    SendImageToDetect(
-                                        context = context,
-                                        imageUri = Uri.parse(imageUri),
-                                        viewModel = viewModel,
-                                        lifecycleOwner = lifecycleOwner
-                                    ) { result ->
-                                        if (result is AnalisisResultResponse) {
-                                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                                key = "analysis_result",
-                                                value = result
-                                            )
-                                            navController.navigate("analysisResult")
-                                        }
-                                        isLoading = false
-                                    }
-
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Gambar tidak ditemukan",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            },
-                            text = "Deteksi",
-                            color = PrimaryGreen,
-                            icon = Icons.Filled.Search,
-                            modifier = Modifier.padding(0.dp, 0.dp)
-                        )
-                    }
+                    MenuScan(
+                        isDarkTheme = isSystemInDarkTheme(),
+                        icon = R.drawable.upload_cloud,
+                        title = "Unggah Gambar",
+                        desc = "Unggah kembali gambar dari album.",
+                        modifier = Modifier.weight(1f),  // Memberikan 50% lebar
+                        onClick = {
+                            launcher.launch("image/*")
+                        }
+                    )
                 }
 
-                if (isLoading) {
-                    Column(
-                        modifier = Modifier,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AnimatedLoading(modifier = Modifier.size(150.dp))
-                        TextBold(text = "Gambar sedang di deteksi", sized = 14)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextBold(text = "Mohon Menunggu ...", sized = 14)
-                    }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TextBold(text = "Gambar yang akan dideteksi")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ContentDetection(imageUri?.toString())
+
+                Spacer(modifier = Modifier.padding(16.dp))
+
+                ButtonCustomColorWithIcon(
+                    onClick = {
+                        if (imageUri != null) {
+                            isLoading = true
+                            SendImageToDetect(
+                                context = context,
+                                imageUri = Uri.parse(imageUri?.toString()),
+                                viewModel = viewModel,
+                                lifecycleOwner = lifecycleOwner
+                            ) { result ->
+                                if (result is AnalisisResultResponse) {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        key = "analysis_result",
+                                        value = result
+                                    )
+                                    navController.navigate("analysisResult")
+                                }
+                                isLoading = false
+                            }
+
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Gambar tidak ditemukan",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    text = "Deteksi",
+                    color = PrimaryGreen,
+                    icon = Icons.Filled.Search,
+                    modifier = Modifier.padding(0.dp, 0.dp)
+                )
+            }
+        }
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+                    AnimatedLoading(modifier = Modifier.size(150.dp))
+                    TextBold(text = "Gambar sedang di deteksi", sized = 14)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextBold(text = "Mohon Menunggu ...", sized = 14)
                 }
             }
         }
@@ -200,13 +292,13 @@ fun ContentDetection(imageUri: String?, modifier: Modifier = Modifier) {
             if (imageUri != null) {
                 AsyncImage(
                     model = imageUri,
-                    contentDescription = "Hasil Scan",
+                    contentDescription = "Image Confirm",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = modifier
+                        .fillMaxWidth()
                         .aspectRatio(1f)
-                        .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
+                        .zoomable(rememberZoomState())
                 )
             } else {
                 Image(

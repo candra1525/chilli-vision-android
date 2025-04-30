@@ -20,13 +20,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -47,6 +52,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +65,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.candra.chillivision.R
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -518,3 +525,60 @@ fun daysRemaining(endDate: String): Long {
 
     return ChronoUnit.DAYS.between(nowDate, endDateObj)
 }
+
+@Composable
+fun MenuScan(
+    isDarkTheme: Boolean,
+    icon: Int,
+    title: String,
+    desc: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isSystemInDarkTheme()) BlackMode else WhiteSoft)
+            .border(
+                width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
+            )
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = icon),
+            contentDescription = "chilli_vision",
+            modifier = Modifier
+                .padding(16.dp)
+                .size(35.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            TextBold(
+                text = title,
+                sized = 12,
+                textAlign = TextAlign.Start,
+                colors = if (isSystemInDarkTheme()) White else BlackMode
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = desc,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                    fontWeight = FontWeight.Normal,
+                    color = if (isDarkTheme) PrimaryGreen else Color.Black
+                ),
+                textAlign = TextAlign.Justify
+            )
+        }
+    }
+}
+

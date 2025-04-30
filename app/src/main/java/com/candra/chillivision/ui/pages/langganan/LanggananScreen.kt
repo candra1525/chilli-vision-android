@@ -33,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,7 +59,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.candra.chillivision.component.AnimatedLoading
 import com.candra.chillivision.component.ButtonBorderGreen
 import com.candra.chillivision.component.ButtonGreen
 import com.candra.chillivision.component.Loading
@@ -93,12 +92,12 @@ fun LanggananScreen(
     )
 ) {
     Column(
-        modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 90.dp)
+        modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 90.dp)
     ) {
         LanggananTitle(modifier)
         Spacer(modifier = Modifier.height(16.dp))
         TabScreen(viewModel, navController)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
     }
 }
@@ -179,7 +178,7 @@ fun TabScreen(viewModel: LanggananScreenViewModel, navController: NavController)
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+//        Spacer(modifier = Modifier.height(8.dp))
 
         when (state) {
             0 -> BeliLanggananScreen(viewModel, navController)
@@ -243,14 +242,39 @@ fun BeliLanggananScreen(
                 PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
                     shouldRefresh = true
                 }) {
+
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(0.dp, 8.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        item {
+                            if (subscriptions.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(LocalConfiguration.current.screenHeightDp.dp - 250.dp)
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        NotFound(modifier = Modifier.size(200.dp))
+                                        TextBold(
+                                            text = "Langganan belum tersedia !",
+                                            sized = 14,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         items(subscriptions) { subscription ->
                             SubscriptionCard(subscription, navController)
                         }
+
                     }
                 }
             }
@@ -405,28 +429,42 @@ fun ActiveSubscription(
                 PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
                     shouldRefresh = true
                 }) {
-                    if (subscriptions.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Tidak ada langganan aktif",
-                                color = Color.Gray
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(subscriptions) { subscription ->
-                                ActiveSubscriptionItem(subscription, navController)
+
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            if (subscriptions.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(LocalConfiguration.current.screenHeightDp.dp - 250.dp)
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        NotFound(modifier = Modifier.size(200.dp))
+                                        TextBold(
+                                            text = "Tidak ada langganan yang aktif saat ini !",
+                                            sized = 14,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
                             }
                         }
+
+                        items(subscriptions) { subscription ->
+                            ActiveSubscriptionItem(subscription, navController)
+                        }
                     }
+
                 }
             }
 
@@ -634,7 +672,8 @@ fun HistorySubscription(
     }
 
 
-    val displayedSubscriptionsState = savedSubscriptionsHistory.takeIf { it is Result.Loading } ?: subscriptionsHistoryState
+    val displayedSubscriptionsState =
+        savedSubscriptionsHistory.takeIf { it is Result.Loading } ?: subscriptionsHistoryState
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (displayedSubscriptionsState) {
@@ -648,28 +687,42 @@ fun HistorySubscription(
                 PullToRefreshBox(isRefreshing = shouldRefresh, onRefresh = {
                     shouldRefresh = true
                 }) {
-                    if (subscriptions.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Tidak ada langganan aktif",
-                                color = Color.Gray
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(subscriptions) { subscription ->
-                                HistorySubscriptionItem(subscription, navController)
+
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            if (subscriptions.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(LocalConfiguration.current.screenHeightDp.dp - 250.dp)
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        NotFound(modifier = Modifier.size(200.dp))
+                                        TextBold(
+                                            text = "Tidak ada riwayat langganan !",
+                                            sized = 14,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
                             }
                         }
+
+                        items(subscriptions) { subscription ->
+                            HistorySubscriptionItem(subscription, navController)
+                        }
                     }
+
                 }
             }
 

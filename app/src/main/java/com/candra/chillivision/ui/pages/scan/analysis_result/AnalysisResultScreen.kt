@@ -1,5 +1,9 @@
 package com.candra.chillivision.ui.pages.scan.analysis_result
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -18,14 +23,18 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,9 +52,12 @@ import coil.compose.AsyncImage
 import com.candra.chillivision.R
 import com.candra.chillivision.component.Disclaimer
 import com.candra.chillivision.component.Loading
+import com.candra.chillivision.component.MenuScan
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.TextRegular
+import com.candra.chillivision.component.createImageUri
+import com.candra.chillivision.component.handleCameraPermission
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
 import com.candra.chillivision.data.response.analysisResult.DetectionsItem
@@ -57,6 +69,8 @@ import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
+import net.engawapg.lib.zoomable.rememberZoomState
+import net.engawapg.lib.zoomable.zoomable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,12 +95,50 @@ fun AnalysisResultScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     var isLoading by remember {
         mutableStateOf(false)
     }
 
     val userPreferences = viewModel.getPreferences().collectAsState(initial = null)
     val userId = userPreferences.value?.id
+
+    // Simpan URI agar tidak hilang saat izin diminta
+    var capturedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                Toast.makeText(context, "Gambar Berhasil Diambil!", Toast.LENGTH_SHORT).show()
+                capturedImageUri?.let { uri ->
+                    navController.navigate("confirmScan?imageUri=${Uri.encode(uri.toString())}")
+                }
+            }
+        }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            navController.navigate("confirmScan?imageUri=${Uri.encode(it.toString())}")
+        }
+    }
+
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
+            capturedImageUri?.let { cameraLauncher.launch(it) }
+        } else {
+            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     if (isLoading) {
         Loading()
@@ -112,58 +164,10 @@ fun AnalysisResultScreen(
                     },
                     actions = {
                         IconButton(onClick = {
-                            viewModel.createHistory(
-                                request = CreateHistoryRequest(
-                                    image = result.imageUrl ?: "",
-                                    detection_time = result.detectionTime ?: "",
-                                    user_id = userId ?: "",
-                                    unique_name_disease = result.uniqueNameDisease ?: "",
-                                    history_details = result.detectionsSummary?.map { detection ->
-                                        HistoryDetail(
-                                            name_disease = detection?.diseaseInfo?.namaPenyakit
-                                                ?: "",
-                                            another_name_disease = detection?.diseaseInfo?.namaLain
-                                                ?: "",
-                                            symptom = detection?.diseaseInfo?.gejala ?: "",
-                                            reason = detection?.diseaseInfo?.penyebab ?: "",
-                                            preventive_meansure = detection?.diseaseInfo?.tindakanPencegahan
-                                                ?: "",
-                                            source = detection?.diseaseInfo?.sumber ?: ""
-                                        )
-                                    } ?: emptyList()
-                                )
-                            ).observe(context as LifecycleOwner) { result ->
-                                when (result) {
-                                    is Result.Loading -> {
-                                        isLoading = true
-                                    }
-
-                                    is Result.Success -> {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Berhasil",
-                                            contentText = "Hasil analisis berhasil disimpan pada riwayat",
-                                            type = "success",
-                                            confirmYes = { }
-                                        )
-                                        isLoading = false
-                                    }
-
-                                    is Result.Error -> {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Gagal",
-                                            contentText = result.errorMessage,
-                                            type = "error",
-                                            confirmYes = { }
-                                        )
-                                        isLoading = false
-                                    }
-                                }
-                            }
+                            showBottomSheet = true
                         }) {
                             Icon(
-                                painter = painterResource(id = R.drawable.baseline_save_24),
+                                painter = painterResource(id = R.drawable.more),
                                 contentDescription = "Back",
                                 tint = PrimaryGreen
                             )
@@ -243,6 +247,107 @@ fun AnalysisResultScreen(
                             DetectionItemView(index = index, detection = detection)
                         }
                     }
+                }
+            }
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showBottomSheet = false
+                },
+                sheetState = sheetState
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    // Memberikan weight agar setiap MenuScan memiliki 50% lebar
+                    MenuScan(
+                        isDarkTheme = isSystemInDarkTheme(),
+                        icon = R.drawable.potret_langsung,
+                        title = "Potret Langsung",
+                        desc = "Ambil kembali gambar secara langsung.",
+                        modifier = Modifier.fillMaxWidth(),  // Memberikan 50% lebar
+                        onClick = {
+                            val newUri = createImageUri(context)
+                            capturedImageUri = newUri
+                            handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))  // Jarak antar menu
+
+                    MenuScan(
+                        isDarkTheme = isSystemInDarkTheme(),
+                        icon = R.drawable.upload_cloud,
+                        title = "Unggah Gambar",
+                        desc = "Unggah kembali gambar dari album.",
+                        modifier = Modifier.fillMaxWidth(),  // Memberikan 50% lebar
+                        onClick = {
+                            launcher.launch("image/*")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))  // Jarak antar menu
+
+                    MenuScan(
+                        isDarkTheme = isSystemInDarkTheme(),
+                        icon = R.drawable.save,
+                        title = "Simpan Gambar",
+                        desc = "Gambar akan disimpan pada riwayat anda.",
+                        modifier = Modifier.fillMaxWidth(),  // Memberikan 50% lebar
+                        onClick = {
+                            viewModel.createHistory(
+                                request = CreateHistoryRequest(
+                                    image = result.imageUrl ?: "",
+                                    detection_time = result.detectionTime ?: "",
+                                    user_id = userId ?: "",
+                                    unique_name_disease = result.uniqueNameDisease ?: "",
+                                    history_details = result.detectionsSummary?.map { detection ->
+                                        HistoryDetail(
+                                            name_disease = detection?.diseaseInfo?.namaPenyakit
+                                                ?: "",
+                                            another_name_disease = detection?.diseaseInfo?.namaLain
+                                                ?: "",
+                                            symptom = detection?.diseaseInfo?.gejala ?: "",
+                                            reason = detection?.diseaseInfo?.penyebab ?: "",
+                                            preventive_meansure = detection?.diseaseInfo?.tindakanPencegahan
+                                                ?: "",
+                                            source = detection?.diseaseInfo?.sumber ?: ""
+                                        )
+                                    } ?: emptyList()
+                                )
+                            ).observe(context as LifecycleOwner) { result ->
+                                when (result) {
+                                    is Result.Loading -> {
+                                        isLoading = true
+                                    }
+
+                                    is Result.Success -> {
+                                        SweetAlertComponent(
+                                            context = context,
+                                            title = "Berhasil",
+                                            contentText = "Hasil analisis berhasil disimpan pada riwayat",
+                                            type = "success",
+                                            confirmYes = { }
+                                        )
+                                        isLoading = false
+                                        showBottomSheet = false
+                                    }
+
+                                    is Result.Error -> {
+                                        SweetAlertComponent(
+                                            context = context,
+                                            title = "Gagal",
+                                            contentText = result.errorMessage,
+                                            type = "error",
+                                            confirmYes = { }
+                                        )
+                                        isLoading = false
+                                    }
+                                }
+                            }
+
+                        }
+                    )
                 }
             }
         }
@@ -344,5 +449,6 @@ fun ImageAnalysis(modifier: Modifier = Modifier, linkImage: String = "") {
             .fillMaxWidth()
             .aspectRatio(1f)
             .clip(RoundedCornerShape(8.dp))
+            .zoomable(rememberZoomState())
     )
 }

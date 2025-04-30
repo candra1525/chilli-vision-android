@@ -22,6 +22,7 @@ import com.candra.chillivision.ui.pages.register.RegisterScreenViewModel
 import com.candra.chillivision.ui.pages.scan.analysis_result.AnalysisResultScreenViewModel
 import com.candra.chillivision.ui.pages.scan.ScanScreenViewModel
 import com.candra.chillivision.ui.pages.scan.confirm_scan.ConfirmScanScreenViewModel
+import com.candra.chillivision.ui.pages.splash.SplashScreenViewModel
 import java.util.concurrent.ConcurrentHashMap
 
 class ViewModelFactory(private val repository: ChilliVisionRepository) :
@@ -105,6 +106,10 @@ class ViewModelFactory(private val repository: ChilliVisionRepository) :
             ) as T
 
             modelClass.isAssignableFrom(ConfirmScanScreenViewModel::class.java) -> ConfirmScanScreenViewModel(
+                repository
+            ) as T
+
+            modelClass.isAssignableFrom(SplashScreenViewModel::class.java) -> SplashScreenViewModel(
                 repository
             ) as T
 

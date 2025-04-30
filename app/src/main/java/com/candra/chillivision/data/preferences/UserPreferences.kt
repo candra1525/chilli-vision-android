@@ -19,16 +19,48 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         pref[TOKEN_KEY] ?: ""
     }.distinctUntilChanged()
 
-    suspend fun savePreferences(token: String, id: String, fullname: String, noHandphone: String, image: String) {
+    suspend fun savePreferences(
+        token: String,
+        id: String,
+        fullname: String,
+        noHandphone: String,
+        image: String,
+        subscriptionName: String
+    ) {
         dataStore.edit { pref ->
             pref[TOKEN_KEY] = token
             pref[ID_KEY] = id
             pref[FULLNAME_KEY] = fullname
             pref[NOHANDPHONE_KEY] = noHandphone
             pref[IMAGE_KEY] = image
+            pref[SUBSCRIPTION_NAME_KEY] = subscriptionName
         }
     }
 
+    suspend fun setSubscriptionName(subscriptionName: String) {
+        dataStore.edit { pref ->
+            pref[SUBSCRIPTION_NAME_KEY] = subscriptionName
+        }
+    }
+
+
+    suspend fun setUsageDate(date: String) {
+        dataStore.edit { pref ->
+            pref[USAGE_DATE] = date
+        }
+    }
+
+    suspend fun setCountUsageAI(count: String) {
+        dataStore.edit { pref ->
+            pref[COUNT_USAGE_AI] = count
+        }
+    }
+
+    suspend fun setCountUsageDetect(count: String) {
+        dataStore.edit { pref ->
+            pref[COUNT_USAGE_DETECT] = count
+        }
+    }
 
     fun getPreferences(): Flow<UserModel> {
         return dataStore.data.map { pref ->
@@ -37,18 +69,44 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
                 pref[ID_KEY] ?: "",
                 pref[FULLNAME_KEY] ?: "",
                 pref[NOHANDPHONE_KEY] ?: "",
-                pref[IMAGE_KEY] ?: ""
+                pref[IMAGE_KEY] ?: "",
+                pref[SUBSCRIPTION_NAME_KEY] ?: "",
             )
         }
     }
 
+    fun getCountUsageAI(): Flow<String> {
+        return dataStore.data.map { pref ->
+            pref[COUNT_USAGE_AI] ?: "0"
+        }
+    }
+
+    fun getCountUsageDetect(): Flow<String> {
+        return dataStore.data.map { pref ->
+            pref[COUNT_USAGE_DETECT] ?: "0"
+        }
+    }
+
+    fun getUsageDate(): Flow<String> {
+        return dataStore.data.map { pref ->
+            pref[USAGE_DATE] ?: ""
+        }
+    }
+
     suspend fun clearPreferences() {
+//        dataStore.edit { pref ->
+//            pref.remove(TOKEN_KEY)
+//            pref.remove(ID_KEY)
+//            pref.remove(FULLNAME_KEY)
+//            pref.remove(NOHANDPHONE_KEY)
+//            pref.remove(IMAGE_KEY)
+//            pref.remove(SUBSCRIPTION_NAME_KEY)
+//            // ....
+//            pref.remove(COUNT_USAGE_AI)
+//            pref.remove(COUNT_USAGE_DETECT)
+//        }
         dataStore.edit { pref ->
-            pref.remove(TOKEN_KEY)
-            pref.remove(ID_KEY)
-            pref.remove(FULLNAME_KEY)
-            pref.remove(NOHANDPHONE_KEY)
-            pref.remove(IMAGE_KEY)
+            pref.clear()
         }
     }
 
@@ -60,6 +118,11 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         private val FULLNAME_KEY = stringPreferencesKey("fullname")
         private val NOHANDPHONE_KEY = stringPreferencesKey("noHandphone")
         private val IMAGE_KEY = stringPreferencesKey("image")
+        private val SUBSCRIPTION_NAME_KEY = stringPreferencesKey("subscription_name")
+
+        private val USAGE_DATE = stringPreferencesKey("usage_date")
+        private val COUNT_USAGE_AI = stringPreferencesKey("count_usage_ai")
+        private val COUNT_USAGE_DETECT = stringPreferencesKey("count_usage_detect")
 
         fun getInstance(dataStore: DataStore<Preferences>): UserPreferences {
             return INSTANCE ?: synchronized(this) {

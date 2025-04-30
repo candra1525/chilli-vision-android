@@ -186,6 +186,7 @@ private fun FormUbahProfile(
     var originalFullname by remember { mutableStateOf("") }
     var originalNoHandphone by remember { mutableStateOf("") }
     var originalImage by remember { mutableStateOf("") } // Link Image
+    var originalSubscriptionName by remember { mutableStateOf("")}
     var textFullname by remember { mutableStateOf("") }
     var textNoHandphone by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) } // URI
@@ -200,6 +201,7 @@ private fun FormUbahProfile(
                     originalFullname = it?.fullname.toString()
                     originalNoHandphone = it?.noHandphone.toString()
                     originalImage = it?.image.toString()
+                    originalSubscriptionName = it?.subscriptionName.toString()
                     textFullname = originalFullname
                     textNoHandphone = originalNoHandphone
                 }
@@ -260,7 +262,8 @@ private fun FormUbahProfile(
                                 id = idUser,
                                 fullname = textFullname,
                                 no_handphone = textNoHandphone,
-                                image = originalImage
+                                image = originalImage,
+                                subscriptionName = originalSubscriptionName
                             )
                         }
                         SweetAlertComponent(
@@ -366,7 +369,8 @@ private fun FormUbahProfile(
                                                                 id = idUser,
                                                                 fullname = textFullname,
                                                                 no_handphone = textNoHandphone,
-                                                                image = "" // Empty Image
+                                                                image = "", // Empty Image
+                                                                subscriptionName = originalSubscriptionName
                                                             )
                                                         }
                                                         SweetAlertComponent(
@@ -530,6 +534,7 @@ private fun FormUbahProfile(
                         viewModel = viewModel,
                         fullname = textFullname,
                         no_handphone = textNoHandphone,
+                        subscription_name = originalSubscriptionName,
                         idUser = idUser,
                         token = token,
                         context = context,
@@ -570,6 +575,7 @@ private fun validationUbahProfile(
     viewModel: UbahProfileViewModel,
     fullname: String,
     no_handphone: String,
+    subscription_name : String,
     idUser: String,
     token: String,
     context: Context,
@@ -592,6 +598,7 @@ private fun validationUbahProfile(
         token = token,
         fullname = fullname,
         no_handphone = no_handphone,
+        subscription_name = subscription_name,
         lifecycleOwner = context as LifecycleOwner,
         onLoadingStateChanged = onLoadingStateChanged,
         onSuccess = onSuccess
@@ -604,6 +611,7 @@ private fun UpdateProfile(
     token: String,
     fullname: String,
     no_handphone: String,
+    subscription_name : String,
     lifecycleOwner: LifecycleOwner,
     onLoadingStateChanged: (Boolean) -> Unit,
     onSuccess: () -> Unit
@@ -623,7 +631,8 @@ private fun UpdateProfile(
                             id = idUser,
                             fullname = fullname,
                             no_handphone = no_handphone,
-                            image = result.data.data?.imageUrl ?: ""
+                            image = result.data.data?.imageUrl ?: "",
+                            subscriptionName = subscription_name
                         )
                     }
 

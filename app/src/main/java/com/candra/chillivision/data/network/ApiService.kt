@@ -23,6 +23,7 @@ import com.candra.chillivision.data.response.subscriptions.ActiveSubscrpitionUse
 import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
+import com.candra.chillivision.data.response.updateStatusSubsUser.UpdateStatusSubscriptionUserResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -132,6 +133,15 @@ interface ApiService {
 
 
     // History Subscription
+    // Update Status Subs
+    @FormUrlEncoded
+    @PUT("history-subscriptions/update-status/{idSubscription}")
+    suspend fun updateStatusSubscriptionUser(
+        @Field("status") status: String,
+        @Path("idSubscription") idSubscription: String
+    ): UpdateStatusSubscriptionUserResponse
+
+
     // Get All History Subscription from User
     @GET("history-subscriptions/list-history/{idUser}")
     suspend fun getAllHistorySubscriptionUser(

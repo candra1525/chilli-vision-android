@@ -107,6 +107,8 @@ dependencies {
     implementation(libs.nav.animation)
     implementation(libs.lottie.compose)
 
+    //  Zoom Compose
+    implementation(libs.zoomable)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

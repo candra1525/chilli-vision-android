@@ -2,28 +2,32 @@ package com.candra.chillivision.ui.pages.register
 
 import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -55,7 +60,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
-import com.candra.chillivision.component.HeaderComponentLoginRegister
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.data.common.Result
@@ -64,6 +68,7 @@ import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,
@@ -77,21 +82,43 @@ fun RegisterScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .imePadding()
-    ) {
-        Column(modifier = modifier) {
-            // Header
-            HeaderComponentLoginRegister(context, modifier, navController)
-            // Title
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    TextBold(
+                        "Daftar Akun",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
+                actions = {},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                ),
+                modifier = Modifier.shadow(1.dp)
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+        ) {
             TitleRegister(modifier)
             // Form
             FormRegister(modifier, viewModel, context, navController)
-
         }
     }
 }
@@ -424,7 +451,12 @@ private fun SyaratKetentuan(
 }
 
 @Composable
-fun CheckBox(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit, navController: NavController, isLoading : Boolean = false) {
+fun CheckBox(
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    navController: NavController,
+    isLoading: Boolean = false
+) {
     val annotatedString = buildAnnotatedString {
         withStyle(
             style = SpanStyle(

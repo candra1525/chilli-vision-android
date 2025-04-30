@@ -27,6 +27,7 @@ import com.candra.chillivision.data.response.subscriptions.ActiveSubscrpitionUse
 import com.candra.chillivision.data.response.subscriptions.CreateHistorySubscriptionResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetAllResponse
 import com.candra.chillivision.data.response.subscriptions.SubscriptionsGetDetailResponse
+import com.candra.chillivision.data.response.updateStatusSubsUser.UpdateStatusSubscriptionUserResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -41,12 +42,39 @@ class ChilliVisionRepository constructor(
 ) {
     // Preferences
     suspend fun savePreferences(
-        token: String, id: String, fullname: String, no_handphone: String, image: String
-    ) = preferences.savePreferences(token, id, fullname, no_handphone, image)
+        token: String, id: String, fullname: String, no_handphone: String, image: String, subscriptionName: String
+    ) = preferences.savePreferences(token, id, fullname, no_handphone, image, subscriptionName)
 
     suspend fun clearPreferences() = preferences.clearPreferences()
 
     fun getPreferences() = preferences.getPreferences()
+
+    suspend fun setUsageDate(date: String) = preferences.setUsageDate(date)
+    suspend fun setCountUsageAI(count: String) = preferences.setCountUsageAI(count)
+    suspend fun setCountUsageDetect(count: String) = preferences.setCountUsageDetect(count)
+    suspend fun setSubscriptionName(subscriptionName: String) = preferences.setSubscriptionName(subscriptionName)
+
+    fun getUsageDate() = preferences.getUsageDate()
+    fun getCountUsageAI() = preferences.getCountUsageAI()
+    fun getCountUsageDetect() = preferences.getCountUsageDetect()
+
+    // Check Subscription Active
+    fun updateStatusSubscriptionUser(
+        status : String,
+        idSubscription : String
+    ): LiveData<Result<UpdateStatusSubscriptionUserResponse>> = liveData {
+        emit(Result.Loading)
+        try {
+            val response = apiService.updateStatusSubscriptionUser(
+                status = status,
+                idSubscription = idSubscription
+            )
+            emit(Result.Success(response))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Error Occurred!"))
+        }
+    }
+
 
     // Login User
     fun setLogin(no_handphone: String, password: String): LiveData<Result<LoginResponse>> =

@@ -60,6 +60,8 @@ import com.candra.chillivision.ui.theme.Orange
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.Red
 import com.candra.chillivision.ui.theme.WhiteSoft
+import net.engawapg.lib.zoomable.rememberZoomState
+import net.engawapg.lib.zoomable.zoomable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -423,6 +425,7 @@ fun ImageAnalysis(modifier: Modifier = Modifier, linkImage: String = "") {
             .fillMaxWidth()
             .aspectRatio(1f)
             .clip(RoundedCornerShape(8.dp))
+            .zoomable(rememberZoomState())
     )
 }
 

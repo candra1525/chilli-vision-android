@@ -2,8 +2,10 @@ package com.candra.chillivision.component
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import coil.compose.rememberAsyncImagePainter
 import com.candra.chillivision.R
 import com.candra.chillivision.ui.theme.BlackMode
@@ -136,38 +139,91 @@ fun directToGmail(context: Context) {
 }
 
 
+//fun handleCameraPermission(
+//    context: Context,
+//    permissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
+//    cameraLauncher: ManagedActivityResultLauncher<Uri, Boolean>,
+//    capturedImageUri: Uri?
+//) {
+//    if (ContextCompat.checkSelfPermission(
+//            context,
+//            Manifest.permission.CAMERA
+//        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+//    ) {
+//        capturedImageUri?.let {
+//            cameraLauncher.launch(it)
+//        }
+//    } else {
+//        permissionLauncher.launch(Manifest.permission.CAMERA)
+//    }
+//}
+
 fun handleCameraPermission(
     context: Context,
-    permissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
+    permissionLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>,
     cameraLauncher: ManagedActivityResultLauncher<Uri, Boolean>,
     capturedImageUri: Uri?
 ) {
-    if (ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CAMERA
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-    ) {
-        capturedImageUri?.let {
-            cameraLauncher.launch(it)
-        }
+    val permissionsNeeded = mutableListOf(Manifest.permission.CAMERA)
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    }
+
+    val allGranted = permissionsNeeded.all { permission ->
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    if (allGranted) {
+        capturedImageUri?.let { cameraLauncher.launch(it) }
     } else {
-        permissionLauncher.launch(Manifest.permission.CAMERA)
+        permissionLauncher.launch(permissionsNeeded.toTypedArray())
     }
 }
 
+
 // Fungsi untuk membuat URI gambar di penyimpanan sementara
+//fun createImageUri(context: Context): Uri {
+//    val contentValues = android.content.ContentValues().apply {
+//        put(MediaStore.Images.Media.DISPLAY_NAME, "captured_image.jpg")
+//        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+//        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+//    }
+//    return context.contentResolver.insert(
+//        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//        contentValues
+//    )
+//        ?: throw IllegalStateException("Gagal membuat URI gambar")
+//}
+
 fun createImageUri(context: Context): Uri {
-    val contentValues = android.content.ContentValues().apply {
-        put(MediaStore.Images.Media.DISPLAY_NAME, "captured_image.jpg")
-        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // Android 10 ke atas
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/ScanImages")
+        }
+
+        context.contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        ) ?: throw IllegalStateException("Gagal membuat URI untuk Android 10+")
+    } else {
+        // Android 8 dan 9
+        val imageDir = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "ScanImages")
+        if (!imageDir.exists()) imageDir.mkdirs()
+
+        val imageFile = File(imageDir, "IMG_${System.currentTimeMillis()}.jpg")
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            imageFile
+        )
     }
-    return context.contentResolver.insert(
-        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        contentValues
-    )
-        ?: throw IllegalStateException("Gagal membuat URI gambar")
 }
+
+
 
 fun directToWhatsapp(context: Context, phoneNumber: String, message: String = "") {
     try {

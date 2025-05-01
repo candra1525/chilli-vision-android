@@ -1,6 +1,8 @@
 package com.candra.chillivision.ui.pages.scan.analysis_result
 
+import android.Manifest
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -140,14 +142,28 @@ fun AnalysisResultScreen(
     }
 
 
+//    val permissionLauncher = rememberLauncherForActivityResult(
+//        ActivityResultContracts.RequestPermission()
+//    ) { isGranted ->
+//        if (isGranted) {
+//            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
+//            capturedImageUri?.let { cameraLauncher.launch(it) }
+//        } else {
+//            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
-            capturedImageUri?.let { cameraLauncher.launch(it) }
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val cameraGranted = permissions[Manifest.permission.CAMERA] == true
+        val storageGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        if (cameraGranted && storageGranted) {
+            val uri = createImageUri(context)
+            capturedImageUri = uri
+            cameraLauncher.launch(uri)
         } else {
-            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Izin kamera atau penyimpanan ditolak", Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -549,6 +549,10 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                             // Langganan aktif
                             scope.launch {
                                 viewModel.setSubscriptionName(data.subscriptions?.title ?: "Gratis")
+                                viewModel.setStartEndSubscriptionDate(
+                                    data.startDate.orEmpty(),
+                                    data.endDate
+                                )
                             }
                         } else {
                             // Expired atau tidak ada langganan
@@ -556,6 +560,7 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                                 .observeForever {
                                     scope.launch {
                                         viewModel.setSubscriptionName("Gratis")
+                                        viewModel.setStartEndSubscriptionDate("", "")
                                     }
                                 }
                         }
@@ -564,6 +569,7 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                     is Result.Error -> {
                         scope.launch {
                             viewModel.setSubscriptionName("Gratis")
+                            viewModel.setStartEndSubscriptionDate("", "")
                         }
                     }
 

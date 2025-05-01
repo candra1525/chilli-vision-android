@@ -61,9 +61,14 @@ class ChilliVisionRepository constructor(
     suspend fun setSubscriptionName(subscriptionName: String) =
         preferences.setSubscriptionName(subscriptionName)
 
+    suspend fun setStartEndSubscriptionDate(startDate: String, endDate: String) =
+        preferences.setStartEndSubscriptionDate(startDate, endDate)
+
     fun getUsageDate() = preferences.getUsageDate()
     fun getCountUsageAI() = preferences.getCountUsageAI()
     fun getCountUsageDetect() = preferences.getCountUsageDetect()
+    fun getStartDateSubscription() = preferences.getStartDateSubscription()
+    fun getEndDateSubscription() = preferences.getEndDateSubscription()
 
     // Check Subscription Active
     fun updateStatusSubscriptionUser(

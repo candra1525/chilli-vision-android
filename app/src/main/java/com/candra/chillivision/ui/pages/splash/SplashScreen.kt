@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,22 +12,15 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -49,18 +41,20 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @SuppressLint("CustomSplashScreen")
 class SplashScreen : ComponentActivity() {
+
     private val splashScreenViewModel by viewModels<SplashScreenViewModel> {
-        ViewModelFactory.getInstance(this@SplashScreen)
+        ViewModelFactory.getInstance(this)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Status bar styling
         window.apply {
             clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
             addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -72,11 +66,8 @@ class SplashScreen : ComponentActivity() {
         }
 
         lifecycleScope.launch {
-            delay(500) // splash 0.5 detik
             initializeApp()
-            startActivity(Intent(this@SplashScreen, MainActivity::class.java))
-            finish()
-            checkSubscriptionInBackground()
+            checkSubscription()
         }
     }
 
@@ -92,11 +83,14 @@ class SplashScreen : ComponentActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun checkSubscriptionInBackground() {
+    private fun checkSubscription() {
         lifecycleScope.launch {
             val preferences = splashScreenViewModel.getPreferences().firstOrNull()
             val userId = preferences?.id.orEmpty()
-            if (userId.isEmpty()) return@launch
+            if (userId.isEmpty()) {
+                goToMain()
+                return@launch
+            }
 
             splashScreenViewModel.checkSubscriptionActive(userId)
                 .observe(this@SplashScreen) { result ->
@@ -106,33 +100,45 @@ class SplashScreen : ComponentActivity() {
                             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
                             val today = LocalDate.now()
                             val endDate = data?.endDate?.let { LocalDate.parse(it, formatter) }
+                            val startDate = data?.startDate?.let { LocalDate.parse(it, formatter) }
 
                             if (endDate != null && endDate >= today) {
-                                // Langganan aktif
                                 lifecycleScope.launch {
                                     splashScreenViewModel.setSubscriptionName(data.subscriptions?.title ?: "Gratis")
+                                    splashScreenViewModel.setStartEndSubscriptionDate(
+                                        startDate = startDate.toString(),
+                                        endDate = endDate.toString()
+                                    )
+                                    goToMain()
                                 }
                             } else {
-                                // Expired atau tidak ada langganan
-                                splashScreenViewModel.updateStatusSubscriptionUser(data?.id.orEmpty(), "expired")
-                                    .observeForever {
-                                        lifecycleScope.launch {
-                                            splashScreenViewModel.setSubscriptionName("Gratis")
-                                        }
+                                lifecycleScope.launch {
+                                    data?.id?.let {
+                                        splashScreenViewModel.updateStatusSubscriptionUser(it, "expired").observe(this@SplashScreen) {}
                                     }
+                                    splashScreenViewModel.setSubscriptionName("Gratis")
+                                    splashScreenViewModel.setStartEndSubscriptionDate("", "")
+                                    goToMain()
+                                }
                             }
                         }
 
                         is Result.Error -> {
                             lifecycleScope.launch {
                                 splashScreenViewModel.setSubscriptionName("Gratis")
+                                splashScreenViewModel.setStartEndSubscriptionDate("", "")
+                                goToMain()
                             }
                         }
 
-                        else -> {}
+                        else -> Unit
                     }
                 }
         }
+    }
+
+    private fun goToMain() {
+        startActivity(Intent(this@SplashScreen, MainActivity::class.java))
     }
 
     @Composable
@@ -144,7 +150,7 @@ class SplashScreen : ComponentActivity() {
         ) {
             Image(
                 painter = painterResource(id = R.drawable.chilli_vision_logo),
-                contentDescription = "Logo ${R.string.app_name}",
+                contentDescription = stringResource(id = R.string.app_name),
                 modifier = modifier
                     .size(150.dp)
                     .align(Alignment.Center)

@@ -25,20 +25,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,8 +67,10 @@ import com.candra.chillivision.component.convertIsoToDateTime
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.model.UserModel
 import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysis
-import com.candra.chillivision.data.response.historyAnalysis.HistoryAnalysisResponse
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.service.MAX_SAVE_HISTORY_FREE
+import com.candra.chillivision.service.MAX_SAVE_HISTORY_PREMIUM
+import com.candra.chillivision.service.MAX_SAVE_HISTORY_REGULAR
 import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -86,9 +88,13 @@ fun HistoryScreen(
         )
     )
 ) {
+    val (lengthHistory, setLengthHistory) = remember { mutableIntStateOf(0) }
+    val (loadingContent, setLoadingContent) = remember { mutableStateOf(false) }
+    val (subscriptionName, setSubscriptionName) = remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
                     TextBold(
                         "Riwayat",
@@ -96,8 +102,39 @@ fun HistoryScreen(
                         sized = 18
                     )
                 },
-                navigationIcon = {},
-                actions = {},
+                actions = {
+                    if (!loadingContent){
+                        when (subscriptionName) {
+                            "Gratis" -> {
+                                TextBold(
+                                    text = "$lengthHistory / $MAX_SAVE_HISTORY_FREE",
+                                    colors = PrimaryGreen,
+                                    sized = 16,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+
+                            "Paket Reguler" -> {
+                                TextBold(
+                                    text = "$lengthHistory / $MAX_SAVE_HISTORY_REGULAR",
+                                    colors = PrimaryGreen,
+                                    sized = 16,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+
+                            "Paket Premium" -> {
+                                TextBold(
+                                    text = "$lengthHistory / $MAX_SAVE_HISTORY_PREMIUM",
+                                    colors = PrimaryGreen,
+                                    sized = 16,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.shadow(1.dp), // Shadow manual
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
                     scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
@@ -112,42 +149,35 @@ fun HistoryScreen(
                 .padding(innerPadding)
                 .padding(16.dp, 0.dp)
         ) {
-            HistoryContent(viewModel = viewModel, navController = navController)
+            HistoryAnalysisContent(
+                viewModel = viewModel,
+                navController = navController,
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp),
+                onHistoryCountChanged = { setLengthHistory(it) }, // <- Ini penting!
+                onLoadingContent = { setLoadingContent(it) },
+                onSubscriptionName = { setSubscriptionName(it) },
+            )
         }
     }
 
 }
-
-
-@Composable
-private fun TitleHistory() {
-    TextBold(text = "Riwayat", colors = PrimaryGreen, sized = 18)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun HistoryContent(viewModel: HistoryScreenViewModel, navController: NavController) {
-    val context = LocalContext.current
-    val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
-    val idUser = userData.id
-    HistoryAnalysisContent(
-        viewModel = viewModel,
-        idUser = idUser,
-        navController = navController,
-        context = context
-    )
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HistoryAnalysisContent(
     viewModel: HistoryScreenViewModel,
-    idUser: String,
     navController: NavController,
-    context: Context
+    modifier: Modifier = Modifier,
+    onHistoryCountChanged: (Int) -> Unit, // <- Tambahkan ini
+    onLoadingContent: (Boolean) -> Unit,
+    onSubscriptionName: (String) -> Unit,
 ) {
+    val userData by viewModel.getPreferences().collectAsState(initial = UserModel())
+    val idUser = userData.id
+    val context = LocalContext.current
     val historyAnalysisState by viewModel.historyAnalisis.collectAsState()
     var shouldRefresh by remember { mutableStateOf(false) }
     var isDeleting by remember { mutableStateOf(false) }
@@ -164,10 +194,18 @@ private fun HistoryAnalysisContent(
         when (historyAnalysisState) {
             is Result.Loading -> {
                 Loading()
+                onLoadingContent(true)
             }
 
             is Result.Success -> {
+                onLoadingContent(false)
+                onSubscriptionName(userData.subscriptionName)
                 val history = (historyAnalysisState as Result.Success).data.data ?: emptyList()
+                val lengthHistory = history.size
+
+                // Kirim kembali ke HistoryScreen
+                onHistoryCountChanged(lengthHistory)
+
                 if (isDeleting) {
                     Loading(text = "Sedang menghapus data...")
                 } else {
@@ -176,7 +214,10 @@ private fun HistoryAnalysisContent(
                     }) {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(0.dp, 8.dp),
+                            contentPadding = PaddingValues(
+                                top = 8.dp,
+                                bottom = 90.dp // Tambahan manual untuk menghindari overlap
+                            ),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(history) { historyAnalysis ->
@@ -202,6 +243,7 @@ private fun HistoryAnalysisContent(
             }
 
             is Result.Error -> {
+                onLoadingContent(false)
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center

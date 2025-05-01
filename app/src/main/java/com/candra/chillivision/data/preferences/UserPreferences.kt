@@ -37,6 +37,13 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         }
     }
 
+    suspend fun setStartEndSubscriptionDate(startDate: String, endDate: String) {
+        dataStore.edit { pref ->
+            pref[START_SUBSCRIPTION_DATE] = startDate
+            pref[END_SUBSCRIPTION_DATE] = endDate
+        }
+    }
+
     suspend fun setSubscriptionName(subscriptionName: String) {
         dataStore.edit { pref ->
             pref[SUBSCRIPTION_NAME_KEY] = subscriptionName
@@ -71,6 +78,8 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
                 pref[NOHANDPHONE_KEY] ?: "",
                 pref[IMAGE_KEY] ?: "",
                 pref[SUBSCRIPTION_NAME_KEY] ?: "",
+                pref[START_SUBSCRIPTION_DATE] ?: "",
+                pref[END_SUBSCRIPTION_DATE] ?: "",
             )
         }
     }
@@ -93,18 +102,19 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         }
     }
 
+    fun getStartDateSubscription(): Flow<String> {
+        return dataStore.data.map { pref ->
+            pref[START_SUBSCRIPTION_DATE] ?: ""
+        }
+    }
+
+    fun getEndDateSubscription(): Flow<String> {
+        return dataStore.data.map { pref ->
+            pref[END_SUBSCRIPTION_DATE] ?: ""
+        }
+    }
+
     suspend fun clearPreferences() {
-//        dataStore.edit { pref ->
-//            pref.remove(TOKEN_KEY)
-//            pref.remove(ID_KEY)
-//            pref.remove(FULLNAME_KEY)
-//            pref.remove(NOHANDPHONE_KEY)
-//            pref.remove(IMAGE_KEY)
-//            pref.remove(SUBSCRIPTION_NAME_KEY)
-//            // ....
-//            pref.remove(COUNT_USAGE_AI)
-//            pref.remove(COUNT_USAGE_DETECT)
-//        }
         dataStore.edit { pref ->
             pref.clear()
         }
@@ -123,6 +133,9 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
         private val USAGE_DATE = stringPreferencesKey("usage_date")
         private val COUNT_USAGE_AI = stringPreferencesKey("count_usage_ai")
         private val COUNT_USAGE_DETECT = stringPreferencesKey("count_usage_detect")
+
+        private val START_SUBSCRIPTION_DATE = stringPreferencesKey("start_subscription_date")
+        private val END_SUBSCRIPTION_DATE = stringPreferencesKey("end_subscription_date")
 
         fun getInstance(dataStore: DataStore<Preferences>): UserPreferences {
             return INSTANCE ?: synchronized(this) {

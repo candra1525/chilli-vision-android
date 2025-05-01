@@ -84,6 +84,8 @@ fun HomeScreen(
     val userPreferences by viewModel.getPreferences()
         .collectAsState(initial = null)
 
+
+
     // Cek apakah data sudah tersedia
     when {
         userPreferences == null -> {
@@ -102,6 +104,9 @@ fun HomeScreen(
 
         else -> {
             Log.d("HomeScreen", "UserPreferences: $userPreferences")
+            Log.d("HomeScreen", "Start Date: ${userPreferences?.startDateSubscription}")
+            Log.d("HomeScreen", "End Date: ${userPreferences?.endDateSubscription}")
+
             // Jika token ada, langsung render HomeScreen
             Column(
                 modifier = modifier

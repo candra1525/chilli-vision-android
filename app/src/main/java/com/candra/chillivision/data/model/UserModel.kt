@@ -11,4 +11,6 @@ data class UserModel(
     val noHandphone : String = "",
     val image : String = "",
     val subscriptionName : String = "",
+    val startDateSubscription : String = "",
+    val endDateSubscription : String = "",
 ) : Parcelable

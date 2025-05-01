@@ -42,6 +42,10 @@ class LoginScreenViewModel(private val repository: ChilliVisionRepository) : Vie
         repository.setSubscriptionName(subscriptionName)
     }
 
+    suspend fun setStartEndSubscriptionDate(startDate: String, endDate: String) {
+        repository.setStartEndSubscriptionDate(startDate, endDate)
+    }
+
     fun checkSubscriptionActive(idUser : String) = repository.checkSubscriptionActive(idUser = idUser)
 
     fun updateStatusSubscriptionUser(idSubscription: String, status : String) = repository.updateStatusSubscriptionUser(idSubscription = idSubscription, status = status)

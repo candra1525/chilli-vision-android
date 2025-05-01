@@ -1,12 +1,14 @@
 package com.candra.chillivision.ui.pages.home
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
@@ -72,6 +75,10 @@ fun HomeScreen(
     val context = LocalContext.current
     val isDarkTheme = isSystemInDarkTheme()
     val scrollState = rememberScrollState()
+
+    BackHandler(enabled = true) {
+        ActivityCompat.finishAffinity(context as Activity)
+    }
 
     // Pastikan hanya membaca data sekali saat pertama kali dibuka
     val userPreferences by viewModel.getPreferences()

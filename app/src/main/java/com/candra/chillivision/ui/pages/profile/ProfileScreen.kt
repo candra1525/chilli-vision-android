@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +53,10 @@ import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
 import kotlinx.coroutines.runBlocking
+import com.candra.chillivision.data.common.Result
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +69,7 @@ fun ProfileScreen(
         )
     )
 ) {
+    val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
@@ -75,7 +81,7 @@ fun ProfileScreen(
         mutableStateOf("")
     }
 
-    var subscriptionName by remember{
+    var subscriptionName by remember {
         mutableStateOf("")
     }
 
@@ -140,7 +146,11 @@ fun ProfileScreen(
                         .padding(innerPadding) // ⬅️ penting
                         .verticalScroll(scrollState)
                 ) {
-                    SectionImageProfile(viewModel = viewModel, fullname = fullname, subscriptionName = subscriptionName)
+                    SectionImageProfile(
+                        viewModel = viewModel,
+                        fullname = fullname,
+                        subscriptionName = subscriptionName
+                    )
                     TextBold(
                         text = "Pengaturan Akun",
                         sized = 14,
@@ -183,54 +193,68 @@ fun ProfileScreen(
                         icon = R.drawable.privacy,
                         onClick = { navController.navigate("privacy") })
                     Spacer(modifier = Modifier.height(16.dp))
-                    MenuProfile(name = "Keluar", icon = R.drawable.logout_icon, onClick = {
-                        SweetAlertComponent(context = context,
-                            title = "Keluar",
-                            contentText = "Apakah anda yakin ingin keluar aplikasi?",
-                            type = "logout",
-                            isCancel = true,
-                            confirmYes = {
-                                //                            viewModel.setLogout().observe(context as LifecycleOwner) { result ->
-                                //                                when (result) {
-                                //                                    is Result.Loading -> {
-                                //                                        Log.d("Logout", "Loading...")
-                                //                                        isLoading = true
-                                //                                    }
-                                //
-                                //                                    is Result.Success -> {
-                                //                                        Log.d("Logout", "Logout success: ${result.data}")
-                                //
-                                //                                    }
-                                //
-                                //                                    is Result.Error -> {
-                                //                                        isLoading = false
-                                //                                        SweetAlertComponent(
-                                //                                            context = context,
-                                //                                            title = "Gagal",
-                                //                                            contentText = "Gagal keluar aplikasi",
-                                //                                            type = "error"
-                                //                                        )
-                                //                                        Log.d("Logout", "Error: ${result.errorMessage}")
-                                //                                    }
-                                //                                }
-                                //                            }
-                                runBlocking {
-                                    viewModel.clearPreferences()
-                                }
-                                SweetAlertComponent(
-                                    context = context,
-                                    title = "Berhasil",
-                                    contentText = "Anda berhasil keluar aplikasi",
-                                    type = "success"
-                                )
-                                isLoading = false
-                                navController.navigate("welcome") {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        inclusive = true
+                    MenuProfile(
+                        name = "Keluar",
+                        icon = R.drawable.logout_icon,
+                        onClick = {
+                            SweetAlertComponent(
+                                context = context,
+                                title = "Keluar",
+                                contentText = "Apakah anda yakin ingin keluar aplikasi?",
+                                type = "logout",
+                                isCancel = true,
+                                confirmYes = {
+                                    scope.launch(Dispatchers.IO) {
+                                        withContext(Dispatchers.Main) {
+                                            Log.d("Logout", "Preferences cleared")
+                                            viewModel.setLogout()
+                                                .observe(context as LifecycleOwner) { result ->
+                                                    when (result) {
+                                                        is Result.Loading -> {
+                                                            Log.d("Logout", "Loading...")
+                                                            isLoading = true
+                                                        }
+
+                                                        is Result.Success -> {
+                                                            Log.d("Logout", "Logout success: ${result.data}")
+                                                            scope.launch {
+                                                                viewModel.clearPreferences()
+                                                            }
+                                                            isLoading = false
+
+                                                            SweetAlertComponent(
+                                                                context = context,
+                                                                title = "Berhasil",
+                                                                contentText = "Anda berhasil keluar aplikasi",
+                                                                type = "success"
+                                                            )
+
+                                                            navController.navigate("welcome") {
+                                                                popUpTo(navController.graph.startDestinationId) {
+                                                                    inclusive = true
+                                                                }
+                                                            }
+                                                        }
+
+                                                        is Result.Error -> {
+                                                            isLoading = false
+                                                            SweetAlertComponent(
+                                                                context = context,
+                                                                title = "Gagal",
+                                                                contentText = "Gagal keluar aplikasi",
+                                                                type = "error"
+                                                            )
+                                                            Log.d("Logout", "Error: ${result.errorMessage}")
+                                                        }
+                                                    }
+                                                }
+                                        }
                                     }
                                 }
-                            })
-                    })
+                            )
+                        }
+                    )
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Column(
@@ -258,7 +282,11 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun SectionImageProfile(viewModel: ProfileScreenViewModel, fullname: String, subscriptionName : String) {
+private fun SectionImageProfile(
+    viewModel: ProfileScreenViewModel,
+    fullname: String,
+    subscriptionName: String
+) {
     val context = LocalContext.current
     var image by remember {
         mutableStateOf("")

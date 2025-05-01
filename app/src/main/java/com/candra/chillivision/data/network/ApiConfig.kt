@@ -44,23 +44,6 @@ class ApiConfig {
                 .writeTimeout(120, TimeUnit.SECONDS)
                 .addInterceptor(loggingInterceptor)
 
-
-//            if (apiType != "model") {
-//                val authInterceptor = Interceptor { chain ->
-//                    val req = chain.request()
-//                    val token = runBlocking {
-//                        userPreferences.tokenFlow.first()
-//                    }
-//
-//                    val requestHeaders = req.newBuilder()
-//                        .addHeader("Authorization", "Bearer $token")
-//                        .build()
-//
-//                    chain.proceed(requestHeaders)
-//                }
-//                clientBuilder.addInterceptor(authInterceptor)
-//            }
-
             if (apiType != "model") {
                 val authInterceptor = Interceptor { chain ->
                     val token = runBlocking {

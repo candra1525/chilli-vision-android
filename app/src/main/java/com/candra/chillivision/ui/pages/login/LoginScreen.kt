@@ -1,7 +1,9 @@
 package com.candra.chillivision.ui.pages.login
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +60,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
@@ -69,7 +73,16 @@ import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.WhiteSoft
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -82,7 +95,7 @@ fun LoginScreen(
     )
 ) {
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -119,7 +132,7 @@ fun LoginScreen(
                 .padding(innerPadding)
         ) {
             TitleLogin(modifier)
-            FormLogin(modifier, viewModel, navController, context)
+            FormLogin(modifier, viewModel, navController, context, scope)
             // Catatan
             Catatan(modifier = modifier, navController = navController)
         }
@@ -151,12 +164,14 @@ fun TitleLogin(modifier: Modifier = Modifier) {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FormLogin(
     modifier: Modifier = Modifier,
     viewModel: LoginScreenViewModel,
     navController: NavController,
-    context: Context
+    context: Context,
+    scope: CoroutineScope
 ) {
 
     val focusRequester = remember { FocusRequester() }
@@ -279,14 +294,18 @@ fun FormLogin(
         } else {
             Button(
                 onClick = {
-                    validationLogin(
-                        textNoHandphone.trim(),
-                        textPassword.trim(),
-                        context,
-                        viewModel,
-                        navController
-                    ) { loading ->
-                        isLoading = loading
+                    scope.launch {
+                        validationLogin(
+                            no_handphone = textNoHandphone.trim(),
+                            password = textPassword.trim(),
+                            context = context,
+                            viewModel = viewModel,
+                            navController = navController,
+                            onLoadingStateChanged = { loading ->
+                                isLoading = loading
+                            },
+                            scope = scope
+                        )
                     }
                 },
                 modifier = Modifier
@@ -309,6 +328,8 @@ fun FormLogin(
         }
     }
 }
+
+
 
 
 @Composable
@@ -390,13 +411,15 @@ private fun Catatan(modifier: Modifier = Modifier, navController: NavController)
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun validationLogin(
     no_handphone: String,
     password: String,
     context: Context,
     viewModel: LoginScreenViewModel,
     navController: NavController,
-    onLoadingStateChanged: (Boolean) -> Unit
+    onLoadingStateChanged: (Boolean) -> Unit,
+    scope : CoroutineScope
 ) {
     if (no_handphone.isEmpty()) {
         SweetAlertComponent(context, "Peringatan", "No Handphone tidak boleh kosong", "warning")
@@ -409,19 +432,22 @@ private fun validationLogin(
             lifecycleOwner = context as LifecycleOwner,
             password = password,
             navController = navController,
-            onLoadingStateChanged = onLoadingStateChanged
+            onLoadingStateChanged = onLoadingStateChanged,
+            scope = scope
         )
     }
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun login(
     viewModel: LoginScreenViewModel,
     noHandphone: String,
     lifecycleOwner: LifecycleOwner,
     password: String,
     navController: NavController,
-    onLoadingStateChanged: (Boolean) -> Unit
+    onLoadingStateChanged: (Boolean) -> Unit,
+    scope : CoroutineScope,
 ) {
     viewModel.setLogin(noHandphone, password).observe(lifecycleOwner) { result ->
         if (result != null) {
@@ -437,7 +463,7 @@ private fun login(
                         fullname = result.data.data?.fullname.toString(),
                         noHandphone = result.data.data?.noHandphone.toString(),
                         image = if (result.data.data?.imageUrl.toString() == null || result.data.data?.imageUrl.toString() == "null") "" else result.data.data?.imageUrl.toString(),
-                        subscriptionName = result.data.data?.historySubscriptions?.subscriptions?.title ?: "free"
+                        subscriptionName = result.data.data?.historySubscriptions?.subscriptions?.title ?: "Gratis"
                     ) {
                         onLoadingStateChanged(false)
 
@@ -450,8 +476,18 @@ private fun login(
                             "Hai, ${fullname}, Anda berhasil Masuk",
                             "success"
                         )
-                        navController.navigate("home") {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+
+                        // pengecekan
+                        scope.launch {
+                            initializeApp(viewModel)
+                            checkSubscriptionInBackground(scope = scope, viewModel = viewModel, lifecycleOwner = lifecycleOwner)
+                            navController.navigate("home") {
+                                popUpTo("login") {
+                                    inclusive = true // hapus login dari back stack
+                                }
+                                launchSingleTop = true
+                            }
+
                         }
                     }
                 }
@@ -478,5 +514,61 @@ private fun login(
                 }
             }
         }
+    }
+}
+
+
+private suspend fun initializeApp(viewModel : LoginScreenViewModel) {
+    val dateNow = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    val datePref = viewModel.getUsageDate().firstOrNull()
+
+    if (datePref.isNullOrEmpty() || datePref != dateNow) {
+        viewModel.setCountUsageAI("0")
+        viewModel.setCountUsageDetect("0")
+        viewModel.setUsageDate(dateNow)
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: LoginScreenViewModel, lifecycleOwner: LifecycleOwner) {
+    scope.launch {
+        val preferences = viewModel.getPreferences().firstOrNull()
+        val userId = preferences?.id.orEmpty()
+        if (userId.isEmpty()) return@launch
+
+        viewModel.checkSubscriptionActive(userId)
+            .observe(lifecycleOwner) { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val data = result.data.data
+                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
+                        val today = LocalDate.now()
+                        val endDate = data?.endDate?.let { LocalDate.parse(it, formatter) }
+
+                        if (endDate != null && endDate >= today) {
+                            // Langganan aktif
+                            scope.launch {
+                                viewModel.setSubscriptionName(data.subscriptions?.title ?: "Gratis")
+                            }
+                        } else {
+                            // Expired atau tidak ada langganan
+                            viewModel.updateStatusSubscriptionUser(data?.id.orEmpty(), "expired")
+                                .observeForever {
+                                    scope.launch {
+                                        viewModel.setSubscriptionName("Gratis")
+                                    }
+                                }
+                        }
+                    }
+
+                    is Result.Error -> {
+                        scope.launch {
+                            viewModel.setSubscriptionName("Gratis")
+                        }
+                    }
+
+                    else -> {}
+                }
+            }
     }
 }

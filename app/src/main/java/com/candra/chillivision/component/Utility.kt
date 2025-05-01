@@ -83,6 +83,7 @@ import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 
 fun Modifier.dashedBorder(width: Dp, radius: Dp, color: Color) =
     drawBehind {
@@ -202,7 +203,10 @@ fun createImageUri(context: Context): Uri {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/ScanImages")
+            put(
+                MediaStore.Images.Media.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/ScanImages"
+            )
         }
 
         context.contentResolver.insert(
@@ -211,7 +215,8 @@ fun createImageUri(context: Context): Uri {
         ) ?: throw IllegalStateException("Gagal membuat URI untuk Android 10+")
     } else {
         // Android 8 dan 9
-        val imageDir = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "ScanImages")
+        val imageDir =
+            File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "ScanImages")
         if (!imageDir.exists()) imageDir.mkdirs()
 
         val imageFile = File(imageDir, "IMG_${System.currentTimeMillis()}.jpg")
@@ -222,7 +227,6 @@ fun createImageUri(context: Context): Uri {
         )
     }
 }
-
 
 
 fun directToWhatsapp(context: Context, phoneNumber: String, message: String = "") {
@@ -300,7 +304,6 @@ fun InitialAvatar(
 }
 
 
-
 @Composable
 fun ButtonGreen(
     onClick: () -> Unit,
@@ -374,7 +377,7 @@ fun ButtonCustomColorWithIcon(
 fun ButtonBorderCustom(
     onClick: () -> Unit,
     text: String,
-    textSize : Int = 12,
+    textSize: Int = 12,
     color: Color,
     textColor: Color,
     width: Dp? = null, // Parameter width opsional
@@ -420,13 +423,11 @@ fun ButtonBorderCustom(
 }
 
 
-
-
 @Composable
 fun ButtonBorderGreen(
     onClick: () -> Unit,
     text: String,
-    textSize : Int = 12,
+    textSize: Int = 12,
     width: Dp? = null, // Parameter width opsional
     icon: ImageVector? = null, // Parameter icon opsional
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
@@ -564,7 +565,8 @@ fun convertIsoToDateTime(isoTimestamp: String): String {
     val dateTime = LocalDateTime.parse(isoTimestamp, inputFormatter)
 
     // Konversi ke zona waktu GMT+7 (Asia/Jakarta)
-    val zonedDateTime = dateTime.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Jakarta"))
+    val zonedDateTime =
+        dateTime.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Jakarta"))
 
     // Formatter untuk output dengan format 24 jam
     val outputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
@@ -587,7 +589,8 @@ fun MenuScan(
     isDarkTheme: Boolean,
     icon: Int,
     title: String,
-    desc: String,
+    sizeTitle : Int = 12,
+    desc: String = "",
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
@@ -619,22 +622,53 @@ fun MenuScan(
         ) {
             TextBold(
                 text = title,
-                sized = 12,
+                sized = sizeTitle,
                 textAlign = TextAlign.Start,
                 colors = if (isSystemInDarkTheme()) White else BlackMode
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = desc,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily(Font(R.font.quicksand_regular)),
-                    fontWeight = FontWeight.Normal,
-                    color = if (isDarkTheme) PrimaryGreen else Color.Black
-                ),
-                textAlign = TextAlign.Justify
-            )
+            if (desc.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = desc,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                        fontWeight = FontWeight.Normal,
+                        color = if (isDarkTheme) PrimaryGreen else Color.Black
+                    ),
+                    textAlign = TextAlign.Justify
+                )
+            }
         }
     }
 }
 
+fun hitungSelisihHari(tanggalAwal: String, tanggalAkhir: String): Int {
+    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return try {
+        val dateAwal = format.parse(tanggalAwal)
+        val dateAkhir = format.parse(tanggalAkhir)
+
+        if (dateAwal != null && dateAkhir != null) {
+            val diffInMillis = abs(dateAkhir.time - dateAwal.time)
+            (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
+        } else 0
+    } catch (e: Exception) {
+        0
+    }
+}
+
+fun hitungHariMenujuTanggal(tanggalAkhir: String): Int {
+    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return try {
+        val endDate = format.parse(tanggalAkhir)
+        val today = Date()
+
+        if (endDate != null) {
+            val diffInMillis = endDate.time - today.time
+            (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
+        } else 0
+    } catch (e: Exception) {
+        0
+    }
+}

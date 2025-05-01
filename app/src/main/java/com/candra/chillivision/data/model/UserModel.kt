@@ -13,4 +13,6 @@ data class UserModel(
     val subscriptionName : String = "",
     val startDateSubscription : String = "",
     val endDateSubscription : String = "",
+    val countUsageAI : String = "",
+    val countUsageDetect : String = "",
 ) : Parcelable

@@ -6,17 +6,18 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,16 +57,29 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.InitialAvatar
+import com.candra.chillivision.component.MenuScan
 import com.candra.chillivision.component.TextBold
+import com.candra.chillivision.component.TextRegular
 import com.candra.chillivision.component.createImageUri
 import com.candra.chillivision.component.handleCameraPermission
+import com.candra.chillivision.component.hitungHariMenujuTanggal
+import com.candra.chillivision.component.hitungSelisihHari
+import com.candra.chillivision.component.konversiFormatTanggal
 import com.candra.chillivision.data.vmf.ViewModelFactory
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_REGULAR
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM
+import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR
 import com.candra.chillivision.ui.theme.BlackMode
+import com.candra.chillivision.ui.theme.GraySoft
 import com.candra.chillivision.ui.theme.GreenSoft
 import com.candra.chillivision.ui.theme.PrimaryGreen
+import com.candra.chillivision.ui.theme.Red
 import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
+import kotlin.math.roundToInt
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -75,26 +91,18 @@ fun HomeScreen(
     val context = LocalContext.current
     val isDarkTheme = isSystemInDarkTheme()
     val scrollState = rememberScrollState()
+    val userPreferences by viewModel.getPreferences().collectAsState(initial = null)
 
     BackHandler(enabled = true) {
         ActivityCompat.finishAffinity(context as Activity)
     }
 
-    // Pastikan hanya membaca data sekali saat pertama kali dibuka
-    val userPreferences by viewModel.getPreferences()
-        .collectAsState(initial = null)
-
-
-
-    // Cek apakah data sudah tersedia
     when {
         userPreferences == null -> {
-            // Jika data belum dimuat, jangan tampilkan apapun (menghindari flicker)
             return
         }
 
         userPreferences?.token.isNullOrEmpty() -> {
-            // Jika token kosong, langsung arahkan ke welcome (sekali saja)
             LaunchedEffect(Unit) {
                 navController.navigate("welcome") {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -103,11 +111,53 @@ fun HomeScreen(
         }
 
         else -> {
-            Log.d("HomeScreen", "UserPreferences: $userPreferences")
-            Log.d("HomeScreen", "Start Date: ${userPreferences?.startDateSubscription}")
-            Log.d("HomeScreen", "End Date: ${userPreferences?.endDateSubscription}")
+            val countUsageAIPercentage: Int? =
+                userPreferences?.countUsageAI?.toIntOrNull()?.let { usage ->
+                    val maxUsage = when (userPreferences?.subscriptionName) {
+                        "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_AI_REGULAR
+                        "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
+                        else -> null
+                    }
 
-            // Jika token ada, langsung render HomeScreen
+                    maxUsage?.let { ((usage.toFloat() / it) * 100).roundToInt() }
+                }
+
+
+            val countUsageDetectPercentage: Int? =
+                userPreferences?.countUsageDetect?.toIntOrNull()?.let { usage ->
+                    val maxUsage = when (userPreferences?.subscriptionName) {
+                        "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR
+                        "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM
+                        else -> null
+                    }
+
+                    maxUsage?.let { ((usage.toFloat() / it) * 100).roundToInt() }
+                }
+
+
+            val maxCountUsageAI = when (userPreferences?.subscriptionName) {
+                "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_AI_REGULAR
+                "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
+                else -> null
+            }
+
+            val maxCountUsageDetect = when (userPreferences?.subscriptionName) {
+                "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR
+                "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM
+                else -> null
+            }
+
+            val countUsageAIFloat =
+                (countUsageAIPercentage?.div(maxCountUsageAI?.toFloat()!!)) ?: 0f
+            val countUsageDetectFloat =
+                (countUsageDetectPercentage?.div(maxCountUsageDetect?.toFloat()!!)) ?: 0f
+
+            val start = userPreferences?.startDateSubscription ?: ""
+            val end = userPreferences?.endDateSubscription ?: ""
+            val diffDaysFromNow = hitungHariMenujuTanggal(end)
+            val totalDays = hitungSelisihHari(start, end)
+            val dayPersentage = (diffDaysFromNow.toFloat() / totalDays.toFloat())
+
             Column(
                 modifier = modifier
                     .verticalScroll(scrollState)
@@ -119,6 +169,143 @@ fun HomeScreen(
                     userPreferences?.image ?: "",
                     navController
                 )
+                Column(
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isDarkTheme) BlackMode else GreenSoft)
+                ) {
+                    TextBold(
+                        text = "Penggunaan Harian Chilli Vision",
+                        sized = 12,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        textAlign = TextAlign.Center,
+                        colors = if (isSystemInDarkTheme()) White else BlackMode
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+
+                            Box(contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(
+                                    progress = countUsageDetectFloat,
+                                    trackColor = if (isDarkTheme) WhiteSoft else GraySoft,
+                                    strokeWidth = 6.dp,
+                                    modifier = Modifier.size(80.dp),
+                                    color = if (countUsageAIFloat > 0.95f) Red else PrimaryGreen,
+                                )
+
+                                Column(
+                                    modifier = Modifier,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    TextBold(
+                                        text = "$countUsageDetectPercentage%", sized = 11
+                                    )
+                                    TextRegular(
+                                        text = "${userPreferences?.countUsageDetect}/$maxCountUsageDetect",
+                                        sized = 9
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            TextBold(text = "Deteksi 🔍", colors = PrimaryGreen, sized = 10)
+                        }
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(
+                                    progress = countUsageAIFloat,
+                                    trackColor = if (isDarkTheme) WhiteSoft else GraySoft,
+                                    strokeWidth = 6.dp,
+                                    modifier = Modifier.size(80.dp), 
+                                    color = if (countUsageAIFloat > 0.95f) Red else PrimaryGreen,
+                                )
+
+                                Column(
+                                    modifier = Modifier,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    TextBold(
+                                        text = "$countUsageAIPercentage%", sized = 11
+                                    )
+                                    TextRegular(
+                                        text = "${userPreferences?.countUsageAI}/$maxCountUsageAI",
+                                        sized = 9
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            TextBold(text = "Tanya AI ✨", colors = PrimaryGreen, sized = 10)
+
+                        }
+                    }
+
+                    if (userPreferences?.subscriptionName != "Gratis") {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                        ) {
+                            TextBold(
+                                text = "${userPreferences?.subscriptionName}",
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.fillMaxWidth(),
+                                sized = 12
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            LinearProgressIndicator(
+                                progress = dayPersentage,
+                                modifier = Modifier.fillMaxWidth(),
+                                trackColor = if (isDarkTheme) WhiteSoft else GraySoft,
+                                color = if (dayPersentage < 0.03f) Red else PrimaryGreen,
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween // Untuk kiri dan kanan
+                            ) {
+                                TextRegular(
+                                    text = "${
+                                        userPreferences?.startDateSubscription?.let {
+                                            konversiFormatTanggal(
+                                                it
+                                            )
+                                        }
+                                    }", sized = 10
+                                )  // Teks di kiri bawah
+                                TextRegular(
+                                    text = "${
+                                        userPreferences?.endDateSubscription?.let {
+                                            konversiFormatTanggal(
+                                                it
+                                            )
+                                        }
+                                    }", sized = 10
+                                )  // Teks di kiri bawah
+                            }
+                        }
+                    }
+                }
                 QuickAccess(isDarkTheme, navController, context)
                 TanyaAI(isDarkTheme, navController)
                 VideoTutorial(isDarkTheme, context)
@@ -130,10 +317,7 @@ fun HomeScreen(
 
 @Composable
 private fun HeaderHomeScreen(
-    isDarkTheme: Boolean,
-    fullname: String,
-    image: String,
-    navController: NavController
+    isDarkTheme: Boolean, fullname: String, image: String, navController: NavController
 ) {
     Row(
         modifier = Modifier
@@ -143,10 +327,7 @@ private fun HeaderHomeScreen(
         verticalAlignment = Alignment.CenterVertically
     ) {
         InitialAvatar(
-            fullname = fullname,
-            imageUrl = image,
-            size = 35.dp,
-            fs = 25
+            fullname = fullname, imageUrl = image, size = 35.dp, fs = 25
         )
 
         Column(
@@ -158,27 +339,25 @@ private fun HeaderHomeScreen(
                 modifier = Modifier,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = PrimaryGreen,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                     fontWeight = FontWeight.Bold
                 )
             )
-            TextBold(
+            TextRegular(
                 text = "Semoga harimu menyenangkan!",
                 sized = 12,
                 colors = if (isDarkTheme) Color.White else Color.Black
             )
         }
 
-        Image(
-            painter = painterResource(id = R.drawable.notification),
+        Image(painter = painterResource(id = R.drawable.notification),
             contentDescription = "Avatar",
             modifier = Modifier
                 .size(25.dp)
                 .clickable {
                     navController.navigate("notification")
-                }
-        )
+                })
 
     }
 }
@@ -205,37 +384,27 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, cont
         }
     }
 
-
-//    val permissionLauncher = rememberLauncherForActivityResult(
-//        ActivityResultContracts.RequestPermission()
-//    ) { isGranted ->
-//        if (isGranted) {
-//            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
-//            capturedImageUri?.let { cameraLauncher.launch(it) }
-//        } else {
-//            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val cameraGranted = permissions[Manifest.permission.CAMERA] == true
-        val storageGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        val storageGranted =
+            permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
         if (cameraGranted && storageGranted) {
             val uri = createImageUri(context)
             capturedImageUri = uri
             cameraLauncher.launch(uri)
         } else {
-            Toast.makeText(context, "Izin kamera atau penyimpanan ditolak", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Izin kamera atau penyimpanan ditolak", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
     Column(
         modifier = Modifier
-            .padding(vertical = 16.dp)
+            .padding(vertical = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(8.dp))
             .background(if (isDarkTheme) BlackMode else GreenSoft)
     ) {
         TextBold(
@@ -244,28 +413,46 @@ private fun QuickAccess(isDarkTheme: Boolean, navController: NavController, cont
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-            textAlign = TextAlign.Start,
+            textAlign = TextAlign.Center,
             colors = if (isSystemInDarkTheme()) White else BlackMode
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
         Row(
             modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            MenuQuickAccess(
-                title = "Potret\nLangsung",
+            // Memberikan weight agar setiap MenuScan memiliki 50% lebar
+            MenuScan(
+                isDarkTheme = isSystemInDarkTheme(),
                 icon = R.drawable.potret_langsung,
+                title = "Potret Langsung",
+                sizeTitle = 11,
+                modifier = Modifier.weight(1f),  // Memberikan 50% lebar
                 onClick = {
                     val newUri = createImageUri(context)
                     capturedImageUri = newUri
-                    handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
-                })
-            MenuQuickAccess(title = "Unggah\nGambar", icon = R.drawable.upload_cloud, onClick = {
-                launcher.launch("image/*")
-            })
+                    handleCameraPermission(
+                        context,
+                        permissionLauncher,
+                        cameraLauncher,
+                        newUri
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))  // Jarak antar menu
+
+            MenuScan(
+                isDarkTheme = isSystemInDarkTheme(),
+                icon = R.drawable.upload_cloud,
+                title = "Unggah Gambar",
+                sizeTitle = 11,
+                modifier = Modifier.weight(1f),  // Memberikan 50% lebar
+                onClick = {
+                    launcher.launch("image/*")
+                }
+            )
         }
     }
 }
@@ -316,9 +503,9 @@ private fun MenuQuickAccess(title: String, icon: Int, onClick: () -> Unit = {}) 
 private fun TanyaAI(isDarkTheme: Boolean, navController: NavController) {
     Column(
         modifier = Modifier
-            .padding(vertical = 16.dp)
+            .padding(vertical = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(8.dp))
             .background(if (isDarkTheme) BlackMode else GreenSoft)
     ) {
         TextBold(
@@ -327,7 +514,8 @@ private fun TanyaAI(isDarkTheme: Boolean, navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-            textAlign = TextAlign.Start, colors = if (isSystemInDarkTheme()) White else BlackMode
+            textAlign = TextAlign.Start,
+            colors = if (isSystemInDarkTheme()) White else BlackMode
         )
         Spacer(modifier = Modifier.height(16.dp))
         MenuTanyaAI(isDarkTheme, navController)
@@ -336,18 +524,16 @@ private fun TanyaAI(isDarkTheme: Boolean, navController: NavController) {
 
 @Composable
 private fun MenuTanyaAI(isDarkTheme: Boolean, navController: NavController) {
-    Row(
-        modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(color = if (isDarkTheme) BlackMode else WhiteSoft)
-            .border(width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp))
-            .clickable { navController.navigate("chilliAI") }
-            .padding(8.dp),
+    Row(modifier = Modifier
+        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(8.dp))
+        .background(color = if (isDarkTheme) BlackMode else WhiteSoft)
+        .border(width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp))
+        .clickable { navController.navigate("chilliAI") }
+        .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+        verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = painterResource(id = R.drawable.tanya_ai),
             contentDescription = "Tanya AI",
@@ -395,9 +581,9 @@ private fun MenuTanyaAI(isDarkTheme: Boolean, navController: NavController) {
 private fun VideoTutorial(isDarkTheme: Boolean, context: Context) {
     Column(
         modifier = Modifier
-            .padding(vertical = 16.dp)
+            .padding(vertical = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(8.dp))
             .background(if (isDarkTheme) BlackMode else GreenSoft)
     ) {
         TextBold(
@@ -406,7 +592,8 @@ private fun VideoTutorial(isDarkTheme: Boolean, context: Context) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-            textAlign = TextAlign.Start, colors = if (isSystemInDarkTheme()) White else BlackMode
+            textAlign = TextAlign.Start,
+            colors = if (isSystemInDarkTheme()) White else BlackMode
         )
         Spacer(modifier = Modifier.height(16.dp))
         MenuVideoTutorial(
@@ -430,31 +617,24 @@ private fun VideoTutorial(isDarkTheme: Boolean, context: Context) {
 
 @Composable
 private fun MenuVideoTutorial(
-    title: String,
-    textDesc: String,
-    icon: Int,
-    isDarkTheme: Boolean,
-    context: Context,
-    link: String
+    title: String, textDesc: String, icon: Int, isDarkTheme: Boolean, context: Context, link: String
 ) {
-    Row(
-        modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(color = if (isDarkTheme) BlackMode else WhiteSoft)
-            .border(
-                width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
-            )
-            .clickable {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Pastikan intent berjalan di task baru
-                context.startActivity(intent)
-            }
-            .padding(8.dp),
+    Row(modifier = Modifier
+        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(8.dp))
+        .background(color = if (isDarkTheme) BlackMode else WhiteSoft)
+        .border(
+            width = 1.dp, color = PrimaryGreen, shape = RoundedCornerShape(8.dp)
+        )
+        .clickable {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Pastikan intent berjalan di task baru
+            context.startActivity(intent)
+        }
+        .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+        verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = painterResource(id = icon),
             contentDescription = "Video Tutorial",

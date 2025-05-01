@@ -465,29 +465,27 @@ private fun login(
                         image = if (result.data.data?.imageUrl.toString() == null || result.data.data?.imageUrl.toString() == "null") "" else result.data.data?.imageUrl.toString(),
                         subscriptionName = result.data.data?.historySubscriptions?.subscriptions?.title ?: "Gratis"
                     ) {
-                        onLoadingStateChanged(false)
-
                         Log.d("Token Berhasil Disimpan", "login: ${result.data.data}")
 
                         val fullname = result.data.data?.fullname.orEmpty()
-                        SweetAlertComponent(
-                            lifecycleOwner as Context,
-                            "Berhasil",
-                            "Hai, ${fullname}, Anda berhasil Masuk",
-                            "success"
-                        )
-
                         // pengecekan
                         scope.launch {
                             initializeApp(viewModel)
-                            checkSubscriptionInBackground(scope = scope, viewModel = viewModel, lifecycleOwner = lifecycleOwner)
-                            navController.navigate("home") {
-                                popUpTo("login") {
-                                    inclusive = true // hapus login dari back stack
+                            checkSubscriptionInBackground(scope = scope, viewModel = viewModel, lifecycleOwner = lifecycleOwner, navController = navController, onDone = {
+                                onLoadingStateChanged(false)
+                                SweetAlertComponent(
+                                    lifecycleOwner as Context,
+                                    "Berhasil",
+                                    "Hai, ${fullname}, Anda berhasil Masuk",
+                                    "success"
+                                )
+                                navController.navigate("home") {
+                                    popUpTo("login") {
+                                        inclusive = true // hapus login dari back stack
+                                    }
+                                    launchSingleTop = true
                                 }
-                                launchSingleTop = true
-                            }
-
+                            })
                         }
                     }
                 }
@@ -530,7 +528,7 @@ private suspend fun initializeApp(viewModel : LoginScreenViewModel) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: LoginScreenViewModel, lifecycleOwner: LifecycleOwner) {
+private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: LoginScreenViewModel, lifecycleOwner: LifecycleOwner, navController: NavController, onDone : () -> Unit = {}) {
     scope.launch {
         val preferences = viewModel.getPreferences().firstOrNull()
         val userId = preferences?.id.orEmpty()
@@ -544,15 +542,17 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
                         val today = LocalDate.now()
                         val endDate = data?.endDate?.let { LocalDate.parse(it, formatter) }
+                        val startDate = data?.startDate?.let { LocalDate.parse(it, formatter) }
 
                         if (endDate != null && endDate >= today) {
                             // Langganan aktif
                             scope.launch {
                                 viewModel.setSubscriptionName(data.subscriptions?.title ?: "Gratis")
                                 viewModel.setStartEndSubscriptionDate(
-                                    data.startDate.orEmpty(),
-                                    data.endDate
+                                    startDate = startDate.toString(),
+                                    endDate = endDate.toString()
                                 )
+                                onDone()
                             }
                         } else {
                             // Expired atau tidak ada langganan
@@ -561,6 +561,7 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                                     scope.launch {
                                         viewModel.setSubscriptionName("Gratis")
                                         viewModel.setStartEndSubscriptionDate("", "")
+                                        onDone()
                                     }
                                 }
                         }
@@ -570,6 +571,7 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                         scope.launch {
                             viewModel.setSubscriptionName("Gratis")
                             viewModel.setStartEndSubscriptionDate("", "")
+                            onDone()
                         }
                     }
 

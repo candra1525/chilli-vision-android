@@ -80,6 +80,9 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
                 pref[SUBSCRIPTION_NAME_KEY] ?: "",
                 pref[START_SUBSCRIPTION_DATE] ?: "",
                 pref[END_SUBSCRIPTION_DATE] ?: "",
+                pref[COUNT_USAGE_AI] ?: "0",
+                pref[COUNT_USAGE_DETECT] ?: "0",
+
             )
         }
     }
@@ -116,7 +119,15 @@ class UserPreferences private constructor(private val dataStore: DataStore<Prefe
 
     suspend fun clearPreferences() {
         dataStore.edit { pref ->
-            pref.clear()
+            pref[TOKEN_KEY] = ""
+            pref[ID_KEY] = ""
+            pref[FULLNAME_KEY] = ""
+            pref[NOHANDPHONE_KEY] = ""
+            pref[IMAGE_KEY] = ""
+            pref[SUBSCRIPTION_NAME_KEY] = ""
+
+            pref[START_SUBSCRIPTION_DATE] = ""
+            pref[END_SUBSCRIPTION_DATE] = ""
         }
     }
 

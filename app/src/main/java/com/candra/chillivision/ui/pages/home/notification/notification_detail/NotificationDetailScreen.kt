@@ -92,7 +92,8 @@ fun NotificationDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp, 0.dp),
+                    .padding(16.dp, 0.dp)
+                    .verticalScroll(scrollState),
             ) {
                 TextBold(
                     text = title,

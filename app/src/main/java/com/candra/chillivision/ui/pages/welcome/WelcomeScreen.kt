@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -21,21 +23,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
-import com.candra.chillivision.ui.theme.White
 import com.candra.chillivision.ui.theme.WhiteSoft
 
 @Composable
 fun WelcomeScreen(modifier: Modifier = Modifier, navController: NavController) {
+    val scrollState = rememberScrollState()
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
@@ -46,7 +52,10 @@ fun WelcomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                 .weight(1f),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "Chilli Vision",
                     modifier = Modifier.padding(32.dp),
@@ -141,7 +150,7 @@ fun BottomWelcome(navController: NavController) {
                 ),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if(isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
                 contentColor = PrimaryGreen
             )
         )
@@ -160,8 +169,56 @@ fun BottomWelcome(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        val annotatedString = buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(
+                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                )
+            ) {
+                append("Dengan melanjutkan proses pendaftaran akun pada Chilli Vision, saya menyetujui semua ")
+            }
+            pushStringAnnotation(tag = "terms", annotation = "terms")
+            withStyle(
+                style = SpanStyle(
+                    color = PrimaryGreen,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline
+                )
+            ) {
+                append("Ketentuan Layanan")
+            }
+            pop()
+
+            withStyle(
+                style = SpanStyle(
+                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                )
+            ) {
+                append(" dan ")
+            }
+            pushStringAnnotation(tag = "privacy", annotation = "privacy")
+            withStyle(
+                style = SpanStyle(
+                    color = PrimaryGreen,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline
+                )
+            ) {
+                append("Kebijakan Privasi")
+            }
+            pop()
+            withStyle(
+                style = SpanStyle(
+                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                )
+            ) {
+                append(".")
+            }
+        }
+
+
         Text(
-            text = "Dengan masuk atau mendaftar pada Chilli Vision, kamu menyetujui Ketentuan Layanan dan Kebijakan Privasi.",
+            text = annotatedString,
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 9.sp,
                 fontFamily = FontFamily(Font(R.font.quicksand_regular)),

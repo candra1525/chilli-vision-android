@@ -5,13 +5,10 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -60,12 +57,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.candra.chillivision.R
 import com.candra.chillivision.component.AnimatedLoading
-import com.candra.chillivision.component.HeaderComponentLoginRegister
 import com.candra.chillivision.component.SweetAlertComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.data.common.Result
@@ -96,6 +91,7 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -129,11 +125,12 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
+                .padding(bottom = 32.dp)
         ) {
             TitleLogin(modifier)
             FormLogin(modifier, viewModel, navController, context, scope)
-            // Catatan
             Catatan(modifier = modifier, navController = navController)
         }
     }
@@ -250,7 +247,8 @@ fun FormLogin(
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(value = textPassword,
+        OutlinedTextField(
+            value = textPassword,
             onValueChange = {
                 textPassword = it
             },
@@ -330,11 +328,9 @@ fun FormLogin(
 }
 
 
-
-
 @Composable
 private fun Catatan(modifier: Modifier = Modifier, navController: NavController) {
-    Column(modifier = Modifier.padding(horizontal = 32.dp)) {
+    Column(modifier = Modifier.padding(top = 16.dp, start = 32.dp, end = 32.dp)) {
         Text(
             text = "Catatan :", style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 12.sp,
@@ -419,7 +415,7 @@ private fun validationLogin(
     viewModel: LoginScreenViewModel,
     navController: NavController,
     onLoadingStateChanged: (Boolean) -> Unit,
-    scope : CoroutineScope
+    scope: CoroutineScope
 ) {
     if (no_handphone.isEmpty()) {
         SweetAlertComponent(context, "Peringatan", "No Handphone tidak boleh kosong", "warning")
@@ -447,7 +443,7 @@ private fun login(
     password: String,
     navController: NavController,
     onLoadingStateChanged: (Boolean) -> Unit,
-    scope : CoroutineScope,
+    scope: CoroutineScope,
 ) {
     viewModel.setLogin(noHandphone, password).observe(lifecycleOwner) { result ->
         if (result != null) {
@@ -463,7 +459,8 @@ private fun login(
                         fullname = result.data.data?.fullname.toString(),
                         noHandphone = result.data.data?.noHandphone.toString(),
                         image = if (result.data.data?.imageUrl.toString() == null || result.data.data?.imageUrl.toString() == "null") "" else result.data.data?.imageUrl.toString(),
-                        subscriptionName = result.data.data?.historySubscriptions?.subscriptions?.title ?: "Gratis"
+                        subscriptionName = result.data.data?.historySubscriptions?.subscriptions?.title
+                            ?: "Gratis"
                     ) {
                         Log.d("Token Berhasil Disimpan", "login: ${result.data.data}")
 
@@ -471,21 +468,26 @@ private fun login(
                         // pengecekan
                         scope.launch {
                             initializeApp(viewModel)
-                            checkSubscriptionInBackground(scope = scope, viewModel = viewModel, lifecycleOwner = lifecycleOwner, navController = navController, onDone = {
-                                onLoadingStateChanged(false)
-                                SweetAlertComponent(
-                                    lifecycleOwner as Context,
-                                    "Berhasil",
-                                    "Hai, ${fullname}, Anda berhasil Masuk",
-                                    "success"
-                                )
-                                navController.navigate("home") {
-                                    popUpTo("login") {
-                                        inclusive = true // hapus login dari back stack
+                            checkSubscriptionInBackground(
+                                scope = scope,
+                                viewModel = viewModel,
+                                lifecycleOwner = lifecycleOwner,
+                                navController = navController,
+                                onDone = {
+                                    onLoadingStateChanged(false)
+                                    SweetAlertComponent(
+                                        lifecycleOwner as Context,
+                                        "Berhasil",
+                                        "Hai, ${fullname}, Anda berhasil Masuk",
+                                        "success"
+                                    )
+                                    navController.navigate("home") {
+                                        popUpTo("login") {
+                                            inclusive = true // hapus login dari back stack
+                                        }
+                                        launchSingleTop = true
                                     }
-                                    launchSingleTop = true
-                                }
-                            })
+                                })
                         }
                     }
                 }
@@ -516,7 +518,7 @@ private fun login(
 }
 
 
-private suspend fun initializeApp(viewModel : LoginScreenViewModel) {
+private suspend fun initializeApp(viewModel: LoginScreenViewModel) {
     val dateNow = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     val datePref = viewModel.getUsageDate().firstOrNull()
 
@@ -528,7 +530,13 @@ private suspend fun initializeApp(viewModel : LoginScreenViewModel) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: LoginScreenViewModel, lifecycleOwner: LifecycleOwner, navController: NavController, onDone : () -> Unit = {}) {
+private fun checkSubscriptionInBackground(
+    scope: CoroutineScope,
+    viewModel: LoginScreenViewModel,
+    lifecycleOwner: LifecycleOwner,
+    navController: NavController,
+    onDone: () -> Unit = {}
+) {
     scope.launch {
         val preferences = viewModel.getPreferences().firstOrNull()
         val userId = preferences?.id.orEmpty()
@@ -539,7 +547,8 @@ private fun checkSubscriptionInBackground(scope : CoroutineScope, viewModel: Log
                 when (result) {
                     is Result.Success -> {
                         val data = result.data.data
-                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
+                        val formatter =
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
                         val today = LocalDate.now()
                         val endDate = data?.endDate?.let { LocalDate.parse(it, formatter) }
                         val startDate = data?.startDate?.let { LocalDate.parse(it, formatter) }

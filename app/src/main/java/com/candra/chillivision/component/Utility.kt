@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.annotation.RequiresApi
@@ -73,6 +74,7 @@ import com.candra.chillivision.ui.theme.WhiteSoft
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -81,8 +83,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.abs
 
 fun Modifier.dashedBorder(width: Dp, radius: Dp, color: Color) =
@@ -497,40 +501,65 @@ fun formatRupiah(number: Int): String {
     return "Rp.$reverseWithDot,00"
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun DateToday(): String {
-    val today = LocalDate.now()
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val formattedDate = today.format(formatter)
-    return formattedDate
+    val calendar = Calendar.getInstance()
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("id", "ID"))
+    return simpleDateFormat.format(calendar.time)
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun DatePlusMonths(date: String, periode: Int): String? {
     return try {
-        val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val localDate = LocalDate.parse(date, inputFormatter)
-        val futureDate = localDate.plus(Period.ofMonths(periode))
-        val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        futureDate.format(outputFormatter)
-    } catch (e: DateTimeParseException) {
-        println("Format tanggal input tidak valid. Gunakan format yyyy-MM-dd.")
+        val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale("id", "ID"))
+        val calendar = Calendar.getInstance()
+        val parsedDate = inputFormatter.parse(date)
+
+        if (parsedDate != null) {
+            calendar.time = parsedDate
+            calendar.add(Calendar.MONTH, periode)
+
+            val outputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale("id", "ID"))
+            outputFormatter.format(calendar.time)
+        } else {
+            null
+        }
+    } catch (e: ParseException) {
+        Log.e("DATE_PLUS_MONTHS", "Format tanggal input tidak valid. Gunakan format yyyy-MM-dd.", e)
         null
     }
 }
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 fun konversiFormatTanggal(tanggalInput: String): String? {
     return try {
-        val tanggal = LocalDate.parse(tanggalInput)
-        val formatter =
-            DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale("id", "ID")) // Locale Indonesia
-        tanggal.format(formatter)
-    } catch (e: DateTimeParseException) {
-        println("Format tanggal tidak valid. Gunakan format yyyy-MM-dd.")
-        null // Mengembalikan null jika format tanggal tidak valid
+        // Format input sesuai dengan format tanggal yang diberikan
+        val inputFormatter = SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH)
+        val tanggal = inputFormatter.parse(tanggalInput)
+
+        // Format output menjadi "dd MMMM yyyy" dalam Bahasa Indonesia
+        val outputFormatter = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
+        tanggal?.let {
+            outputFormatter.format(it)
+        }
+    } catch (e: ParseException) {
+        Log.e("KONVERSI FORMAT TANGGAL", "Format tanggal tidak valid. $e")
+        null
+    }
+}
+
+fun konversiFormatTanggal2(tanggalInput: String): String? {
+    return try {
+        // Format input: "yyyy-MM-dd"
+        val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val tanggal = inputFormatter.parse(tanggalInput)
+
+        // Format output: "dd MMMM yyyy" dalam Bahasa Indonesia
+        val outputFormatter = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
+        tanggal?.let {
+            outputFormatter.format(it)
+        }
+    } catch (e: ParseException) {
+        Log.e("KONVERSI FORMAT TANGGAL", "Format tanggal tidak valid. $e")
+        null
     }
 }
 
@@ -558,31 +587,49 @@ fun compressImage(imageFile: File, maxSizeKB: Int): File {
     return compressedFile
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun convertIsoToDateTime(isoTimestamp: String): String {
-    // Formatter untuk parsing timestamp ISO 8601
-    val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'")
-    val dateTime = LocalDateTime.parse(isoTimestamp, inputFormatter)
+fun convertIsoToDateTime(isoTimestamp: String): String? {
+    return try {
+        // Format input ISO 8601, contoh: "2025-04-20T14:30:00.000000Z"
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.US)
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
 
-    // Konversi ke zona waktu GMT+7 (Asia/Jakarta)
-    val zonedDateTime =
-        dateTime.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Jakarta"))
+        val date = inputFormat.parse(isoTimestamp)
 
-    // Formatter untuk output dengan format 24 jam
-    val outputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
+        // Format output: "20 April 2025, 21:30" (waktu Asia/Jakarta)
+        val outputFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("id", "ID"))
+        outputFormat.timeZone = TimeZone.getTimeZone("Asia/Jakarta")
 
-    return zonedDateTime.format(outputFormatter)
+        date?.let {
+            outputFormat.format(it)
+        }
+    } catch (e: Exception) {
+        Log.e("ISO_TO_DATETIME", "Gagal mengonversi ISO timestamp: $e")
+        null
+    }
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun daysRemaining(endDate: String): Long {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val nowDate = LocalDate.now() // Ambil tanggal sekarang
-    val endDateObj = LocalDate.parse(endDate, formatter)
+    return try {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val today = Calendar.getInstance()
+        val end = Calendar.getInstance()
 
-    return ChronoUnit.DAYS.between(nowDate, endDateObj)
+        val endDateParsed = formatter.parse(endDate)
+        if (endDateParsed != null) {
+            end.time = endDateParsed
+
+            val diffInMillis = end.timeInMillis - today.timeInMillis
+            diffInMillis / (1000 * 60 * 60 * 24)
+        } else {
+            0L
+        }
+    } catch (e: Exception) {
+        Log.e("DAYS_REMAINING", "Gagal menghitung sisa hari: $e")
+        0L
+    }
 }
+
 
 @Composable
 fun MenuScan(
@@ -644,7 +691,7 @@ fun MenuScan(
 }
 
 fun hitungSelisihHari(tanggalAwal: String, tanggalAkhir: String): Int {
-    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val format = SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH)
     return try {
         val dateAwal = format.parse(tanggalAwal)
         val dateAkhir = format.parse(tanggalAkhir)
@@ -654,12 +701,13 @@ fun hitungSelisihHari(tanggalAwal: String, tanggalAkhir: String): Int {
             (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
         } else 0
     } catch (e: Exception) {
+        Log.e("HITUNG_SELISIH", "Gagal parsing tanggal: $e")
         0
     }
 }
 
 fun hitungHariMenujuTanggal(tanggalAkhir: String): Int {
-    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val format = SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH)
     return try {
         val endDate = format.parse(tanggalAkhir)
         val today = Date()
@@ -669,6 +717,7 @@ fun hitungHariMenujuTanggal(tanggalAkhir: String): Int {
             (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
         } else 0
     } catch (e: Exception) {
+        Log.e("HITUNG_MENUJU", "Gagal parsing tanggal: $e")
         0
     }
 }

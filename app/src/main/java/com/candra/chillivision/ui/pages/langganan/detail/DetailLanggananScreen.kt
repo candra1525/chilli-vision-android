@@ -71,6 +71,7 @@ import com.candra.chillivision.component.dashedBorder
 import com.candra.chillivision.component.directToWhatsapp
 import com.candra.chillivision.component.formatRupiah
 import com.candra.chillivision.component.konversiFormatTanggal
+import com.candra.chillivision.component.konversiFormatTanggal2
 import com.candra.chillivision.component.uriToFile
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.model.UserModel
@@ -288,7 +289,7 @@ fun DetailLanggananScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     TextBold(text = "Tanggal Mulai", sized = 12)
-                                    konversiFormatTanggal(DateToday())?.let {
+                                    konversiFormatTanggal2(DateToday())?.let {
                                         TextBold(
                                             text = it,
                                             sized = 12
@@ -305,7 +306,7 @@ fun DetailLanggananScreen(
                                         DateToday(),
                                         period
                                     )?.let {
-                                        konversiFormatTanggal(it)?.let {
+                                        konversiFormatTanggal2(it)?.let {
                                             TextBold(
                                                 text = it,
                                                 sized = 12

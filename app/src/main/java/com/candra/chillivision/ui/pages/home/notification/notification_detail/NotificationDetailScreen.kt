@@ -103,25 +103,11 @@ fun NotificationDetailScreen(
                 )
 
                 Spacer(modifier = Modifier.padding(2.dp))
-                TextBold(text = convertIsoToDateTime(datePublish), textAlign = TextAlign.Center)
+                convertIsoToDateTime(datePublish)?.let { TextBold(text = it, textAlign = TextAlign.Center) }
                 Spacer(modifier = Modifier.padding(8.dp))
 
                 TextRegular(text = description, textAlign = TextAlign.Justify, sized = 14)
             }
         }
     }
-
-//    Column(
-//        modifier = modifier.fillMaxWidth()
-//    ) {
-//        HeaderComponent("Detail Notifikasi", modifier, navController)
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .verticalScroll(scrollState)
-//                .imePadding()
-//        ) {
-//
-//        }
-//    }
 }

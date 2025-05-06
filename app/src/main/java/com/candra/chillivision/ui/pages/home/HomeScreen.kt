@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -111,6 +112,9 @@ fun HomeScreen(
         }
 
         else -> {
+
+            Log.d("User Pref", "User Pref: ${userPreferences}")
+
             val countUsageAIPercentage: Int? =
                 userPreferences?.countUsageAI?.toIntOrNull()?.let { usage ->
                     val maxUsage = when (userPreferences?.subscriptionName) {
@@ -157,6 +161,7 @@ fun HomeScreen(
             val diffDaysFromNow = hitungHariMenujuTanggal(end)
             val totalDays = hitungSelisihHari(start, end)
             val dayPersentage = (diffDaysFromNow.toFloat() / totalDays.toFloat())
+            Log.d("Day Percentage", "Day Percentage: $dayPersentage")
 
             Column(
                 modifier = modifier
@@ -284,6 +289,7 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween // Untuk kiri dan kanan
                             ) {
+
                                 TextRegular(
                                     text = "${
                                         userPreferences?.startDateSubscription?.let {

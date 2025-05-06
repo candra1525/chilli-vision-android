@@ -248,12 +248,14 @@ fun NotificationItem(
                 horizontalArrangement = Arrangement.End
             ) {
 
-                TextBold(
-                    text = convertIsoToDateTime(notification?.createdAt ?: "-"),
-                    sized = 11,
-                    textAlign = TextAlign.End,
-                    colors = if (isSystemInDarkTheme()) White else BlackMode
-                )
+                convertIsoToDateTime(notification?.createdAt ?: "-")?.let {
+                    TextBold(
+                        text = it,
+                        sized = 11,
+                        textAlign = TextAlign.End,
+                        colors = if (isSystemInDarkTheme()) White else BlackMode
+                    )
+                }
             }
         }
     }

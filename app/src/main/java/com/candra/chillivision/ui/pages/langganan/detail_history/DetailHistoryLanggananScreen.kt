@@ -17,10 +17,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,12 +49,15 @@ import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.TextRegular
 import com.candra.chillivision.component.daysRemaining
 import com.candra.chillivision.component.konversiFormatTanggal
+import com.candra.chillivision.component.konversiFormatTanggal2
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.Red
 import com.candra.chillivision.ui.theme.White
+import com.candra.chillivision.ui.theme.WhiteSoft
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DetailHistoryLanggananScreen(
@@ -78,14 +89,40 @@ fun DetailHistoryLanggananScreen(
     // Gambar
     // Gambar transksi,
     val scrollState = rememberScrollState()
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        HeaderComponent("Detail Riwayat Langganan", modifier, navController)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextBold(
+                        "Detail Riwayat Langganan",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
+
+                modifier = Modifier.shadow(1.dp), // Shadow manual
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                )
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .padding(innerPadding)
                 .imePadding()
         ) {
             Column(
@@ -150,7 +187,7 @@ fun DetailHistoryLanggananScreen(
                             Spacer(modifier = Modifier.padding(8.dp))
                             if (statusTransaction != "active" || statusTransaction != "pending" || statusTransaction != "cancel") {
                                 TextBold(
-                                    text = "Berakhir pada : " + konversiFormatTanggal(endDate),
+                                    text = "Berakhir pada : " + konversiFormatTanggal2(endDate),
                                     sized = 14,
                                     colors = if (daysRemaining(endDate).toInt() <= 3) Red else PrimaryGreen
                                 )
@@ -180,7 +217,7 @@ fun DetailHistoryLanggananScreen(
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 TextRegular(
-                    text = "Tanggal Pembayaran Paket : " + konversiFormatTanggal(startDate),
+                    text = "Tanggal Pembayaran Paket : " + konversiFormatTanggal2(startDate),
                     sized = 16
                 )
                 Spacer(modifier = Modifier.padding(4.dp))

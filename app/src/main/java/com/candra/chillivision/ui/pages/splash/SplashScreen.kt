@@ -97,10 +97,24 @@ class SplashScreen : ComponentActivity() {
                     when (result) {
                         is Result.Success -> {
                             val data = result.data.data
-                            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
-                            val today = LocalDate.now()
-                            val endDate = data?.endDate?.let { LocalDate.parse(it, formatter) }
-                            val startDate = data?.startDate?.let { LocalDate.parse(it, formatter) }
+                            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            val today = formatter.parse(formatter.format(Date()))
+
+                            val endDate = data?.endDate?.let {
+                                try {
+                                    formatter.parse(it)
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            }
+
+                            val startDate = data?.startDate?.let {
+                                try {
+                                    formatter.parse(it)
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            }
 
                             if (endDate != null && endDate >= today) {
                                 lifecycleScope.launch {

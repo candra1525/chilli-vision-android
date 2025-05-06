@@ -386,16 +386,18 @@ private fun HistoryCard(
                         ),
                     )
                     historyAnalysis.createdAt?.let {
-                        Text(
-                            modifier = Modifier,
-                            text = convertIsoToDateTime(it),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                textAlign = TextAlign.Start,
-                                fontSize = 10.sp,
-                                color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
-                                fontFamily = FontFamily(Font(R.font.quicksand_regular)),
-                            ),
-                        )
+                        convertIsoToDateTime(it)?.let { it1 ->
+                            Text(
+                                modifier = Modifier,
+                                text = it1,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    textAlign = TextAlign.Start,
+                                    fontSize = 10.sp,
+                                    color = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
+                                    fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                                ),
+                            )
+                        }
                     }
                 }
                 AsyncImage(

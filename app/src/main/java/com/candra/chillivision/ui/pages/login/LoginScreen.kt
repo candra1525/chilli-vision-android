@@ -72,8 +72,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -547,11 +545,25 @@ private fun checkSubscriptionInBackground(
                 when (result) {
                     is Result.Success -> {
                         val data = result.data.data
-                        val formatter =
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
-                        val today = LocalDate.now()
-                        val endDate = data?.endDate?.let { LocalDate.parse(it, formatter) }
-                        val startDate = data?.startDate?.let { LocalDate.parse(it, formatter) }
+                        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val today = formatter.parse(formatter.format(Date()))
+
+
+                        val endDate = data?.endDate?.let {
+                            try {
+                                formatter.parse(it)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+
+                        val startDate = data?.startDate?.let {
+                            try {
+                                formatter.parse(it)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
 
                         if (endDate != null && endDate >= today) {
                             // Langganan aktif

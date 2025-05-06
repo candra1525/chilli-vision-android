@@ -1,6 +1,7 @@
 package com.candra.chillivision.ui.pages.langganan.detail_active
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,10 +18,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,13 +49,15 @@ import com.candra.chillivision.component.HeaderComponent
 import com.candra.chillivision.component.TextBold
 import com.candra.chillivision.component.TextRegular
 import com.candra.chillivision.component.daysRemaining
-import com.candra.chillivision.component.konversiFormatTanggal
+import com.candra.chillivision.component.konversiFormatTanggal2
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
 import com.candra.chillivision.ui.theme.Red
 import com.candra.chillivision.ui.theme.White
+import com.candra.chillivision.ui.theme.WhiteSoft
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DetailActiveLanggananScreen(
@@ -68,15 +79,41 @@ fun DetailActiveLanggananScreen(
     urlImageTransaction: String
 ) {
     val scrollState = rememberScrollState()
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextBold(
+                        "Detail Langganan Aktif",
+                        colors = PrimaryGreen,
+                        sized = 18
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = PrimaryGreen
+                        )
+                    }
+                },
 
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        HeaderComponent("Detail Langganan Aktif", modifier, navController)
+                modifier = Modifier.shadow(1.dp), // Shadow manual
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft,
+                    scrolledContainerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+                )
+            )
+        },
+        containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
+    ) { innerPadding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .padding(innerPadding)
                 .imePadding()
         ) {
             Column(
@@ -123,7 +160,7 @@ fun DetailActiveLanggananScreen(
                             TextBold(
                                 text = when (statusTransaction) {
                                     "active" -> "\uD83D\uDFE2 Aktif hingga ${
-                                        konversiFormatTanggal(
+                                        konversiFormatTanggal2(
                                             endDate
                                         )
                                     }"
@@ -169,7 +206,7 @@ fun DetailActiveLanggananScreen(
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 TextRegular(
-                    text = "Tanggal Pembayaran Paket : " + konversiFormatTanggal(startDate),
+                    text = "Tanggal Pembayaran Paket : " + konversiFormatTanggal2(startDate),
                     sized = 16
                 )
                 Spacer(modifier = Modifier.padding(4.dp))
@@ -189,5 +226,4 @@ fun DetailActiveLanggananScreen(
             }
         }
     }
-//    }
 }

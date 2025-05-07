@@ -151,16 +151,27 @@ fun HomeScreen(
                 else -> null
             }
 
-            val countUsageAIFloat =
-                (countUsageAIPercentage?.div(maxCountUsageAI?.toFloat()!!)) ?: 0f
-            val countUsageDetectFloat =
-                (countUsageDetectPercentage?.div(maxCountUsageDetect?.toFloat()!!)) ?: 0f
+            val countUsageAIFloat = if (countUsageAIPercentage != null && maxCountUsageAI != null && maxCountUsageAI != 0) {
+                countUsageAIPercentage.toFloat() / maxCountUsageAI.toFloat() / 100f
+            } else {
+                0f
+            }
+
+            val countUsageDetectFloat = if (countUsageDetectPercentage != null && maxCountUsageDetect != null && maxCountUsageDetect != 0) {
+                countUsageDetectPercentage.toFloat() / maxCountUsageDetect.toFloat() / 100f
+            } else {
+                0f
+            }
+
 
             val start = userPreferences?.startDateSubscription ?: ""
             val end = userPreferences?.endDateSubscription ?: ""
-            val diffDaysFromNow = hitungHariMenujuTanggal(end)
+            val diffDaysFromNow = hitungHariMenujuTanggal(end) + 1.0f
             val totalDays = hitungSelisihHari(start, end)
             val dayPersentage = (diffDaysFromNow.toFloat() / totalDays.toFloat())
+
+            Log.d("Diff Days", "Diff Days: $diffDaysFromNow")
+            Log.d("Total Days", "Total Days: $totalDays")
             Log.d("Day Percentage", "Day Percentage: $dayPersentage")
 
             Column(
@@ -234,13 +245,14 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            Log.d("Count Usage AI", "Count Usage AI: $countUsageAIFloat")
                             Box(contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator(
                                     progress = countUsageAIFloat,
                                     trackColor = if (isDarkTheme) WhiteSoft else GraySoft,
                                     strokeWidth = 6.dp,
                                     modifier = Modifier.size(80.dp), 
-                                    color = if (countUsageAIFloat > 0.95f) Red else PrimaryGreen,
+                                    color = if (countUsageAIFloat > 0.9f) Red else PrimaryGreen,
                                 )
 
                                 Column(

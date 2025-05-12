@@ -16,10 +16,16 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
+//        buildConfigField(
+//            "String",
+//            "BASE_URL",
+//            "\"https://chilli-vision-laravel.vercel.app/api/api/\""
+//        )
+
         buildConfigField(
             "String",
             "BASE_URL",
-            "\"https://chilli-vision-laravel.vercel.app/api/api/\""
+            "\"https://chilli-vision.eastasia.cloudapp.azure.com/api/\""
         )
 
         buildConfigField(
@@ -34,11 +40,11 @@ android {
             "\"https://hq816h0p-5000.asse.devtunnels.ms/\""
         )
 
-        buildConfigField(
-            "String",
-            "BASE_URL_MODEL_NGROK",
-            "\"https://6899-114-10-99-66.ngrok-free.app/\""
-        )
+//        buildConfigField(
+//            "String",
+//            "BASE_URL_MODEL_NGROK",
+//            "\"https://6899-114-10-99-66.ngrok-free.app/\""
+//        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

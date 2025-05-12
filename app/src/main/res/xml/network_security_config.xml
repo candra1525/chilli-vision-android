@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">chilli-vision-laravel.vercel.app</domain>
+<!--        <domain includeSubdomains="true">chilli-vision-laravel.vercel.app</domain>-->
         <domain includeSubdomains="true">chilli-vision-chat-ai-api-vercel.vercel.app</domain>
+        <domain includeSubdomains="true">chilli-vision.eastasia.cloudapp.azure.com</domain>
         <trust-anchors>
             <certificates src="@raw/isrg_root_x1" />
             <certificates src="system" />

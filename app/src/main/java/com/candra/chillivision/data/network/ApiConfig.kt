@@ -1,6 +1,5 @@
 package com.candra.chillivision.data.network
 
-import android.util.Log
 import com.candra.chillivision.BuildConfig
 import com.candra.chillivision.data.preferences.UserPreferences
 import kotlinx.coroutines.flow.first
@@ -18,7 +17,6 @@ class ApiConfig {
         private const val BASE_URL = BuildConfig.BASE_URL
         private const val BASE_URL_CHAT_AI = BuildConfig.BASE_URL_CHAT_AI
         private const val BASE_URL_MODEL = BuildConfig.BASE_URL_MODEL
-        private const val BASE_URL_MODEL_NGROK = BuildConfig.BASE_URL_MODEL_NGROK
 
         private val retrofitInstances = ConcurrentHashMap<String, ApiService>()
 
@@ -74,7 +72,6 @@ class ApiConfig {
             val baseUrl = when (apiType) {
                 "chatAi" -> BASE_URL_CHAT_AI
                 "model" -> BASE_URL_MODEL
-                "modelNgrok" -> BASE_URL_MODEL_NGROK
                 else -> BASE_URL
             }
 

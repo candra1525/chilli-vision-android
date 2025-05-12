@@ -184,7 +184,7 @@ interface ApiService {
     ) : ChatResponse
 
     @Multipart
-    @POST("predict")
+    @POST("detect")
     suspend fun sendPredict(
         @Part file: MultipartBody.Part,
     ) : AnalisisResultResponse

@@ -446,7 +446,7 @@ fun DetectionItemView(index: Int, detection: DetectionsSummaryItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.gejala?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()
@@ -459,7 +459,7 @@ fun DetectionItemView(index: Int, detection: DetectionsSummaryItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.penyebab?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()
@@ -477,7 +477,7 @@ fun DetectionItemView(index: Int, detection: DetectionsSummaryItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.tindakanPencegahan?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()
@@ -490,7 +490,7 @@ fun DetectionItemView(index: Int, detection: DetectionsSummaryItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.sumber?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()

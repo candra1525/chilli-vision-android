@@ -14,7 +14,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "2.0.0"
 
 //        buildConfigField(
 //            "String",
@@ -37,8 +37,14 @@ android {
         buildConfigField(
             "String",
             "BASE_URL_MODEL",
-            "\"https://hq816h0p-5000.asse.devtunnels.ms/\""
+            "\"d    \""
         )
+
+//        buildConfigField(
+//            "String",
+//            "BASE_URL_MODEL",
+//            "\"https://hq816h0p-5000.asse.devtunnels.ms/\""
+//        )
 
 //        buildConfigField(
 //            "String",

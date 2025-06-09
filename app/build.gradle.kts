@@ -14,7 +14,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "2.0.0"
+        versionName = "2.0.2"
 
 //        buildConfigField(
 //            "String",
@@ -37,7 +37,7 @@ android {
         buildConfigField(
             "String",
             "BASE_URL_MODEL",
-            "\"d    \""
+            "\"https://modelchillivision.eastus.cloudapp.azure.com/\""
         )
 
 //        buildConfigField(

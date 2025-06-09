@@ -262,7 +262,7 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         TextBold(
-                            text = "Versi 1.0.0",
+                            text = "Versi 2.0.2",
                             colors = if (isSystemInDarkTheme()) WhiteSoft else BlackMode,
                             sized = 12,
                             textAlign = TextAlign.Center

@@ -361,7 +361,7 @@ fun DetectionItemView(index: Int, info: HistoryDetailItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.symptom?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()
@@ -374,7 +374,7 @@ fun DetectionItemView(index: Int, info: HistoryDetailItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.reason?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()
@@ -392,7 +392,7 @@ fun DetectionItemView(index: Int, info: HistoryDetailItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.preventiveMeasure?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()
@@ -405,7 +405,7 @@ fun DetectionItemView(index: Int, info: HistoryDetailItem?) {
     Spacer(modifier = Modifier.padding(4.dp))
     info?.source?.let {
         TextRegular(
-            text = it,
+            text = it.replace("\\n", "\n"), // ubah \n menjadi baris baru
             sized = 16,
             textAlign = TextAlign.Justify,
             modifier = Modifier.fillMaxWidth()

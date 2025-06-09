@@ -112,33 +112,6 @@ fun HomeScreen(
         }
 
         else -> {
-
-            Log.d("User Pref", "User Pref: ${userPreferences}")
-
-            val countUsageAIPercentage: Int? =
-                userPreferences?.countUsageAI?.toIntOrNull()?.let { usage ->
-                    val maxUsage = when (userPreferences?.subscriptionName) {
-                        "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_AI_REGULAR
-                        "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
-                        else -> null
-                    }
-
-                    maxUsage?.let { ((usage.toFloat() / it) * 100).roundToInt() }
-                }
-
-
-            val countUsageDetectPercentage: Int? =
-                userPreferences?.countUsageDetect?.toIntOrNull()?.let { usage ->
-                    val maxUsage = when (userPreferences?.subscriptionName) {
-                        "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR
-                        "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM
-                        else -> null
-                    }
-
-                    maxUsage?.let { ((usage.toFloat() / it) * 100).roundToInt() }
-                }
-
-
             val maxCountUsageAI = when (userPreferences?.subscriptionName) {
                 "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_AI_REGULAR
                 "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
@@ -151,28 +124,33 @@ fun HomeScreen(
                 else -> null
             }
 
-            val countUsageAIFloat = if (countUsageAIPercentage != null && maxCountUsageAI != null && maxCountUsageAI != 0) {
-                countUsageAIPercentage.toFloat() / maxCountUsageAI.toFloat() / 100f
-            } else {
-                0f
-            }
+            val countUsageAIFloat = userPreferences?.countUsageAI?.toIntOrNull()?.let { usage ->
+                val max = when (userPreferences?.subscriptionName) {
+                    "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_AI_REGULAR
+                    "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
+                    else -> null
+                }
+                if (max != null && max != 0) usage.toFloat() / max else 0f
+            } ?: 0f
 
-            val countUsageDetectFloat = if (countUsageDetectPercentage != null && maxCountUsageDetect != null && maxCountUsageDetect != 0) {
-                countUsageDetectPercentage.toFloat() / maxCountUsageDetect.toFloat() / 100f
-            } else {
-                0f
-            }
+            val countUsageDetectFloat = userPreferences?.countUsageDetect?.toIntOrNull()?.let { usage ->
+                val max = when (userPreferences?.subscriptionName) {
+                    "Paket Reguler" -> SUBSCRIPTION_MAX_USAGE_DETECT_REGULAR
+                    "Paket Premium" -> SUBSCRIPTION_MAX_USAGE_DETECT_PREMIUM
+                    else -> null
+                }
+                if (max != null && max != 0) usage.toFloat() / max else 0f
+            } ?: 0f
 
+
+            val countUsageAIPercentage = (countUsageAIFloat * 100).roundToInt()
+            val countUsageDetectPercentage = (countUsageDetectFloat * 100).roundToInt()
 
             val start = userPreferences?.startDateSubscription ?: ""
             val end = userPreferences?.endDateSubscription ?: ""
             val diffDaysFromNow = hitungHariMenujuTanggal(end) + 1.0f
             val totalDays = hitungSelisihHari(start, end)
             val dayPersentage = (diffDaysFromNow.toFloat() / totalDays.toFloat())
-
-            Log.d("Diff Days", "Diff Days: $diffDaysFromNow")
-            Log.d("Total Days", "Total Days: $totalDays")
-            Log.d("Day Percentage", "Day Percentage: $dayPersentage")
 
             Column(
                 modifier = modifier
@@ -220,7 +198,7 @@ fun HomeScreen(
                                     trackColor = if (isDarkTheme) WhiteSoft else GraySoft,
                                     strokeWidth = 6.dp,
                                     modifier = Modifier.size(80.dp),
-                                    color = if (countUsageAIFloat > 0.95f) Red else PrimaryGreen,
+                                    color = if (countUsageDetectFloat > 0.95f) Red else PrimaryGreen,
                                 )
 
                                 Column(
@@ -245,7 +223,6 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Log.d("Count Usage AI", "Count Usage AI: $countUsageAIFloat")
                             Box(contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator(
                                     progress = countUsageAIFloat,

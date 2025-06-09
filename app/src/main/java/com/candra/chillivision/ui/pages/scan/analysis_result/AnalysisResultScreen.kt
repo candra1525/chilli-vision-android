@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +54,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.candra.chillivision.R
 import com.candra.chillivision.component.Disclaimer
+import com.candra.chillivision.component.ImageNotFound
 import com.candra.chillivision.component.Loading
 import com.candra.chillivision.component.MenuScan
 import com.candra.chillivision.component.SweetAlertComponent
@@ -62,15 +64,12 @@ import com.candra.chillivision.component.createImageUri
 import com.candra.chillivision.component.handleCameraPermission
 import com.candra.chillivision.data.common.Result
 import com.candra.chillivision.data.response.analysisResult.AnalisisResultResponse
-import com.candra.chillivision.data.response.analysisResult.DetectionsItem
 import com.candra.chillivision.data.response.analysisResult.DetectionsSummaryItem
 import com.candra.chillivision.data.response.historyAnalysis.CreateHistoryRequest
 import com.candra.chillivision.data.response.historyAnalysis.HistoryDetail
 import com.candra.chillivision.data.vmf.ViewModelFactory
 import com.candra.chillivision.service.MAX_SAVE_HISTORY_PREMIUM
 import com.candra.chillivision.service.MAX_SAVE_HISTORY_REGULAR
-import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_PREMIUM
-import com.candra.chillivision.service.SUBSCRIPTION_MAX_USAGE_AI_REGULAR
 import com.candra.chillivision.ui.navigation.Screen
 import com.candra.chillivision.ui.theme.BlackMode
 import com.candra.chillivision.ui.theme.PrimaryGreen
@@ -141,29 +140,19 @@ fun AnalysisResultScreen(
         }
     }
 
-
-//    val permissionLauncher = rememberLauncherForActivityResult(
-//        ActivityResultContracts.RequestPermission()
-//    ) { isGranted ->
-//        if (isGranted) {
-//            Toast.makeText(context, "Izin Kamera Diberikan", Toast.LENGTH_SHORT).show()
-//            capturedImageUri?.let { cameraLauncher.launch(it) }
-//        } else {
-//            Toast.makeText(context, "Izin Kamera Ditolak", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val cameraGranted = permissions[Manifest.permission.CAMERA] == true
-        val storageGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        val storageGranted =
+            permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
         if (cameraGranted && storageGranted) {
             val uri = createImageUri(context)
             capturedImageUri = uri
             cameraLauncher.launch(uri)
         } else {
-            Toast.makeText(context, "Izin kamera atau penyimpanan ditolak", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Izin kamera atau penyimpanan ditolak", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -210,69 +199,93 @@ fun AnalysisResultScreen(
             },
             containerColor = if (isSystemInDarkTheme()) BlackMode else WhiteSoft
         ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(innerPadding)
-                    .padding(16.dp)
-            ) {
+            if (result.uniqueNameDisease.isNullOrEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)
-                        .imePadding()
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Component Disclaimer
-                        Disclaimer()
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-
-                        // Gambar analisis
-                        result.imageUrl?.let { ImageAnalysis(linkImage = it) }
-
-                        Spacer(modifier = Modifier.padding(8.dp))
+                        ImageNotFound(modifier = Modifier.size(200.dp))
                         TextBold(
-                            text = "Hasil Analisis Deteksi",
-                            colors = PrimaryGreen,
-                            sized = 18,
-                            textAlign = TextAlign.Start
+                            text = "Mohon maaf, tidak ada hasil analisis yang ditemukan.",
+                            sized = 14,
+                            textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        result.uniqueNameDisease?.let {
-                            TextRegular(
-                                text = it,
-                                sized = 16,
-                                textAlign = TextAlign.Justify,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        // Waktu deteksi global (jika ada)
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        TextBold(
-                            text = "Waktu Deteksi",
-                            colors = PrimaryGreen,
-                            sized = 18,
-                            textAlign = TextAlign.Start
+                        TextRegular(
+                            text = "Silahkan coba lagi dengan gambar yang berbeda.",
+                            sized = 14,
+                            textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        result.detectionTime?.let {
-                            TextRegular(
-                                text = it,
-                                sized = 16,
-                                textAlign = TextAlign.Justify,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(innerPadding)
+                        .padding(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                            .imePadding()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            // Component Disclaimer
+                            Disclaimer()
+                            Spacer(modifier = Modifier.padding(8.dp))
 
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        // Loop hasil deteksi penyakit
-                        result.detectionsSummary?.forEachIndexed { index, detection ->
-                            DetectionItemView(index = index, detection = detection)
+
+                            // Gambar analisis
+                            result.imageUrl?.let { ImageAnalysis(linkImage = it) }
+
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            TextBold(
+                                text = "Hasil Analisis Deteksi",
+                                colors = PrimaryGreen,
+                                sized = 18,
+                                textAlign = TextAlign.Start
+                            )
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            result.uniqueNameDisease?.let {
+                                TextRegular(
+                                    text = it,
+                                    sized = 16,
+                                    textAlign = TextAlign.Justify,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+
+                            // Waktu deteksi global (jika ada)
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            TextBold(
+                                text = "Waktu Deteksi",
+                                colors = PrimaryGreen,
+                                sized = 18,
+                                textAlign = TextAlign.Start
+                            )
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            result.detectionTime?.let {
+                                TextRegular(
+                                    text = it,
+                                    sized = 16,
+                                    textAlign = TextAlign.Justify,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            // Loop hasil deteksi penyakit
+                            result.detectionsSummary?.forEachIndexed { index, detection ->
+                                DetectionItemView(index = index, detection = detection)
+                            }
                         }
                     }
                 }
@@ -286,7 +299,11 @@ fun AnalysisResultScreen(
                 },
                 sheetState = sheetState
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
                     // Memberikan weight agar setiap MenuScan memiliki 50% lebar
                     MenuScan(
                         isDarkTheme = isSystemInDarkTheme(),
@@ -297,7 +314,12 @@ fun AnalysisResultScreen(
                         onClick = {
                             val newUri = createImageUri(context)
                             capturedImageUri = newUri
-                            handleCameraPermission(context, permissionLauncher, cameraLauncher, newUri)
+                            handleCameraPermission(
+                                context,
+                                permissionLauncher,
+                                cameraLauncher,
+                                newUri
+                            )
                         }
                     )
 
@@ -325,7 +347,8 @@ fun AnalysisResultScreen(
                         onClick = {
                             when (userPreferences?.subscriptionName) {
                                 "Gratis" -> {
-                                    SweetAlertComponent(context = context,
+                                    SweetAlertComponent(
+                                        context = context,
                                         title = "Peringatan!",
                                         contentText = "Saat ini anda menggunakan paket gratis 🥲, silahkan upgrade ke paket berbayar untuk menggunakan layanan ini 😉",
                                         type = "warning",
@@ -333,9 +356,11 @@ fun AnalysisResultScreen(
                                     )
                                     return@MenuScan
                                 }
+
                                 "Paket Reguler" -> {
                                     if (countHistoryUser > MAX_SAVE_HISTORY_REGULAR) {
-                                        SweetAlertComponent(context = context,
+                                        SweetAlertComponent(
+                                            context = context,
                                             title = "Peringatan!",
                                             contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_REGULAR}x tanya AI, silahkan upgrade ke paket lebih tinggi atau hapus riwayat yang tidak diperlukan dahulu 😉",
                                             type = "warning",
@@ -344,9 +369,11 @@ fun AnalysisResultScreen(
                                         return@MenuScan
                                     }
                                 }
+
                                 "Paket Premium" -> {
                                     if (countHistoryUser > MAX_SAVE_HISTORY_PREMIUM) {
-                                        SweetAlertComponent(context = context,
+                                        SweetAlertComponent(
+                                            context = context,
                                             title = "Peringatan!",
                                             contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_PREMIUM}x , silahkan hapus riwayat yang tidak diperlukan dahulu 😉",
                                             type = "warning",

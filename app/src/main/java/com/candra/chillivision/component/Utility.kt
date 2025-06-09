@@ -660,7 +660,7 @@ fun MenuScan(
                 .padding(16.dp)
                 .size(35.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Column(
             modifier = Modifier
                 .fillMaxWidth()

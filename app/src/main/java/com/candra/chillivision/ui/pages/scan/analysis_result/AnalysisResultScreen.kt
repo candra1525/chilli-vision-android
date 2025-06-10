@@ -338,104 +338,106 @@ fun AnalysisResultScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))  // Jarak antar menu
 
-                    MenuScan(
-                        isDarkTheme = isSystemInDarkTheme(),
-                        icon = R.drawable.save,
-                        title = "Simpan Gambar",
-                        desc = "Gambar akan disimpan pada riwayat anda.",
-                        modifier = Modifier.fillMaxWidth(),  // Memberikan 50% lebar
-                        onClick = {
-                            when (userPreferences?.subscriptionName) {
-                                "Gratis" -> {
-                                    SweetAlertComponent(
-                                        context = context,
-                                        title = "Peringatan!",
-                                        contentText = "Saat ini anda menggunakan paket gratis 🥲, silahkan upgrade ke paket berbayar untuk menggunakan layanan ini 😉",
-                                        type = "warning",
-                                        isCancel = true,
+                    if (!result.uniqueNameDisease.isNullOrEmpty()) {
+                        MenuScan(
+                            isDarkTheme = isSystemInDarkTheme(),
+                            icon = R.drawable.save,
+                            title = "Simpan Gambar",
+                            desc = "Gambar akan disimpan pada riwayat anda.",
+                            modifier = Modifier.fillMaxWidth(),  // Memberikan 50% lebar
+                            onClick = {
+                                when (userPreferences?.subscriptionName) {
+                                    "Gratis" -> {
+                                        SweetAlertComponent(
+                                            context = context,
+                                            title = "Peringatan!",
+                                            contentText = "Saat ini anda menggunakan paket gratis 🥲, silahkan upgrade ke paket berbayar untuk menggunakan layanan ini 😉",
+                                            type = "warning",
+                                            isCancel = true,
+                                        )
+                                        return@MenuScan
+                                    }
+
+                                    "Paket Reguler" -> {
+                                        if (countHistoryUser > MAX_SAVE_HISTORY_REGULAR) {
+                                            SweetAlertComponent(
+                                                context = context,
+                                                title = "Peringatan!",
+                                                contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_REGULAR}x tanya AI, silahkan upgrade ke paket lebih tinggi atau hapus riwayat yang tidak diperlukan dahulu 😉",
+                                                type = "warning",
+                                                isCancel = true,
+                                            )
+                                            return@MenuScan
+                                        }
+                                    }
+
+                                    "Paket Premium" -> {
+                                        if (countHistoryUser > MAX_SAVE_HISTORY_PREMIUM) {
+                                            SweetAlertComponent(
+                                                context = context,
+                                                title = "Peringatan!",
+                                                contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_PREMIUM}x , silahkan hapus riwayat yang tidak diperlukan dahulu 😉",
+                                                type = "warning",
+                                                isCancel = true,
+                                            )
+                                            return@MenuScan
+                                        }
+                                    }
+                                }
+
+                                viewModel.createHistory(
+                                    request = CreateHistoryRequest(
+                                        image = result.imageUrl ?: "",
+                                        detection_time = result.detectionTime ?: "",
+                                        user_id = userId ?: "",
+                                        unique_name_disease = result.uniqueNameDisease ?: "",
+                                        history_details = result.detectionsSummary?.map { detection ->
+                                            HistoryDetail(
+                                                name_disease = detection?.diseaseInfo?.namaPenyakit
+                                                    ?: "",
+                                                another_name_disease = detection?.diseaseInfo?.namaLain
+                                                    ?: "",
+                                                symptom = detection?.diseaseInfo?.gejala ?: "",
+                                                reason = detection?.diseaseInfo?.penyebab ?: "",
+                                                preventive_meansure = detection?.diseaseInfo?.tindakanPencegahan
+                                                    ?: "",
+                                                source = detection?.diseaseInfo?.sumber ?: ""
+                                            )
+                                        } ?: emptyList()
                                     )
-                                    return@MenuScan
-                                }
+                                ).observe(context as LifecycleOwner) { result ->
+                                    when (result) {
+                                        is Result.Loading -> {
+                                            isLoading = true
+                                        }
 
-                                "Paket Reguler" -> {
-                                    if (countHistoryUser > MAX_SAVE_HISTORY_REGULAR) {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Peringatan!",
-                                            contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_REGULAR}x tanya AI, silahkan upgrade ke paket lebih tinggi atau hapus riwayat yang tidak diperlukan dahulu 😉",
-                                            type = "warning",
-                                            isCancel = true,
-                                        )
-                                        return@MenuScan
-                                    }
-                                }
+                                        is Result.Success -> {
+                                            SweetAlertComponent(
+                                                context = context,
+                                                title = "Berhasil",
+                                                contentText = "Hasil analisis berhasil disimpan pada riwayat",
+                                                type = "success",
+                                                confirmYes = { }
+                                            )
+                                            isLoading = false
+                                            showBottomSheet = false
+                                        }
 
-                                "Paket Premium" -> {
-                                    if (countHistoryUser > MAX_SAVE_HISTORY_PREMIUM) {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Peringatan!",
-                                            contentText = "Saat ini anda sudah mencapai batas penggunaan maksimal penyimpanan yaitu ${MAX_SAVE_HISTORY_PREMIUM}x , silahkan hapus riwayat yang tidak diperlukan dahulu 😉",
-                                            type = "warning",
-                                            isCancel = true,
-                                        )
-                                        return@MenuScan
-                                    }
-                                }
-                            }
-
-                            viewModel.createHistory(
-                                request = CreateHistoryRequest(
-                                    image = result.imageUrl ?: "",
-                                    detection_time = result.detectionTime ?: "",
-                                    user_id = userId ?: "",
-                                    unique_name_disease = result.uniqueNameDisease ?: "",
-                                    history_details = result.detectionsSummary?.map { detection ->
-                                        HistoryDetail(
-                                            name_disease = detection?.diseaseInfo?.namaPenyakit
-                                                ?: "",
-                                            another_name_disease = detection?.diseaseInfo?.namaLain
-                                                ?: "",
-                                            symptom = detection?.diseaseInfo?.gejala ?: "",
-                                            reason = detection?.diseaseInfo?.penyebab ?: "",
-                                            preventive_meansure = detection?.diseaseInfo?.tindakanPencegahan
-                                                ?: "",
-                                            source = detection?.diseaseInfo?.sumber ?: ""
-                                        )
-                                    } ?: emptyList()
-                                )
-                            ).observe(context as LifecycleOwner) { result ->
-                                when (result) {
-                                    is Result.Loading -> {
-                                        isLoading = true
-                                    }
-
-                                    is Result.Success -> {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Berhasil",
-                                            contentText = "Hasil analisis berhasil disimpan pada riwayat",
-                                            type = "success",
-                                            confirmYes = { }
-                                        )
-                                        isLoading = false
-                                        showBottomSheet = false
-                                    }
-
-                                    is Result.Error -> {
-                                        SweetAlertComponent(
-                                            context = context,
-                                            title = "Gagal",
-                                            contentText = result.errorMessage,
-                                            type = "error",
-                                            confirmYes = { }
-                                        )
-                                        isLoading = false
+                                        is Result.Error -> {
+                                            SweetAlertComponent(
+                                                context = context,
+                                                title = "Gagal",
+                                                contentText = result.errorMessage,
+                                                type = "error",
+                                                confirmYes = { }
+                                            )
+                                            isLoading = false
+                                        }
                                     }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }

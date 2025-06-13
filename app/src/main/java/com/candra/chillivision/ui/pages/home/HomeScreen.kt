@@ -597,7 +597,7 @@ private fun VideoTutorial(isDarkTheme: Boolean, context: Context) {
             icon = R.drawable.video_tutorial,
             isDarkTheme = isDarkTheme,
             context = context,
-            link = "https://www.youtube.com/watch?v=95MGH9eWzsw"
+            link = "https://youtu.be/f446E-6fUk0"
         )
         MenuVideoTutorial(
             title = "Penggunaan Chilli AI",
